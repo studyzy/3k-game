@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://cxecyuqr3cf28"
+
+[deps]
+
+files=["res://data/Map/37.3.translation", "res://data/Map/37.3.translation", "res://data/Map/37.3.translation", "res://data/Map/37.4.translation", "res://data/Map/37.4.translation", "res://data/Map/37.11.translation", "res://data/Map/37.4.translation", "res://data/Map/37.3.translation", "res://data/Map/37.3.translation", "res://data/Map/37.9.translation", "res://data/Map/37.9.translation", "res://data/Map/37.3.translation", "res://data/Map/37.4.translation", "res://data/Map/37.12.translation", "res://data/Map/37.3.translation", "res://data/Map/37.11.translation", "res://data/Map/37.3.translation", "res://data/Map/37.12.translation", "res://data/Map/37.4.translation", "res://data/Map/37.10.translation", "res://data/Map/37.3.translation", "res://data/Map/37.4.translation", "res://data/Map/37.3.translation", "res://data/Map/37.9.translation", "res://data/Map/37.9.translation", "res://data/Map/37.3.translation", "res://data/Map/37.3.translation", "res://data/Map/37.3.translation", "res://data/Map/37.4.translation", "res://data/Map/37.3.translation", "res://data/Map/37.3.translation"]
+
+source_file="res://data/Map/37.CSV"
+dest_files=["res://data/Map/37.3.translation", "res://data/Map/37.3.translation", "res://data/Map/37.3.translation", "res://data/Map/37.4.translation", "res://data/Map/37.4.translation", "res://data/Map/37.11.translation", "res://data/Map/37.4.translation", "res://data/Map/37.3.translation", "res://data/Map/37.3.translation", "res://data/Map/37.9.translation", "res://data/Map/37.9.translation", "res://data/Map/37.3.translation", "res://data/Map/37.4.translation", "res://data/Map/37.12.translation", "res://data/Map/37.3.translation", "res://data/Map/37.11.translation", "res://data/Map/37.3.translation", "res://data/Map/37.12.translation", "res://data/Map/37.4.translation", "res://data/Map/37.10.translation", "res://data/Map/37.3.translation", "res://data/Map/37.4.translation", "res://data/Map/37.3.translation", "res://data/Map/37.9.translation", "res://data/Map/37.9.translation", "res://data/Map/37.3.translation", "res://data/Map/37.3.translation", "res://data/Map/37.3.translation", "res://data/Map/37.4.translation", "res://data/Map/37.3.translation", "res://data/Map/37.3.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

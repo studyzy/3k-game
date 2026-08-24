@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://o016oly2rdbx"
+
+[deps]
+
+files=["res://data/Map/32.12.translation", "res://data/Map/32.12.translation", "res://data/Map/32.1.translation", "res://data/Map/32.1.translation", "res://data/Map/32.4.translation", "res://data/Map/32.12.translation", "res://data/Map/32.3.translation", "res://data/Map/32.3.translation", "res://data/Map/32.4.translation", "res://data/Map/32.11.translation", "res://data/Map/32.4.translation", "res://data/Map/32.3.translation", "res://data/Map/32.3.translation", "res://data/Map/32.3.translation", "res://data/Map/32.4.translation", "res://data/Map/32.12.translation", "res://data/Map/32.12.translation", "res://data/Map/32.12.translation", "res://data/Map/32.12.translation", "res://data/Map/32.12.translation", "res://data/Map/32.12.translation", "res://data/Map/32.4.translation", "res://data/Map/32.3.translation", "res://data/Map/32.3.translation", "res://data/Map/32.12.translation", "res://data/Map/32.3.translation", "res://data/Map/32.3.translation", "res://data/Map/32.3.translation", "res://data/Map/32.4.translation", "res://data/Map/32.11.translation", "res://data/Map/32.3.translation"]
+
+source_file="res://data/Map/32.CSV"
+dest_files=["res://data/Map/32.12.translation", "res://data/Map/32.12.translation", "res://data/Map/32.1.translation", "res://data/Map/32.1.translation", "res://data/Map/32.4.translation", "res://data/Map/32.12.translation", "res://data/Map/32.3.translation", "res://data/Map/32.3.translation", "res://data/Map/32.4.translation", "res://data/Map/32.11.translation", "res://data/Map/32.4.translation", "res://data/Map/32.3.translation", "res://data/Map/32.3.translation", "res://data/Map/32.3.translation", "res://data/Map/32.4.translation", "res://data/Map/32.12.translation", "res://data/Map/32.12.translation", "res://data/Map/32.12.translation", "res://data/Map/32.12.translation", "res://data/Map/32.12.translation", "res://data/Map/32.12.translation", "res://data/Map/32.4.translation", "res://data/Map/32.3.translation", "res://data/Map/32.3.translation", "res://data/Map/32.12.translation", "res://data/Map/32.3.translation", "res://data/Map/32.3.translation", "res://data/Map/32.3.translation", "res://data/Map/32.4.translation", "res://data/Map/32.11.translation", "res://data/Map/32.3.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

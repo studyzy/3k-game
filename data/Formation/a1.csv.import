@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bl374iehjuons"
+
+[deps]
+
+files=["res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.1.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation"]
+
+source_file="res://data/Formation/a1.csv"
+dest_files=["res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.1.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation", "res://data/Formation/a1.255.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

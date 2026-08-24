@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://rbnqipub14pn"
+
+[deps]
+
+files=["res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.4.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.2.translation", "res://data/Formation/ac.1.translation"]
+
+source_file="res://data/Formation/ac.csv"
+dest_files=["res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.4.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.1.translation", "res://data/Formation/ac.2.translation", "res://data/Formation/ac.1.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

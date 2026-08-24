@@ -1,0 +1,47 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+
+config_version=5
+
+[application]
+
+config/name="霸王的大陆Godot移植版"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[autoload]
+
+TextLibrary="*res://scripts/data/text_library.gd"
+GameInfo="*res://scripts/data/game_info.gd"
+WeaponListCache="*res://scripts/cache/weapon_list_cache.gd"
+CityListCache="*res://scripts/cache/city_list_cache.gd"
+CountryListCache="*res://scripts/cache/country_list_cache.gd"
+GeneralListCache="*res://scripts/cache/general_list_cache.gd"
+DataManager="*res://scripts/data/data_manager.gd"
+SceneRouter="*res://scripts/scene_router.gd"
+MapManager="*res://scripts/war/map_manager.gd"
+WarManager="*res://scripts/war/war_manager.gd"
+BattleManager="*res://scripts/battle/battle_manager.gd"
+TurnManager="*res://scripts/turn_manager.gd"
+SoloManager="*res://scripts/solo_manager.gd"
+UITips="*res://scripts/ui/uitips.gd"
+GameLogger="*res://scripts/game_logger.gd"
+SoundManager="*res://scripts/sound_manager.gd"
+
+[gui]
+
+theme/custom="res://assets/theme.tres"
+
+[rendering]
+
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)

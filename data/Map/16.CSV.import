@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://eaqcofahll6y"
+
+[deps]
+
+files=["res://data/Map/16.3.translation", "res://data/Map/16.3.translation", "res://data/Map/16.3.translation", "res://data/Map/16.3.translation", "res://data/Map/16.3.translation", "res://data/Map/16.3.translation", "res://data/Map/16.21.translation", "res://data/Map/16.3.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.4.translation", "res://data/Map/16.4.translation", "res://data/Map/16.4.translation", "res://data/Map/16.4.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.4.translation", "res://data/Map/16.4.translation", "res://data/Map/16.12.translation", "res://data/Map/16.16.translation", "res://data/Map/16.16.translation", "res://data/Map/16.16.translation", "res://data/Map/16.16.translation", "res://data/Map/16.16.translation", "res://data/Map/16.16.translation", "res://data/Map/16.16.translation"]
+
+source_file="res://data/Map/16.CSV"
+dest_files=["res://data/Map/16.3.translation", "res://data/Map/16.3.translation", "res://data/Map/16.3.translation", "res://data/Map/16.3.translation", "res://data/Map/16.3.translation", "res://data/Map/16.3.translation", "res://data/Map/16.21.translation", "res://data/Map/16.3.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.4.translation", "res://data/Map/16.4.translation", "res://data/Map/16.4.translation", "res://data/Map/16.4.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.12.translation", "res://data/Map/16.4.translation", "res://data/Map/16.4.translation", "res://data/Map/16.12.translation", "res://data/Map/16.16.translation", "res://data/Map/16.16.translation", "res://data/Map/16.16.translation", "res://data/Map/16.16.translation", "res://data/Map/16.16.translation", "res://data/Map/16.16.translation", "res://data/Map/16.16.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://d3gdga53cca0t"
+
+[deps]
+
+files=["res://data/Map/42.12.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.4.translation", "res://data/Map/42.11.translation", "res://data/Map/42.11.translation", "res://data/Map/42.4.translation", "res://data/Map/42.4.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.21.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.21.translation", "res://data/Map/42.3.translation", "res://data/Map/42.12.translation", "res://data/Map/42.12.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation"]
+
+source_file="res://data/Map/42.CSV"
+dest_files=["res://data/Map/42.12.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.4.translation", "res://data/Map/42.11.translation", "res://data/Map/42.11.translation", "res://data/Map/42.4.translation", "res://data/Map/42.4.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.21.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.21.translation", "res://data/Map/42.3.translation", "res://data/Map/42.12.translation", "res://data/Map/42.12.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation", "res://data/Map/42.3.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

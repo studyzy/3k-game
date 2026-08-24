@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://gru50ivo4ih6"
+
+[deps]
+
+files=["res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.11.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.10.translation", "res://data/Map/30.4.translation", "res://data/Map/30.4.translation", "res://data/Map/30.12.translation", "res://data/Map/30.12.translation", "res://data/Map/30.12.translation", "res://data/Map/30.12.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.4.translation", "res://data/Map/30.10.translation", "res://data/Map/30.4.translation", "res://data/Map/30.3.translation", "res://data/Map/30.12.translation", "res://data/Map/30.9.translation", "res://data/Map/30.12.translation", "res://data/Map/30.12.translation", "res://data/Map/30.3.translation", "res://data/Map/30.4.translation", "res://data/Map/30.12.translation", "res://data/Map/30.12.translation"]
+
+source_file="res://data/Map/30.CSV"
+dest_files=["res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.11.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.10.translation", "res://data/Map/30.4.translation", "res://data/Map/30.4.translation", "res://data/Map/30.12.translation", "res://data/Map/30.12.translation", "res://data/Map/30.12.translation", "res://data/Map/30.12.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.3.translation", "res://data/Map/30.4.translation", "res://data/Map/30.10.translation", "res://data/Map/30.4.translation", "res://data/Map/30.3.translation", "res://data/Map/30.12.translation", "res://data/Map/30.9.translation", "res://data/Map/30.12.translation", "res://data/Map/30.12.translation", "res://data/Map/30.3.translation", "res://data/Map/30.4.translation", "res://data/Map/30.12.translation", "res://data/Map/30.12.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

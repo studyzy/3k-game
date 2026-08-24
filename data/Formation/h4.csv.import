@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://dq5c3mapk5p8d"
+
+[deps]
+
+files=["res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.3.translation", "res://data/Formation/h4.1.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation"]
+
+source_file="res://data/Formation/h4.csv"
+dest_files=["res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.3.translation", "res://data/Formation/h4.1.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation", "res://data/Formation/h4.255.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true
