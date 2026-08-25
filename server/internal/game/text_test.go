@@ -8,7 +8,7 @@ import (
 
 // TestNewTexts 验证文案表结构
 func TestNewTexts(t *testing.T) {
-	texts := NewTexts()
+	texts := newTestTexts(t)
 	if len(texts.SkillNames) != 50 {
 		t.Errorf("SkillNames 应为50项，实际 %d", len(texts.SkillNames))
 	}
@@ -30,7 +30,7 @@ func TestNewTexts(t *testing.T) {
 
 // TestSearchResultTexts 验证搜索结果文案
 func TestSearchResultTexts(t *testing.T) {
-	texts := NewTexts()
+	texts := newTestTexts(t)
 	results := texts.SearchResultTexts()
 	if len(results) == 0 {
 		t.Fatal("搜索结果文案不应为空")

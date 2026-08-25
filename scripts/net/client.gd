@@ -9,6 +9,8 @@ signal auth_done(player_id, token)
 signal new_game_done(snapshot)
 signal load_game_done(save_id)
 signal server_push(op, body)   # 通用服务器推送（opcode + body）
+signal static_done             # 静态渲染数据拉取完成
+signal static_failed(msg)      # 静态渲染数据拉取失败
 
 ## 服务器地址。默认连本机 8080；可用环境变量覆盖（测试时指向 mock server）。
 var server_url := "http://127.0.0.1:8080"
@@ -95,6 +97,34 @@ func _on_login_done(result: int, code: int, _headers: PackedStringArray, body: P
 		auth_done.emit(_player_id, _token)
 		# 自动创建新局并连接 WS
 		create_game()
+
+
+## 拉取静态渲染数据（GET /game/static），成功后填充 DataManager/TextLibrary。
+## 服务器是唯一数据源，客户端不再读本地 data/*.json / Map / Formation。
+func fetch_static() -> void:
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(_on_static_done.bind(http))
+	http.request(server_url + "/game/static", [], HTTPClient.METHOD_GET)
+
+
+func _on_static_done(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray, http: HTTPRequest) -> void:
+	http.queue_free()
+	if code != 200:
+		static_failed.emit("拉取静态数据失败: HTTP %d" % code)
+		return
+	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+	if not parsed is Dictionary:
+		static_failed.emit("静态数据解析失败")
+		return
+	var d: Dictionary = parsed
+	var sdata: Variant = d.get("data", {})
+	if not sdata is Dictionary:
+		static_failed.emit("静态数据缺少 data 字段")
+		return
+	DataManager.apply_static(sdata)
+	TextLibrary.apply_texts(sdata.get("texts", {}))
+	static_done.emit()
 
 
 ## 创建新局（HTTP），成功后返回 snapshot

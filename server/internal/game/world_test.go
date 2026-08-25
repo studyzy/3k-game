@@ -8,40 +8,52 @@ import (
 	"3k-server/internal/game/entities"
 )
 
-// dataDirForTest 定位测试数据目录（从 server/data 读取）
-func dataDirForTest(t *testing.T) string {
-	// go test 在包目录运行，需向上定位到 server/data
-	candidates := []string{
-		"../data",
-		"../../data",
-		"data",
-		"../../../../data",
+// loadSeedFile 读取种子 JSON 物理文件（测试 fixture，与 static 内嵌种子同源）。
+func loadSeedFile(t *testing.T, name string) []byte {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join("..", "static", "seed_data", name))
+	if err != nil {
+		t.Fatalf("读取种子数据 %s 失败: %v", name, err)
 	}
-	for _, c := range candidates {
-		p := filepath.Join(c, "GeneralData.json")
-		if _, err := os.Stat(p); err == nil {
-			abs, _ := filepath.Abs(c)
-			return abs
-		}
-	}
-	t.Fatal("未找到测试数据目录 server/data")
-	return ""
+	return data
 }
 
-// newTestWorld 用固定 seed 创建测试世界
+// newTestWorld 用固定 seed 创建测试世界（解析种子 JSON）。
 func newTestWorld(t *testing.T) *World {
-	w, err := NewWorldFromData(dataDirForTest(t), 12345)
+	t.Helper()
+	cfg, err := ParseConfig(
+		loadSeedFile(t, "generals.json"),
+		loadSeedFile(t, "cities.json"),
+		loadSeedFile(t, "countries.json"),
+		loadSeedFile(t, "weapons.json"),
+		loadSeedFile(t, "maps.json"),
+		loadSeedFile(t, "formations.json"),
+	)
 	if err != nil {
-		t.Fatalf("创建世界失败: %v", err)
+		t.Fatalf("解析静态配置失败: %v", err)
 	}
-	return w
+	texts, err := ParseTexts(loadSeedFile(t, "texts.json"))
+	if err != nil {
+		t.Fatalf("解析文案表失败: %v", err)
+	}
+	return NewWorld(cfg, texts, 12345)
+}
+
+// newTestTexts 返回文案表（用于文案相关测试）。
+func newTestTexts(t *testing.T) *Texts {
+	t.Helper()
+	texts, err := ParseTexts(loadSeedFile(t, "texts.json"))
+	if err != nil {
+		t.Fatalf("解析文案表失败: %v", err)
+	}
+	return texts
 }
 
 // TestLoadWorld 验证数据加载
 func TestLoadWorld(t *testing.T) {
 	w := newTestWorld(t)
-	if len(w.Generals) != 185 {
-		t.Errorf("武将数应为185，实际 %d", len(w.Generals))
+	if len(w.Generals) != 673 {
+		t.Errorf("武将数应为673，实际 %d", len(w.Generals))
 	}
 	if len(w.Cities) != 48 {
 		t.Errorf("城池数应为48，实际 %d", len(w.Cities))

@@ -7,50 +7,50 @@ const CUSTOM_DIR := "user://Custom"
 
 var maps: Dictionary = {}           # cityId -> 2D Array(19x32)
 var formations: Dictionary = {}     # name -> 2D Array(7x16)
+var chapters: Array = []            # 剧本列表 [{year, title, introduction}]
 
 
-## 确保配置已加载
+## 静态数据已由 NetClient.fetch_static() 从服务器下发填充，
+## 此方法保留为空操作以兼容各场景的防御性调用。
 func ensure_loaded() -> void:
-	if GeneralListCache.general_dictionary.is_empty():
-		load_all_configs()
+	pass
 
 
-## 加载全部配置（JSON + 初始化）
-func load_all_configs() -> void:
+## 应用服务器下发的静态渲染数据（GET /game/static 的 data 字段）。
+## 服务器是唯一数据源，客户端不再读本地 data/*.json / Map / Formation。
+func apply_static(data: Dictionary) -> void:
 	# 武将
-	var generals := load_json_list("res://data/GeneralData.json")
 	GeneralListCache.clear_all_total_generals()
-	for item in generals:
+	for item in data.get("generals", []):
 		var g := General.from_dict(item)
 		GeneralListCache.add_general(g)
 		if g.debutYear <= GameInfo.years:
 			GeneralListCache.add_debuted_general(g)
 		else:
 			GeneralListCache.add_no_debut_general(g)
-	# 城市
-	var cities := load_json_list("res://data/CityData.json")
-	for item in cities:
+	# 城池
+	CityListCache.clear_all_cities()
+	for item in data.get("cities", []):
 		CityListCache.add_city(City.from_dict(item))
 	# 势力
-	var countries := load_json_list("res://data/CountryData.json")
-	for item in countries:
+	CountryListCache.clear_all_countries()
+	for item in data.get("countries", []):
 		CountryListCache.add_country(Country.from_dict(item))
 	# 武器
-	var weapons := load_json_list("res://data/WeaponData.json")
 	WeaponListCache.clear_all_weapons()
-	for item in weapons:
+	for item in data.get("weapons", []):
 		WeaponListCache.add_weapon(Weapon.from_dict(item))
+	# 地图（cityId -> 19x32 网格）
+	maps = {}
+	for row in data.get("maps", []):
+		maps[int(row.get("cityId", 0))] = row.get("grid", [])
+	# 阵型（name -> 7x16 网格）
+	formations = {}
+	for row in data.get("formations", []):
+		formations[str(row.get("name", ""))] = row.get("grid", [])
+	# 剧本
+	chapters = data.get("chapters", [])
 	_initialize()
-
-
-func load_json_list(path: String) -> Array:
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
-		push_error("无法打开配置文件: " + path)
-		return []
-	var text := file.get_as_text()
-	var parsed = JSON.parse_string(text)
-	return parsed if parsed is Array else []
 
 
 func _initialize() -> void:
@@ -85,61 +85,16 @@ func _init_cities() -> void:
 # ---------- 地图 / 阵型 ----------
 
 func read_map_data(city_id: int) -> Array:
-	if maps.has(city_id):
-		return maps[city_id]
-	var path := "res://data/Map/%d.CSV" % city_id
-	return _parse_csv_2d(path, 19, 32)
+	return maps.get(city_id, [])
 
 
+## 阵型已在 apply_static 中全部加载到内存，此方法保留为空操作。
 func load_all_formations() -> void:
-	if not formations.is_empty():
-		return
-	# 读取 Formation 目录下所有 csv
-	var dir := DirAccess.open("res://data/Formation")
-	if dir == null:
-		return
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if not dir.current_is_dir() and file_name.ends_with(".csv"):
-			var name := file_name.get_basename()
-			var path := "res://data/Formation/" + file_name
-			formations[name] = _parse_csv_2d(path, 7, 16)
-		file_name = dir.get_next()
-	dir.list_dir_end()
+	pass
 
 
 func get_formation(name: String) -> Array:
-	if formations.is_empty():
-		load_all_formations()
-	if formations.has(name):
-		return formations[name]
-	# 单个加载
-	var path := "res://data/Formation/%s.csv" % name
-	var arr := _parse_csv_2d(path, 7, 16)
-	if not arr.is_empty():
-		formations[name] = arr
-	return arr
-
-
-func _parse_csv_2d(path: String, rows: int, cols: int) -> Array:
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
-		push_error("无法打开地图/阵型文件: " + path)
-		return []
-	var text := file.get_as_text()
-	var lines := text.split("\n")
-	var result: Array = []
-	for row in mini(rows, lines.size()):
-		var values := lines[row].split(",")
-		var line_arr: Array = []
-		for col in mini(cols, values.size()):
-			line_arr.append(int(values[col].strip_edges()))
-		# 补齐到 cols
-		while line_arr.size() < cols:
-			line_arr.append(255)
-		result.append(line_arr)
-	return result
+	return formations.get(name, [])
 
 
 # ---------- 存档 ----------

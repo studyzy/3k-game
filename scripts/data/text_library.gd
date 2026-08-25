@@ -2,8 +2,8 @@
 extends Node
 ## 文案与数值表（autoload: TextLibrary）
 
-const GENERAL_GRADE: Array[String] = ["", "愚钝", "普通", "精英", "天才"]
-const TASK_NAME: Array = [
+var GENERAL_GRADE: Array[String] = ["", "愚钝", "普通", "精英", "天才"]
+var TASK_NAME: Array = [
 	["移动", "战争", "征兵", "输送"],
 	["搜索", "登用", "奖赏", "任命"],
 	["开垦", "劝商", "治水", "巡查"],
@@ -11,21 +11,21 @@ const TASK_NAME: Array = [
 	["金粮", "武器", "学院", "医馆"],
 	["存储", "读取", "环境", "退出", "结束"],
 ]
-const SKILLS_NAME: Array = [
+var SKILLS_NAME: Array = [
 	["沉着", "鬼谋", "百出", "军师", "火攻", "神算", "反计", "待伏", "袭粮", "内讧"],
 	["骑神", "骑将", "弓神", "弓将", "水将", "乱战", "连弩", "金刚", "不屈", "猛将"],
 	["单骑", "奇袭", "铁壁", "攻城", "守城", "神速", "攻心", "精兵", "军魂", "军神"],
 	["王佐", "仁政", "屯田", "商才", "名士", "风水", "义军", "内助", "仁义", "抢运"],
 	["统领", "掠夺", "恐吓", "一骑", "水练", "能吏", "练兵", "言教", "冷静", "束缚"],
 ]
-const skill_names: Array[String] = [
+var skill_names: Array[String] = [
 	"沉着", "鬼谋", "百出", "军师", "火攻", "神算", "反计", "待伏", "袭粮", "内讧",
 	"骑神", "骑将", "弓神", "弓将", "水将", "乱战", "连弩", "金刚", "不屈", "猛将",
 	"单骑", "奇袭", "铁壁", "攻城", "守城", "神速", "攻心", "精兵", "军魂", "军神",
 	"王佐", "仁政", "屯田", "商才", "名士", "风水", "义军", "内助", "仁义", "抢运",
 	"统领", "掠夺", "恐吓", "一骑", "水练", "能吏", "练兵", "言教", "冷静", "束缚",
 ]
-const do_things_result_info: Array = [
+var do_things_result_info: Array = [
 	["末将即刻出发!", "移动将领过多!", "誓死拿下敌军城池!", "本月已攻城两次,将士都疲惫不堪", ""],
 	["吾等愿缔结秦晋之好,共图霸业", "道不同不相为谋", "财资不足", "今已天下无敌！", ""],
 	["此城置吏已足", "野无遗贤", "愿效犬马之劳 以报知遇之恩", "志不在此 恐负所托", "将士皆忠心不贰!", "承蒙厚恩 吾愿肝脑涂地!", "吾誓与此城同命!", "此城乃君主治所!"],
@@ -35,11 +35,11 @@ const do_things_result_info: Array = [
 	["一无所获!", "征得粮草:", "获得黄金", "偶遇贤才", "寻得宝物"],
 	["此城中无粮店!", "此城中无工匠铺！", "此城中无书院！", "此城中无医馆！", "真乃神兵利器", "此器不合吾用", "学习？学个屁!", "将士均龙精虎猛"],
 ]
-const PLAN_NAME: Array[String] = [
+var PLAN_NAME: Array[String] = [
 	"火计", "陷阱", "虚兵", "要击", "乱水", "劫粮", "共杀", "伪击转杀", "烧粮", "落石",
 	"连环", "伏兵", "水攻", "连弩", "劫火", "奇门遁甲",
 ]
-const PLAN_EXPLAIN: Array[String] = [
+var PLAN_EXPLAIN: Array[String] = [
 	"用于平原、树林的敌军，烧伤敌兵。范围：5，需机动力：6",
 	"用于山地、树林的敌军，减少敌将的体力。范围：5，需机动力：5",
 	"用于山地、树林的敌军，限制敌军移动。范围：5，需机动力：4",
@@ -57,11 +57,11 @@ const PLAN_EXPLAIN: Array[String] = [
 	"用于树林的敌军，且至少有两支敌军与该敌军相邻，对该敌军及周围敌军造成重大伤害。范围：3，需机动力：12",
 	"用于森林、山地，施用此计,我军自损100兵,但如果敌军进入此地,则10日内无法行动且每日损失一定的士兵.需机动力:10",
 ]
-const PLAN_RESULT: Array[String] = [
+var PLAN_RESULT: Array[String] = [
 	"计策失败", "士兵数减少", "军队中计,被困", "武将体力减少", "粮食减少", "奇门遁甲已布置完毕", "陷入奇门遁甲之计",
 ]
-const TACTIC_NAMES: Array[String] = ["挑战", "咒缚", "连弩", "呐喊", "火矢", "爆炎"]
-const TACTIC_EXPLAIN: Array[String] = [
+var TACTIC_NAMES: Array[String] = ["挑战", "咒缚", "连弩", "呐喊", "火矢", "爆炎"]
+var TACTIC_EXPLAIN: Array[String] = [
 	"向敌将发出单挑邀请.耗费2个计策点",
 	"限制敌将行动.耗费5个计策点",
 	"箭手射程增加.耗费7个计策点",
@@ -69,32 +69,32 @@ const TACTIC_EXPLAIN: Array[String] = [
 	"箭手攻击力大大增加.耗费10个计策点",
 	"我方兵力大于500.利用火器攻击敌军.耗费12个计策点",
 ]
-const SOLO_INFO: Array[String] = [
+var SOLO_INFO: Array[String] = [
 	"攻击敌方中...", "成功招降!", "招降失败!", "自军成功撤离!", "撤退失败...", "我方投降!",
 	"我方武将阵亡!", "敌方武将行动中....", "若果真如此,吾等愿降", "招降失败!", "敌方武将逃窜!",
 	"敌方遁逃失败!", "敌方武将归降!", "这等武艺也敢上阵为将?", "良禽择木而栖", "吾宁头断,安能降汝!",
 	"吾受天命,岂可降人?",
 ]
-const TOP_INF: Array[float] = [0.8, 0.9, 1.0, 1.1]
+var TOP_INF: Array[float] = [0.8, 0.9, 1.0, 1.1]
 # 地形骑、弓、步兵比例 [地形4][适性4][3]
-const CAI_PROPORTION: Array = [
+var CAI_PROPORTION: Array = [
 	[[0, 4, 6], [2, 4, 4], [4, 3, 3], [6, 2, 2]],
 	[[0, 4, 6], [2, 4, 4], [4, 4, 2], [6, 2, 2]],
 	[[0, 2, 8], [0, 4, 6], [0, 6, 4], [0, 8, 2]],
 	[[0, 10, 0], [0, 8, 2], [0, 6, 4], [0, 4, 6]],
 ]
-const GAME_SCRIPT: Array[String] = ["《群雄起源》", "《十八路反董》"]
-const GAME_FAIL: String = "将军莫哀，战事无常，胜败乃兵家常事。昔日高祖数败于项羽，终能乌江一战而定乾坤。\n今汝虽有小挫，然英勇之志，不减当年。兵法云：知己知彼，百战不殆。愿将军反思此役之得失，汲取教训，待来日重整旗鼓，再图大业。\n且莫忘，三国乱世，英雄辈出，谁人不曾历风雨？刘备三顾茅庐，方得卧龙相助；曹操赤壁虽败，犹能东山再起。汝之才智，岂会困于一时之失？\n望汝勿坠青云之志，以坚韧不拔之心，继续前行。待那时，必将风云变色，天下震惊。吾等在此，静候将军凯旋之音，共饮庆功之酒。"
-const a_java_lang_String_static_fld: String = "君主不能投降!"
-const not_java_lang_String_static_fld: String = "对方君主拒绝接受!"
-const b_java_lang_String_static_fld: String = "请选择继位君主"
-const c_java_lang_String_static_fld: String = "请选择登用武将"
-const d_java_lang_String_static_fld: String = "选择自建武将"
-const e_java_lang_String_static_fld: String = "任命自建君主"
-const f_java_lang_String_static_fld: String = "删除自建武将"
-const g_java_lang_String_static_fld: String = "选择一个空城建都"
+var GAME_SCRIPT: Array[String] = ["《群雄起源》", "《十八路反董》"]
+var GAME_FAIL: String = "将军莫哀，战事无常，胜败乃兵家常事。昔日高祖数败于项羽，终能乌江一战而定乾坤。\n今汝虽有小挫，然英勇之志，不减当年。兵法云：知己知彼，百战不殆。愿将军反思此役之得失，汲取教训，待来日重整旗鼓，再图大业。\n且莫忘，三国乱世，英雄辈出，谁人不曾历风雨？刘备三顾茅庐，方得卧龙相助；曹操赤壁虽败，犹能东山再起。汝之才智，岂会困于一时之失？\n望汝勿坠青云之志，以坚韧不拔之心，继续前行。待那时，必将风云变色，天下震惊。吾等在此，静候将军凯旋之音，共饮庆功之酒。"
+var a_java_lang_String_static_fld: String = "君主不能投降!"
+var not_java_lang_String_static_fld: String = "对方君主拒绝接受!"
+var b_java_lang_String_static_fld: String = "请选择继位君主"
+var c_java_lang_String_static_fld: String = "请选择登用武将"
+var d_java_lang_String_static_fld: String = "选择自建武将"
+var e_java_lang_String_static_fld: String = "任命自建君主"
+var f_java_lang_String_static_fld: String = "删除自建武将"
+var g_java_lang_String_static_fld: String = "选择一个空城建都"
 
-const HJ: Array[float] = [
+var HJ: Array[float] = [
 	1.0, 1.01, 1.01, 1.01, 1.02, 1.02, 1.02, 1.03, 1.03, 1.04,
 	1.04, 1.04, 1.05, 1.05, 1.05, 1.06, 1.06, 1.06, 1.07, 1.07,
 	1.08, 1.08, 1.08, 1.09, 1.09, 1.09, 1.1, 1.1, 1.11, 1.11,
@@ -146,4 +146,35 @@ const HJ: Array[float] = [
 	5.3, 5.31, 5.33, 5.35, 5.37, 5.39, 5.41, 5.43, 5.45, 5.46,
 	5.48, 5.5, 5.52, 5.54, 5.56, 5.58, 5.6, 5.62, 5.64, 5.66,
 ]
+
+
+## 用服务器下发的文案表覆盖本地默认值（本地仅作 fallback）。
+## 键为原 GDScript 常量名，值为 JSON 原生值。
+func apply_texts(data: Dictionary) -> void:
+	if data.is_empty():
+		return
+	GENERAL_GRADE = data.get("GENERAL_GRADE", GENERAL_GRADE)
+	TASK_NAME = data.get("TASK_NAME", TASK_NAME)
+	SKILLS_NAME = data.get("SKILLS_NAME", SKILLS_NAME)
+	skill_names = data.get("skill_names", skill_names)
+	do_things_result_info = data.get("do_things_result_info", do_things_result_info)
+	PLAN_NAME = data.get("PLAN_NAME", PLAN_NAME)
+	PLAN_EXPLAIN = data.get("PLAN_EXPLAIN", PLAN_EXPLAIN)
+	PLAN_RESULT = data.get("PLAN_RESULT", PLAN_RESULT)
+	TACTIC_NAMES = data.get("TACTIC_NAMES", TACTIC_NAMES)
+	TACTIC_EXPLAIN = data.get("TACTIC_EXPLAIN", TACTIC_EXPLAIN)
+	SOLO_INFO = data.get("SOLO_INFO", SOLO_INFO)
+	TOP_INF = data.get("TOP_INF", TOP_INF)
+	CAI_PROPORTION = data.get("CAI_PROPORTION", CAI_PROPORTION)
+	GAME_SCRIPT = data.get("GAME_SCRIPT", GAME_SCRIPT)
+	GAME_FAIL = data.get("GAME_FAIL", GAME_FAIL)
+	a_java_lang_String_static_fld = data.get("a_java_lang_String_static_fld", a_java_lang_String_static_fld)
+	not_java_lang_String_static_fld = data.get("not_java_lang_String_static_fld", not_java_lang_String_static_fld)
+	b_java_lang_String_static_fld = data.get("b_java_lang_String_static_fld", b_java_lang_String_static_fld)
+	c_java_lang_String_static_fld = data.get("c_java_lang_String_static_fld", c_java_lang_String_static_fld)
+	d_java_lang_String_static_fld = data.get("d_java_lang_String_static_fld", d_java_lang_String_static_fld)
+	e_java_lang_String_static_fld = data.get("e_java_lang_String_static_fld", e_java_lang_String_static_fld)
+	f_java_lang_String_static_fld = data.get("f_java_lang_String_static_fld", f_java_lang_String_static_fld)
+	g_java_lang_String_static_fld = data.get("g_java_lang_String_static_fld", g_java_lang_String_static_fld)
+	HJ = data.get("HJ", HJ)
 

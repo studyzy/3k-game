@@ -61,3 +61,10 @@ type GenericResponse struct {
 	Ok  bool   `json:"ok"`
 	Msg string `json:"msg"`
 }
+
+// StaticResponse 静态数据响应（全量渲染数据：武将/城池/势力/武器/章节/地图/阵型/文案）
+type StaticResponse struct {
+	Ok   bool           `json:"ok"`
+	Msg  string         `json:"msg,omitempty"`
+	Data map[string]any `json:"data"`
+}

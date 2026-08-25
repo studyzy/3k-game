@@ -7,6 +7,7 @@ import (
 	"3k-server/internal/config"
 	"3k-server/internal/game"
 	"3k-server/internal/persist"
+	"3k-server/internal/static"
 	"3k-server/internal/ws"
 )
 
@@ -20,17 +21,19 @@ type ServiceContext struct {
 	Sessions map[string]*ws.Session // sessionId -> Session
 	Store    persist.Store          // 存档存储（JSON 文件或 MySQL）
 	Auth     *persist.AuthStore     // 登录鉴权（nil 表示内存态/未接 DB）
+	Static   static.Store           // 静态数据存储（MySQL/SQLite/内存）
 	// 每个 playerId 可持有多个 session（多局），但通常一个活跃
 }
 
 // NewServiceContext 创建服务上下文。
-// 当 Config.InMemory 为 true（或 DataSource 为空）时用 JSON 文件存储，否则用 MySQL。
-// MySQL 模式下同时启用 AuthStore（users/auth_tokens 表），否则 Auth 为 nil 走 mock 登录。
+// 静态数据：DataSource 非空走 MySQL，否则用 SQLite（SQLitePath），失败回退内存。
+// 存档存储：Config.InMemory 为 true（或 DataSource 为空）时用 JSON 文件，否则 MySQL。
 func NewServiceContext(c config.Config) *ServiceContext {
 	sc := &ServiceContext{
 		Config:   c,
 		Sessions: map[string]*ws.Session{},
 	}
+	sc.Static = openStaticStore(c)
 	if c.InMemory || c.DataSource == "" {
 		store, _ := persist.NewSaveStore("saves")
 		sc.Store = store
@@ -49,8 +52,25 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	return sc
 }
 
+// openStaticStore 打开静态数据存储：优先 DB，失败回退内存。
+func openStaticStore(c config.Config) static.Store {
+	dsn := c.DataSource
+	if dsn == "" {
+		dsn = c.SQLitePath
+	}
+	if store, err := static.Open(dsn); err == nil {
+		return store
+	}
+	// 回退：内存解析内嵌种子 JSON（数据一致）
+	mem, _ := static.NewMemoryStore()
+	return mem
+}
+
 // Close 释放底层存储连接
 func (s *ServiceContext) Close() {
+	if s.Static != nil {
+		s.Static.Close()
+	}
 	if s.Store != nil {
 		s.Store.Close()
 	}
@@ -75,7 +95,7 @@ func (s *ServiceContext) LoadGame(playerID, saveID string) (*ws.Session, error) 
 		return nil, err
 	}
 	// 反序列化：从存档恢复 World（保留原有静态表，覆盖动态字段）
-	w, err := game.NewWorldFromData(s.Config.DataDir, 0)
+	w, err := s.newWorld(0)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +111,7 @@ func (s *ServiceContext) LoadGame(playerID, saveID string) (*ws.Session, error) 
 
 // CreateGame 创建一局新游戏，返回 sessionId + World
 func (s *ServiceContext) CreateGame(playerId string, seed int64) (*ws.Session, error) {
-	w, err := game.NewWorldFromData(s.Config.DataDir, seed)
+	w, err := s.newWorld(seed)
 	if err != nil {
 		return nil, err
 	}
@@ -111,6 +131,19 @@ func (s *ServiceContext) GetSession(sessionId string) (*ws.Session, error) {
 		return nil, errSessionNotFound
 	}
 	return sess, nil
+}
+
+// newWorld 用静态数据存储（DB/内存）构造全新 World。
+func (s *ServiceContext) newWorld(seed int64) (*game.World, error) {
+	cfg, err := s.Static.Config()
+	if err != nil {
+		return nil, err
+	}
+	texts, err := s.Static.Texts()
+	if err != nil {
+		return nil, err
+	}
+	return game.NewWorld(cfg, texts, seed), nil
 }
 
 func seedString(seed int64) string {

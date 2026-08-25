@@ -23,3 +23,4 @@ Thumbs.db
 
 # 测试报告（gdUnit4 生成）
 reports/
+bin

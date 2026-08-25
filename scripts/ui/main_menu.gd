@@ -1,8 +1,6 @@
 extends Control
 ## 主菜单（对应 Unity UIStart）
 
-const CHAPTERS_PATH := "res://data/ChapterData.json"
-
 var _chapter_panel: Panel
 var _chapter_list: VBoxContainer
 var _difficulty_panel: Panel
@@ -11,11 +9,24 @@ var _chapters: Array = []
 
 
 func _ready() -> void:
-	_chapters = DataManager.load_json_list(CHAPTERS_PATH)
 	SoundManager.play_bgm("1")
 	_build_ui()
+	# 静态数据从服务器下发，就绪后填充章节列表
+	NetClient.static_done.connect(_on_static_done)
+	NetClient.static_failed.connect(_on_static_failed)
+	NetClient.fetch_static()
 	# 启动时自动登录并创建新局（服务器权威状态）
 	NetClient.login("p1")
+
+
+## 静态数据就绪后填充章节列表
+func _on_static_done() -> void:
+	_chapters = DataManager.chapters
+
+
+## 静态数据拉取失败时给出提示
+func _on_static_failed(msg: String) -> void:
+	_show_tip(msg)
 
 
 func _build_ui() -> void:
@@ -90,7 +101,6 @@ func _on_start_pressed() -> void:
 func _on_chapter_pressed(chapter: Dictionary) -> void:
 	GameInfo.chapter = str(chapter.get("title", ""))
 	_chapter_panel.visible = false
-	DataManager.load_all_configs()
 	_show_difficulty()
 
 

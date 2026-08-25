@@ -49,6 +49,7 @@ func registerHTTPRoutes(server *rest.Server, svcCtx *svc.ServiceContext) {
 		{Method: http.MethodPost, Path: "/game/new", Handler: handler.NewGameHandler(svcCtx)},
 		{Method: http.MethodPost, Path: "/game/save", Handler: handler.SaveGameHandler(svcCtx)},
 		{Method: http.MethodPost, Path: "/game/load", Handler: handler.LoadGameHandler(svcCtx)},
+		{Method: http.MethodGet, Path: "/game/static", Handler: handler.StaticHandler(svcCtx)},
 	})
 }
 

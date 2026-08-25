@@ -69,6 +69,11 @@ func (l *Logic) LoadGame(playerId, saveId string) (sessionId string, snapshot ma
 	return sess.ID, sess.World.ToSnapshot(sess.ID, sess.Version), nil
 }
 
+// Static 返回全量静态渲染数据（武将/城池/势力/武器/章节/地图/阵型/文案）。
+func (l *Logic) Static() (map[string]any, error) {
+	return l.svcCtx.Static.AllStatic()
+}
+
 // ResolveSession 从 WebSocket 握手参数解析 Session。
 // 有 sessionId 时直接取；否则 MySQL 模式下校验 token 后按 playerId 建局，内存态按 playerId 建局。
 func (l *Logic) ResolveSession(sessionId, playerId, token string) (*ws.Session, error) {

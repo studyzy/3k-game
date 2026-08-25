@@ -67,6 +67,19 @@ func SaveGameHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	}
 }
 
+// StaticHandler 静态数据下发
+func StaticHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		l := logic.New(svcCtx)
+		data, err := l.Static()
+		if err != nil {
+			httpx.OkJson(w, types.StaticResponse{Ok: false, Msg: err.Error()})
+			return
+		}
+		httpx.OkJson(w, types.StaticResponse{Ok: true, Data: data})
+	}
+}
+
 // LoadGameHandler 读档
 func LoadGameHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
