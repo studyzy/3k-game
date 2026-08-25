@@ -24,3 +24,6 @@ Thumbs.db
 # 测试报告（gdUnit4 生成）
 reports/
 bin
+
+# AI 协作工作记忆（不入库）
+.workbuddy/

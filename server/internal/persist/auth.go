@@ -8,23 +8,32 @@ import (
 	"strings"
 	"time"
 
+	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-// 登录鉴权存储（gorm/MySQL）。表结构见 db/init/001_schema.sql。
+// 登录鉴权存储（gorm/MySQL 或 SQLite）。表结构见 db/init/001_schema.sql。
 // users / auth_tokens 两表。
 
-// opensMySQL 打开 gorm MySQL 连接（带通用配置）
-func opensMySQL(dsn string) (*gorm.DB, error) {
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+// openDB 打开 gorm 连接（带通用配置）。
+// dsn 含 MySQL 特征（user:pass@tcp(...)）时用 MySQL，否则按 SQLite（文件路径或 :memory:）。
+func openDB(dsn string) (*gorm.DB, error) {
+	var dialector gorm.Dialector
+	if isMySQLDSN(dsn) {
+		dialector = mysql.Open(dsn)
+	} else {
+		dialector = sqlite.Open(dsn)
+	}
+	return gorm.Open(dialector, &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
+}
+
+// isMySQLDSN 依据 DSN 判断是否 MySQL（user:pass@tcp(...) / @unix(...)）。
+func isMySQLDSN(dsn string) bool {
+	return strings.Contains(dsn, "@tcp(") || strings.Contains(dsn, "@unix(")
 }
 
 // UserRow users 表行
@@ -53,12 +62,13 @@ type AuthStore struct {
 	db *gorm.DB
 }
 
-// NewAuthStore 建立 gorm 连接并确保表存在
+// NewAuthStore 建立 gorm 连接并确保表存在。
+// dsn 支持 MySQL DSN（root:pass@tcp(host:port)/db?...）或 SQLite 文件路径。
 func NewAuthStore(dsn string) (*AuthStore, error) {
 	if strings.TrimSpace(dsn) == "" {
-		return nil, errors.New("empty mysql dsn")
+		return nil, errors.New("empty dsn")
 	}
-	db, err := opensMySQL(dsn)
+	db, err := openDB(dsn)
 	if err != nil {
 		return nil, err
 	}

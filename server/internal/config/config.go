@@ -10,10 +10,11 @@ import (
 )
 
 // Config 服务器配置。
-// 开发期 InMemory 默认 true（不依赖 DB）；接入 MySQL 时通过环境变量 3k_DSN 传入连接串。
+// 开发期 InMemory 默认 true（不依赖 DB）；接入数据库时通过环境变量 3k_DSN 传入连接串
+// （MySQL gorm DSN 或 SQLite 文件路径，详见 static.Open）。
 type Config struct {
 	rest.RestConf
-	DataSource string `json:",optional"` // MySQL gorm DSN（如 root:root@tcp(127.0.0.1:3306)/3k?charset=utf8mb4&parseTime=True）
+	DataSource string `json:",optional"` // MySQL gorm DSN 或 SQLite 文件路径（如 /tmp/3k.db）
 	SQLitePath string `json:",optional"` // SQLite 静态数据文件路径（DataSource 为空时使用）
 	// 开发期无 redis/mysql 时置 true，存档用内存态
 	InMemory bool `json:",default=true"`
@@ -69,7 +70,7 @@ func splitHostPort(addr string) (host string, port int, ok bool) {
 //
 // 环境变量：
 //
-//	3k_DSN          MySQL/gorm DSN，非空则 InMemory=false 且静态数据走 MySQL
+//	3k_DSN          MySQL/gorm DSN 或 SQLite 文件路径，非空则 InMemory=false 且静态数据走 DB
 //	3K_IN_MEMORY    true/false，显式指定是否内存态（默认据 DSN 是否设置）
 //	3K_LISTEN      server 监听地址 host:port（默认 0.0.0.0:8080）
 //	3K_SQLITE_PATH  SQLite 静态数据文件路径（默认 data/3k.db）

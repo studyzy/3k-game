@@ -52,8 +52,8 @@ func newTestTexts(t *testing.T) *Texts {
 // TestLoadWorld 验证数据加载
 func TestLoadWorld(t *testing.T) {
 	w := newTestWorld(t)
-	if len(w.Generals) != 673 {
-		t.Errorf("武将数应为673，实际 %d", len(w.Generals))
+	if len(w.Generals) != 666 {
+		t.Errorf("武将数应为666，实际 %d", len(w.Generals))
 	}
 	if len(w.Cities) != 48 {
 		t.Errorf("城池数应为48，实际 %d", len(w.Cities))

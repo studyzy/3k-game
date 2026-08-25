@@ -49,19 +49,22 @@ db-up:
 db-down:
 	docker compose down
 
-# 端到端集成测试：起 MySQL → 构建 server → 启动子进程（默认随机端口 18080）→ go test → 清理
+# 端到端集成测试：构建 server → 用 SQLite 临时库（静态数据由内嵌种子 JSON 自动初始化）→
+# 启动子进程（默认随机端口 18080）→ go test → 清理临时库。
+# 无需 docker MySQL；INT_DB 可覆盖 sqlite 库路径。
 INT_PORT ?= 18080
-INT_DSN ?= root:root@tcp(127.0.0.1:3306)/3k?charset=utf8mb4&parseTime=True&loc=Local
-integration: db-up build
-	@echo "==> 等待 MySQL 就绪"
-	@docker compose exec -T db sh -c 'until mysqladmin ping -h 127.0.0.1 -uroot -proot --silent; do sleep 1; done'
+INT_DB ?= $(CURDIR)/data/3k-integration.db
+integration: build
+	@echo "==> 使用 SQLite 临时库: $(INT_DB)"
+	@rm -f "$(INT_DB)" "$(INT_DB)-wal" "$(INT_DB)-shm"
 	@echo "==> 启动 server (localhost:$(INT_PORT))"
 	@env INT_TEST_PROCESS="$(CURDIR)/bin/3k-server" \
 		INT_TEST_BASE_URL="http://127.0.0.1:$(INT_PORT)" \
-		INT_TEST_MYSQL="1" \
+		INT_TEST_DB="1" \
 		3K_LISTEN="127.0.0.1:$(INT_PORT)" \
-		3k_DSN="$(INT_DSN)" \
+		3k_DSN="$(INT_DB)" \
 		3K_DATA_DIR="$(CURDIR)/data" \
 		GOROOT=$(GOOROOT_VAL) GOTOOLCHAIN=local \
-		go test ./test/integration -v -count=1
+		go test ./test/integration -v -count=1; \
+		rc=$$?; rm -f "$(INT_DB)" "$(INT_DB)-wal" "$(INT_DB)-shm"; exit $$rc
 	@echo "==> 集成测试完成"

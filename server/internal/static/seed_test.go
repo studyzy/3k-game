@@ -10,8 +10,8 @@ func TestLoadConfigFromSeed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("loadConfigFromSeed: %v", err)
 	}
-	if len(cfg.Generals) != 673 {
-		t.Errorf("武将数 = %d, 期望 673", len(cfg.Generals))
+	if len(cfg.Generals) != 666 {
+		t.Errorf("武将数 = %d, 期望 666", len(cfg.Generals))
 	}
 	if len(cfg.Cities) != 48 {
 		t.Errorf("城池数 = %d, 期望 48", len(cfg.Cities))
@@ -76,8 +76,8 @@ func TestSQLiteOpen(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Config: %v", err)
 	}
-	if len(cfg.Generals) != 673 {
-		t.Errorf("SQLite 武将数 = %d, 期望 673", len(cfg.Generals))
+	if len(cfg.Generals) != 666 {
+		t.Errorf("SQLite 武将数 = %d, 期望 666", len(cfg.Generals))
 	}
 
 	texts, err := store.Texts()

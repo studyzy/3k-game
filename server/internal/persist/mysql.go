@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// MySQLStore 存档存储（gorm/MySQL 版）。data 字段存 World.Serialize() 的 JSON。
+// MySQLStore 存档存储（gorm/MySQL 或 SQLite 版）。data 字段存 World.Serialize() 的 JSON。
 // 表结构见 db/init/001_schema.sql（saves 表）。
 type MySQLStore struct {
 	db *gorm.DB
@@ -27,12 +27,12 @@ type SaveRow struct {
 func (SaveRow) TableName() string { return "saves" }
 
 // NewMySQLStore 建立 gorm 连接并确保表存在。
-// dsn 示例：root:root@tcp(127.0.0.1:3306)/3k?charset=utf8mb4&parseTime=True&loc=Local
+// dsn 支持 MySQL DSN（root:pass@tcp(host:port)/db?...）或 SQLite 文件路径。
 func NewMySQLStore(dsn string) (*MySQLStore, error) {
 	if strings.TrimSpace(dsn) == "" {
-		return nil, errors.New("empty mysql dsn")
+		return nil, errors.New("empty dsn")
 	}
-	db, err := opensMySQL(dsn)
+	db, err := openDB(dsn)
 	if err != nil {
 		return nil, err
 	}

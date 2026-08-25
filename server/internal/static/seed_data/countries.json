@@ -1,33 +1,33 @@
 [
   {
     "countryId": 1,
-    "countryKingId": 61,
+    "countryKingId": 540,
     "countryColor": "#214AE7",
     "canBeChoose": true,
     "inheritors": [
-      110,
-      109,
-      65
+      653,
+      665,
+      663
     ]
   },
   {
     "countryId": 2,
-    "countryKingId": 4,
+    "countryKingId": 492,
     "countryColor": "#FFFF00",
     "canBeChoose": true,
     "inheritors": [
-      178,
-      40
+      657,
+      662
     ]
   },
   {
     "countryId": 3,
-    "countryKingId": 69,
+    "countryKingId": 546,
     "countryColor": "#FF00FF",
     "canBeChoose": true,
     "inheritors": [
-      114,
-      116
+      654,
+      666
     ]
   }
 ]

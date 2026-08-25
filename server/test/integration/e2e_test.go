@@ -186,10 +186,10 @@ func optionCity(snapshot map[string]interface{}) int {
 }
 
 // TestWS_Auth 校验 WS 握手鉴权：带无效 token 时连接应失败。
-// 仅当通过 make integration（接 DB 模式）运行时 server 启用 token 校验才会拒绝。
+// 仅当通过 make integration（接库模式，DB 可为 MySQL/SQLite）运行时 server 启用 token 校验才会拒绝。
 func TestWS_Auth(t *testing.T) {
-	// 若未在接库模式（INT_TEST_MYSQL=1）下运行，跳过本用例
-	if env("INT_TEST_MYSQL", "") != "1" {
+	// 若未在接库模式（INT_TEST_DB=1）下运行，跳过本用例
+	if env("INT_TEST_DB", "") != "1" {
 		t.Skip("仅接库模式（make integration）校验 token")
 	}
 	base := baseURL()

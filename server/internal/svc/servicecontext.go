@@ -26,8 +26,8 @@ type ServiceContext struct {
 }
 
 // NewServiceContext 创建服务上下文。
-// 静态数据：DataSource 非空走 MySQL，否则用 SQLite（SQLitePath），失败回退内存。
-// 存档存储：Config.InMemory 为 true（或 DataSource 为空）时用 JSON 文件，否则 MySQL。
+// 静态数据：DataSource 非空走 DB（MySQL/SQLite），否则用 SQLite（SQLitePath），失败回退内存。
+// 存档存储：Config.InMemory 为 true（或 DataSource 为空）时用 JSON 文件，否则 DB（MySQL/SQLite）。
 func NewServiceContext(c config.Config) *ServiceContext {
 	sc := &ServiceContext{
 		Config:   c,
