@@ -2,8 +2,9 @@ package ws
 
 // Delta 增量更新（S2C_Delta body）
 type Delta struct {
-	Changed Changed     `json:"changed"`
-	Events  []EventItem `json:"events"`
+	Changed  Changed                `json:"changed"`
+	Events   []EventItem            `json:"events"`
+	GameInfo map[string]interface{} `json:"gameInfo,omitempty"`
 }
 
 // Changed 按实体类型分组的字段级增量

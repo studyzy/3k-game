@@ -265,7 +265,8 @@ func deltaFromWorld(w *game.World) *Delta {
 			Cities:    map[string]map[string]interface{}{},
 			Countries: map[string]map[string]interface{}{},
 		},
-		Events: []EventItem{},
+		Events:   []EventItem{},
+		GameInfo: w.GameInfoDict(),
 	}
 	// 武将全量字段
 	for id, g := range w.Generals {

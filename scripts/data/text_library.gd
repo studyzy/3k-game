@@ -153,20 +153,20 @@ var HJ: Array[float] = [
 func apply_texts(data: Dictionary) -> void:
 	if data.is_empty():
 		return
-	GENERAL_GRADE = data.get("GENERAL_GRADE", GENERAL_GRADE)
+	GENERAL_GRADE = _str_array(data.get("GENERAL_GRADE", GENERAL_GRADE))
 	TASK_NAME = data.get("TASK_NAME", TASK_NAME)
 	SKILLS_NAME = data.get("SKILLS_NAME", SKILLS_NAME)
-	skill_names = data.get("skill_names", skill_names)
+	skill_names = _str_array(data.get("skill_names", skill_names))
 	do_things_result_info = data.get("do_things_result_info", do_things_result_info)
-	PLAN_NAME = data.get("PLAN_NAME", PLAN_NAME)
-	PLAN_EXPLAIN = data.get("PLAN_EXPLAIN", PLAN_EXPLAIN)
-	PLAN_RESULT = data.get("PLAN_RESULT", PLAN_RESULT)
-	TACTIC_NAMES = data.get("TACTIC_NAMES", TACTIC_NAMES)
-	TACTIC_EXPLAIN = data.get("TACTIC_EXPLAIN", TACTIC_EXPLAIN)
-	SOLO_INFO = data.get("SOLO_INFO", SOLO_INFO)
-	TOP_INF = data.get("TOP_INF", TOP_INF)
+	PLAN_NAME = _str_array(data.get("PLAN_NAME", PLAN_NAME))
+	PLAN_EXPLAIN = _str_array(data.get("PLAN_EXPLAIN", PLAN_EXPLAIN))
+	PLAN_RESULT = _str_array(data.get("PLAN_RESULT", PLAN_RESULT))
+	TACTIC_NAMES = _str_array(data.get("TACTIC_NAMES", TACTIC_NAMES))
+	TACTIC_EXPLAIN = _str_array(data.get("TACTIC_EXPLAIN", TACTIC_EXPLAIN))
+	SOLO_INFO = _str_array(data.get("SOLO_INFO", SOLO_INFO))
+	TOP_INF = _float_array(data.get("TOP_INF", TOP_INF))
 	CAI_PROPORTION = data.get("CAI_PROPORTION", CAI_PROPORTION)
-	GAME_SCRIPT = data.get("GAME_SCRIPT", GAME_SCRIPT)
+	GAME_SCRIPT = _str_array(data.get("GAME_SCRIPT", GAME_SCRIPT))
 	GAME_FAIL = data.get("GAME_FAIL", GAME_FAIL)
 	a_java_lang_String_static_fld = data.get("a_java_lang_String_static_fld", a_java_lang_String_static_fld)
 	not_java_lang_String_static_fld = data.get("not_java_lang_String_static_fld", not_java_lang_String_static_fld)
@@ -176,5 +176,23 @@ func apply_texts(data: Dictionary) -> void:
 	e_java_lang_String_static_fld = data.get("e_java_lang_String_static_fld", e_java_lang_String_static_fld)
 	f_java_lang_String_static_fld = data.get("f_java_lang_String_static_fld", f_java_lang_String_static_fld)
 	g_java_lang_String_static_fld = data.get("g_java_lang_String_static_fld", g_java_lang_String_static_fld)
-	HJ = data.get("HJ", HJ)
+	HJ = _float_array(data.get("HJ", HJ))
+
+
+## JSON 解析出的普通 Array 转强类型 Array[String]（否则赋值报类型错误）。
+func _str_array(v: Variant) -> Array[String]:
+	var out: Array[String] = []
+	if v is Array:
+		for item in v:
+			out.append(str(item))
+	return out
+
+
+## JSON 解析出的普通 Array 转强类型 Array[float]（否则赋值报类型错误）。
+func _float_array(v: Variant) -> Array[float]:
+	var out: Array[float] = []
+	if v is Array:
+		for item in v:
+			out.append(float(item))
+	return out
 

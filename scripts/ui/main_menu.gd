@@ -30,12 +30,14 @@ func _on_static_failed(msg: String) -> void:
 
 
 func _build_ui() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color(0.08, 0.06, 0.05)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+	# 全屏背景（sanguo 迁移资源 bg1.jpg）
+	add_child(UIFactory.make_bg("res://assets/bg/bg1.jpg"))
 
 	var title := UIFactory.make_label("霸王的大陆", 72, Color(0.95, 0.85, 0.4))
+	# 主标题用隶书（sanguo 迁移资源方正隶书简体.TTF）
+	var title_font: Font = load("res://assets/fonts/方正隶书简体.TTF") as Font
+	if title_font != null:
+		title.add_theme_font_override("font", title_font)
 	title.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	title.position = Vector2(-200, 70)
 	title.size = Vector2(400, 90)

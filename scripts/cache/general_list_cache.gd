@@ -64,6 +64,28 @@ func get_general(general_id: int) -> General:
 	return null
 
 
+## 获取武将头像贴图。
+## 优先高清立绘 assets/portraits/{generalId}.jpg（sanguo 迁移，360x512），
+## 缺失时回退原版像素头 assets/portraits_original/{generalId}.jpg（55x68）。
+## 缓存已加载贴图，两者都缺时返回 null，调用方自行降级为占位。
+var _portrait_cache: Dictionary = {}
+
+
+func get_portrait(general_id: int) -> Texture2D:
+	if _portrait_cache.has(general_id):
+		return _portrait_cache[general_id]
+	var tex: Texture2D = null
+	var hd := "res://assets/portraits/%d.jpg" % general_id
+	if ResourceLoader.exists(hd):
+		tex = load(hd) as Texture2D
+	else:
+		var orig := "res://assets/portraits_original/%d.jpg" % general_id
+		if ResourceLoader.exists(orig):
+			tex = load(orig) as Texture2D
+	_portrait_cache[general_id] = tex
+	return tex
+
+
 func get_no_debut_general_by_index(index_id: int) -> General:
 	return no_debut_general_list[index_id]
 

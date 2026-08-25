@@ -11,6 +11,8 @@ var _grid_offset := Vector2.ZERO
 var _grid_container: Control
 var _info_label: Label
 var _day_label: Label
+# 单位 sprite 缓存（sanguo 迁移资源）
+var _unit_tex: Texture2D = null
 
 
 func _ready() -> void:
@@ -23,6 +25,8 @@ func _ready() -> void:
 	_grid_offset = Vector2((1920 - COLS * CELL) / 2, 60)
 	_grid_container = Control.new()
 	add_child(_grid_container)
+	# 网格点击监听（移动/攻击目标选择），只在 _ready 连接一次
+	_grid_container.gui_input.connect(_on_grid_click)
 
 	_day_label = UIFactory.make_label("第 1 天", 26, Color.YELLOW)
 	_day_label.position = Vector2(60, 10)
@@ -109,8 +113,15 @@ func _draw_unit_token(u: Dictionary, color: Color, is_player_side: bool) -> void
 	token.name = "Token"
 	token.position = _grid_offset + Vector2(int(pos[0]) * CELL, int(pos[1]) * CELL)
 	token.size = Vector2(CELL, CELL)
+	token.flat = true
 	token.self_modulate = color
 	token.text = ""
+	# 单位 sprite（sanguo 迁移资源 Soldier.png），按我方蓝/敌方红着色
+	if _unit_tex == null:
+		_unit_tex = load("res://assets/units/Soldier.png") as Texture2D
+	if _unit_tex != null:
+		token.icon = _unit_tex
+		token.expand_icon = true
 	token.tooltip_text = "武将ID %d %s" % [int(u.get("genID", 0)), "主将" if u.get("isCommander", false) else ""]
 	if is_player_side:
 		token.pressed.connect(_on_unit_selected.bind(int(u.get("genID", 0))))
@@ -122,8 +133,6 @@ func _draw_unit_token(u: Dictionary, color: Color, is_player_side: bool) -> void
 func _on_unit_selected(gen_id: int) -> void:
 	_selected_unit_id = gen_id
 	_info_label.text = "已选择武将ID %d，点击绿色格子移动" % gen_id
-	# 请求可移动格（服务器计算，开发期客户端直接进入移动模式）
-	_grid_container.gui_input.connect(_on_grid_click)
 
 
 func _on_grid_click(event: InputEvent) -> void:

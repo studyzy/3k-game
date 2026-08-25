@@ -7,10 +7,8 @@ var _current_input_callback: Callable
 
 
 func _ready() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color(0.09, 0.08, 0.07)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+	# 全屏背景（sanguo 迁移资源 bg4.jpg）
+	add_child(UIFactory.make_bg("res://assets/bg/bg4.jpg"))
 
 	var title := UIFactory.make_label("执行指令", 36, Color(0.95, 0.85, 0.4))
 	title.set_anchors_preset(Control.PRESET_CENTER_TOP)

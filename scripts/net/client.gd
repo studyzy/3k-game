@@ -54,7 +54,9 @@ const S2C_BATTLE_RESULT := 0x212
 
 func _ready() -> void:
 	set_process(false)
-	_ws = WebSocketPeer.new()
+	_ws = _make_peer()
+	# Mirror 更新后把服务器 gameInfo 同步到 GameInfo（UI 状态只读）
+	Mirror.state_changed.connect(_sync_game_info)
 	# 环境变量覆盖（测试注入 mock server 地址）
 	var env_url := OS.get_environment("K3G_SERVER_URL")
 	if env_url != "":
@@ -187,14 +189,27 @@ func _on_new_game_done(result: int, code: int, _headers: PackedStringArray, body
 	if data is Dictionary:
 		var d: Dictionary = data
 		_session_id = d.get("sessionId", "")
+		# 应用建局全量快照到 Mirror（含 gameInfo），后续增量在 gameInfo 上叠加
+		var snapshot: Variant = d.get("snapshot", {})
+		if snapshot is Dictionary:
+			Mirror.apply_delta(snapshot)
 		new_game_done.emit(d)
 		connect_ws()
+
+
+## 创建 WebSocketPeer。
+## 服务器全量 Delta（选君主/回合结束等）可能远超默认入站缓冲，
+## 过大会被 WebSocket 以 1009(Message too big) 关闭，故放大到 16MB。
+func _make_peer() -> WebSocketPeer:
+	var peer := WebSocketPeer.new()
+	peer.inbound_buffer_size = 16 * 1024 * 1024
+	return peer
 
 
 ## 连接 WebSocket
 func connect_ws() -> void:
 	if _ws == null:
-		_ws = WebSocketPeer.new()
+		_ws = _make_peer()
 	var err := _ws.connect_to_url(ws_url + "?sessionId=%s" % _session_id)
 	if err != OK:
 		push_error("WS 连接失败: %d" % err)
@@ -245,3 +260,21 @@ func _handle_push(text: String) -> void:
 		if body is Dictionary:
 			Mirror.apply_war(body)
 	server_push.emit(op, body)
+
+
+## 把服务器权威 gameInfo 同步到 UI 用的 GameInfo autoload（只读，不写回服务器）。
+func _sync_game_info() -> void:
+	var gi: Dictionary = Mirror.game_info
+	if gi.is_empty():
+		return
+	GameInfo.years = int(gi.get("years", GameInfo.years))
+	GameInfo.month = int(gi.get("month", GameInfo.month))
+	GameInfo.curTurnIndex = int(gi.get("curTurnIndex", GameInfo.curTurnIndex))
+	GameInfo.curTurnCountryId = int(gi.get("curTurnCountryId", GameInfo.curTurnCountryId))
+	GameInfo.playerCountryId = int(gi.get("playerCountryId", GameInfo.playerCountryId))
+	GameInfo.playerOrderNum = int(gi.get("playerOrderNum", GameInfo.playerOrderNum))
+	GameInfo.difficult = int(gi.get("difficult", GameInfo.difficult))
+	GameInfo.attackCount = int(gi.get("attackCount", GameInfo.attackCount))
+	GameInfo.playingState = int(gi.get("playingState", GameInfo.playingState))
+	GameInfo.doCityId = int(gi.get("doCityId", GameInfo.doCityId))
+	GameInfo.show_info = str(gi.get("showInfo", GameInfo.show_info))

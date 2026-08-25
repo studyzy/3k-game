@@ -15,7 +15,7 @@ func (w *World) ToSnapshot(sessionId string, version int) map[string]interface{}
 		"sessionId":      sessionId,
 		"rngSeed":        w.RngSeed(),
 		"sessionVersion": version,
-		"gameInfo":       w.gameInfoDict(),
+		"gameInfo":       w.GameInfoDict(),
 		"generals":       w.generalsDict(),
 		"cities":         w.citiesDict(),
 		"countries":      w.countriesDict(),
@@ -56,7 +56,7 @@ func (w *World) Serialize() ([]byte, error) {
 
 // ---- 各类 to_dict ----
 
-func (w *World) gameInfoDict() map[string]interface{} {
+func (w *World) GameInfoDict() map[string]interface{} {
 	return map[string]interface{}{
 		"years":              w.GameInfo.Years,
 		"month":              w.GameInfo.Month,

@@ -18,10 +18,8 @@ func _ready() -> void:
 
 
 func _build_ui() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color(0.1, 0.09, 0.07)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+	# 全屏背景（sanguo 迁移资源 bg3.jpg）
+	add_child(UIFactory.make_bg("res://assets/bg/bg3.jpg"))
 
 	_info_label = UIFactory.make_label("", 22, Color.WHITE)
 	_info_label.position = Vector2(40, 60)

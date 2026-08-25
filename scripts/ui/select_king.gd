@@ -5,6 +5,8 @@ var _countries: Array = []
 var _selected_index: int = -1
 var _confirm_btn: Button
 var _info_label: Label
+var _portrait_rect: TextureRect
+var _force_rect: TextureRect
 var _list_box: VBoxContainer
 
 
@@ -15,10 +17,8 @@ func _ready() -> void:
 
 
 func _build_ui() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color(0.1, 0.08, 0.06)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+	# 全屏背景（sanguo 迁移资源 bg2.jpg）
+	add_child(UIFactory.make_bg("res://assets/bg/bg2.jpg"))
 
 	var title := UIFactory.make_label("选择君主", 44, Color(0.95, 0.85, 0.4))
 	title.set_anchors_preset(Control.PRESET_CENTER_TOP)
@@ -34,10 +34,26 @@ func _build_ui() -> void:
 	add_child(_list_box)
 
 	_info_label = UIFactory.make_label("请选择君主", 22, Color.WHITE)
-	_info_label.position = Vector2(520, 200)
-	_info_label.size = Vector2(400, 400)
+	_info_label.position = Vector2(520, 430)
+	_info_label.size = Vector2(400, 260)
 	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_info_label)
+
+	# 君主头像（高清立绘 360x512，等比缩放展示）
+	_portrait_rect = TextureRect.new()
+	_portrait_rect.position = Vector2(560, 60)
+	_portrait_rect.size = Vector2(240, 342)
+	_portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_portrait_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	add_child(_portrait_rect)
+
+	# 势力图标（魏/蜀/吴，370x370 等比缩放）
+	_force_rect = TextureRect.new()
+	_force_rect.position = Vector2(820, 60)
+	_force_rect.size = Vector2(150, 150)
+	_force_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_force_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	add_child(_force_rect)
 
 	_confirm_btn = UIFactory.make_button("确 定", Vector2(180, 60), 26)
 	_confirm_btn.disabled = true
@@ -81,12 +97,30 @@ func _on_select(index: int) -> void:
 		var w := WeaponListCache.get_weapon(king.arm)
 		if w != null:
 			weapon_name = w.weaponName
+		_portrait_rect.texture = GeneralListCache.get_portrait(king.generalId)
+	else:
+		_portrait_rect.texture = null
+	# 势力图标（countryId → 魏/蜀/吴）
+	var force_path := _force_icon_path(c.countryId)
+	if force_path != "" and ResourceLoader.exists(force_path):
+		_force_rect.texture = load(force_path) as Texture2D
+	else:
+		_force_rect.texture = null
 	_info_label.text = "君主：%s\n\n统率：%d   武力：%d\n智谋：%d   政事：%d\n魅力：%d   等级：%d\n\n城池数：%d\n兵力：%d\n武器：%s" % [
 		king.generalName if king != null else "?",
 		king.lead if king != null else 0, king.force if king != null else 0,
 		king.wisdom if king != null else 0, king.govern if king != null else 0,
 		king.charm if king != null else 0, king.level if king != null else 1,
 		city_num, soldier_num, weapon_name]
+
+
+## 势力 ID → 势力图标路径（3 势力：1 魏 / 2 蜀 / 3 吴）。
+func _force_icon_path(country_id: int) -> String:
+	match country_id:
+		1: return "res://assets/force/Wei.png"
+		2: return "res://assets/force/Shu.png"
+		3: return "res://assets/force/Wu.png"
+		_: return ""
 
 
 func _on_confirm() -> void:
