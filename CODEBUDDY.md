@@ -23,9 +23,18 @@ make build        # 构建二进制
 make test         # 运行 internal/game 全部 Go 单测
 make vet          # go vet 静态检查
 make tidy         # go mod tidy
+make db-up        # 启动 docker MySQL（首次自动执行 db/init/*.sql 建表）
+make db-down      # 停止 docker MySQL（保留数据卷）
+make integration  # 端到端集成测试：起 MySQL → 编译 → 起服务 → 跑 test/integration 全流程
 ```
 
 > **⚠️ 本机环境坑**：`GOROOT` 环境变量被错误指向 go1.26 模块工具链，与系统 go1.24.12 冲突。**必须用 `make ...`**（Makefile 已封装 `GOROOT=/usr/local/go GOTOOLCHAIN=local`），否则 `go build` 报 stdlib 版本不匹配。
+>
+> **数据库（MySQL/gorm）**：日常单测/开发默认 `InMemory=true`（不依赖 DB）。要接入 MySQL 存用户+存档：
+> - 环境变量 `3k_DSN`（gorm DSN，如 `root:root@tcp(127.0.0.1:3306)/3k?charset=utf8mb4&parseTime=True&loc=Local`）设置后 `InMemory` 自动变 false（也可用 `3K_IN_MEMORY` 强制指定）。
+> - `3K_LISTEN`（监听地址）、`3K_DATA_DIR`（数据目录）可覆盖默认。
+> - 集成测试封装为 `make integration`，内部自动起 docker MySQL 并用随机端口 `18080`，不污染本机 8080。
+> - `make integration` 可覆盖：`make integration INT_PORT=9090 MYSQL_PORT=3307`。
 
 ### 客户端（Godot）
 
@@ -46,6 +55,7 @@ make check        # headless 校验工程（导入资源、检查脚本错误）
 
 - **HTTP**（一次性动作）：`/auth/login`、`/game/new`、`/game/save`、`/game/load`。
 - **WebSocket**（局内命令 + 推送）：`/game/ws`。服务器推送状态增量 `S2C_Delta`、战争/战斗步骤、回合结果。
+- **登录鉴权**：接库模式下 `/auth/login` 签 token（`auth_tokens` 表存 SHA-256），WS 握手校验 `token` 查询参数，`playerId` 必须与 token 匹配。内存态/兼容旧客户端时可仅凭 `sessionId` 连接。
 - **协议信封**：`{"v":1,"type":"req"|"push","seq":N,"op":<opcode>,"body":{}}`。opcode 定义在 `server/internal/ws/protocol.go`；命令表复用原版 `GameInfo.TaskType` 枚举（`C2S_*` 请求、`S2C_*` 推送）。
 
 ### 服务器分层（go-zero 最佳实践）

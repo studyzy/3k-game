@@ -23,6 +23,7 @@ func main() {
 
 	c := loadConfig()
 	svcCtx := svc.NewServiceContext(c)
+	defer svcCtx.Close()
 
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
@@ -36,13 +37,9 @@ func main() {
 	server.Start()
 }
 
-// loadConfig 加载配置（开发期用默认值，不读 yaml）
+// loadConfig 加载配置（默认值 + 环境变量覆盖）
 func loadConfig() config.Config {
-	var c config.Config
-	c.Host = "0.0.0.0"
-	c.Port = 8080
-	c.DataDir = "data"
-	return c
+	return config.Default()
 }
 
 // registerHTTPRoutes 注册 REST 接口
@@ -65,7 +62,8 @@ func registerWSGateway(server *rest.Server, svcCtx *svc.ServiceContext) {
 		ResolveSession: func(w http.ResponseWriter, r *http.Request) (*ws.Session, error) {
 			sessionId := r.URL.Query().Get("sessionId")
 			playerId := r.URL.Query().Get("playerId")
-			return l.ResolveSession(sessionId, playerId)
+			token := r.URL.Query().Get("token")
+			return l.ResolveSession(sessionId, playerId, token)
 		},
 		Handle: ws.DefaultHandler,
 	}

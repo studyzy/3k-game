@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-// SaveStore 存档存储（开发期用 JSON 文件；将来可换 SQLite/MySQL）
+// SaveStore 存档存储（开发期用 JSON 文件；也可换 MySQL，见 mysql.go）
 type SaveStore struct {
 	Dir string
 }
@@ -59,6 +59,9 @@ func (s *SaveStore) List(playerID string) []map[string]interface{} {
 	}
 	return result
 }
+
+// Close 无资源需释放
+func (s *SaveStore) Close() error { return nil }
 
 func (s *SaveStore) path(playerID, saveID string) string {
 	return filepath.Join(s.Dir, playerID, saveID+".json")

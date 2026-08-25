@@ -20,12 +20,16 @@ func New(svcCtx *svc.ServiceContext) *Logic {
 	return &Logic{svcCtx: svcCtx}
 }
 
-// Login 登录（开发期 mock，返回固定 token）
+// Login 登录。
+// MySQL 模式下查询/建立 users 表并签发 token；内存态（未接 DB）返回 mock token 兼容旧开发流程。
 func (l *Logic) Login(playerId string) (token string, err error) {
 	if playerId == "" {
 		playerId = "p1"
 	}
-	return "mock-token-" + playerId, nil
+	if l.svcCtx.Auth == nil {
+		return "mock-token-" + playerId, nil
+	}
+	return l.svcCtx.Auth.Login(playerId)
 }
 
 // CreateGame 创建新局，返回 sessionId + 全量快照
@@ -65,8 +69,9 @@ func (l *Logic) LoadGame(playerId, saveId string) (sessionId string, snapshot ma
 	return sess.ID, sess.World.ToSnapshot(sess.ID, sess.Version), nil
 }
 
-// ResolveSession 从 WebSocket 握手参数解析 Session（找不到则创建新局）
-func (l *Logic) ResolveSession(sessionId, playerId string) (*ws.Session, error) {
+// ResolveSession 从 WebSocket 握手参数解析 Session。
+// 有 sessionId 时直接取；否则 MySQL 模式下校验 token 后按 playerId 建局，内存态按 playerId 建局。
+func (l *Logic) ResolveSession(sessionId, playerId, token string) (*ws.Session, error) {
 	if sessionId != "" {
 		sess, err := l.svcCtx.GetSession(sessionId)
 		if err != nil {
@@ -76,6 +81,13 @@ func (l *Logic) ResolveSession(sessionId, playerId string) (*ws.Session, error) 
 	}
 	if playerId == "" {
 		playerId = "p1"
+	}
+	// MySQL 模式：token 与 playerId 必须匹配
+	if l.svcCtx.Auth != nil {
+		uid := l.svcCtx.Auth.VerifyToken(token)
+		if uid == "" || uid != playerId {
+			return nil, fmt.Errorf("invalid token")
+		}
 	}
 	seed := time.Now().UnixNano()
 	sess, err := l.svcCtx.CreateGame(playerId, seed)

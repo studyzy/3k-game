@@ -18,17 +18,44 @@ type ServiceContext struct {
 	Config   config.Config
 	Mu       sync.Mutex
 	Sessions map[string]*ws.Session // sessionId -> Session
-	Store    *persist.SaveStore     // 存档存储
+	Store    persist.Store          // 存档存储（JSON 文件或 MySQL）
+	Auth     *persist.AuthStore     // 登录鉴权（nil 表示内存态/未接 DB）
 	// 每个 playerId 可持有多个 session（多局），但通常一个活跃
 }
 
-// NewServiceContext 创建服务上下文
+// NewServiceContext 创建服务上下文。
+// 当 Config.InMemory 为 true（或 DataSource 为空）时用 JSON 文件存储，否则用 MySQL。
+// MySQL 模式下同时启用 AuthStore（users/auth_tokens 表），否则 Auth 为 nil 走 mock 登录。
 func NewServiceContext(c config.Config) *ServiceContext {
-	store, _ := persist.NewSaveStore("saves")
-	return &ServiceContext{
+	sc := &ServiceContext{
 		Config:   c,
 		Sessions: map[string]*ws.Session{},
-		Store:    store,
+	}
+	if c.InMemory || c.DataSource == "" {
+		store, _ := persist.NewSaveStore("saves")
+		sc.Store = store
+		// 内存态：Auth 留 nil，logic 用 mock 登录
+	} else {
+		if store, err := persist.NewMySQLStore(c.DataSource); err == nil {
+			sc.Store = store
+			sc.Auth, _ = persist.NewAuthStore(c.DataSource)
+		}
+	}
+	if sc.Store == nil {
+		// 兜底：Never nil（内存态）
+		store, _ := persist.NewSaveStore("saves")
+		sc.Store = store
+	}
+	return sc
+}
+
+// Close 释放底层存储连接
+func (s *ServiceContext) Close() {
+	if s.Store != nil {
+		s.Store.Close()
+	}
+	if s.Auth != nil {
+		s.Auth.Close()
 	}
 }
 
