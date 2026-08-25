@@ -16,8 +16,8 @@ check: ## headless 校验工程（导入资源、检查脚本错误）
 	$(GODOT) --headless --editor $(PROJECT) --quit
 
 .PHONY: build-mock
-build-mock: ## 编译 MockServer 二进制
-	cd server && make build && GOROOT=/usr/local/go GOTOOLCHAIN=local go build -o bin/3k-mockserver ./cmd/mockserver
+build-mock: ## 编译 MockServer 二进制（复用 server Makefile 的 GOROOT 坑处理）
+	cd server && $(MAKE) build && $(MAKE) build-mockserver
 
 .PHONY: test
 test: ## 跑 Godot 客户端单元测试（需先 build-mock；内部自动起 MockServer）
