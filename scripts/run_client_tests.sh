@@ -43,9 +43,10 @@ done
 
 echo "MockServer 就绪: $MOCK_URL"
 
-# 注入 server 地址后跑 gdUnit4 CLI
+# 注入 server 地址后跑 gdUnit4 CLI（headless）。
+# CI 是无显示服务器，必须 --headless；HTTP/WS 在 --headless + --ignoreHeadlessMode 下仍可用（已本地验证）。
 K3G_SERVER_URL="$MOCK_URL" K3G_WS_URL="$MOCK_WS" \
-  "$GODOT" --path . -s --remote-debug tcp://127.0.0.1:0 \
+  "$GODOT" --headless --path . -s --remote-debug tcp://127.0.0.1:0 \
     addons/gdUnit4/bin/GdUnitCmdTool.gd \
     --ignoreHeadlessMode \
     --add res://scenes/tests \
