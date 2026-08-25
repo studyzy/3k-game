@@ -1,50 +1,27 @@
-# 霸王的大陆 - Godot 移植版
-# 用法: make [run|test|test-unit|check|test-<name>]
+# 霸王的大陆 - Godot 纯 UI 客户端
+# 用法: make [run|check|test|help]
+#
+# 客户端逻辑测试：Godot 侧用 gdUnit4（addons/gdUnit4/），网络层对接独立
+# Go MockServer（server/cmd/mockserver/），回放预设 HTTP + WS 推送。
 
 GODOT ?= godot
 PROJECT := --path .
 
-# gdUnit4 单元测试目录（res://tests/，框架命令行入口）
-GDTESTS_DIR := res://tests/
-GDTESTS_CLI := $(PROJECT) --headless -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd
-
-# 全部集成测试场景（不含 test_loop 压力测试，见 test 目标）
-TESTS := battle endturn flow grid map plan prebattle scenes war warscene
-
-# 逐场景生成目标: test-battle test-endturn ...
-.PHONY: $(addprefix test-,$(TESTS)) test-loop test-unit test-all
-
 .PHONY: run
-run: ## 运行游戏
+run: ## 运行客户端（需先启动服务器）
 	$(GODOT) $(PROJECT)
 
 .PHONY: check
-check: ## 校验工程（导入资源、报告缺失/错误）
+check: ## headless 校验工程（导入资源、检查脚本错误）
 	$(GODOT) --headless --editor $(PROJECT) --quit
 
+.PHONY: build-mock
+build-mock: ## 编译 MockServer 二进制
+	cd server && make build && GOROOT=/usr/local/go GOTOOLCHAIN=local go build -o bin/3k-mockserver ./cmd/mockserver
+
 .PHONY: test
-test: ## 运行全部常规测试（逐个执行，遇错即停）
-	@set -e; for t in $(TESTS); do \
-		echo "==> 测试 $$t"; \
-		$(GODOT) --headless $(PROJECT) res://scenes/tests/test_$$t.tscn || exit 1; \
-	done
-	@echo "全部测试通过"
-
-.PHONY: test-loop
-test-loop: ## 多回合压力测试（耗时较长）
-	$(GODOT) --headless $(PROJECT) res://scenes/tests/test_loop.tscn
-
-.PHONY: test-unit
-test-unit: ## 运行 gdUnit4 单元测试（res://tests/）
-	$(GODOT) $(GDTESTS_CLI) -a $(GDTESTS_DIR) --ignoreHeadlessMode -c
-
-.PHONY: test-all
-test-all: ## 运行全部测试（集成 test + 单元 test-unit）
-	$(MAKE) test && $(MAKE) test-unit
-
-# 单场景测试: make test-flow
-$(addprefix test-,$(TESTS)): test-%:
-	$(GODOT) --headless $(PROJECT) res://scenes/tests/test_$*.tscn
+test: ## 跑 Godot 客户端单元测试（需先 build-mock；内部自动起 MockServer）
+	bash scripts/run_client_tests.sh
 
 .PHONY: help
 help: ## 显示帮助

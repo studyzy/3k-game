@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://deppba8nbpg0c"
+
+[deps]
+
+files=["res://server/data/7.12.translation", "res://server/data/7.12.translation", "res://server/data/7.1.translation", "res://server/data/7.4.translation", "res://server/data/7.3.translation", "res://server/data/7.4.translation", "res://server/data/7.4.translation", "res://server/data/7.12.translation", "res://server/data/7.12.translation", "res://server/data/7.12.translation", "res://server/data/7.12.translation", "res://server/data/7.12.translation", "res://server/data/7.12.translation", "res://server/data/7.4.translation", "res://server/data/7.3.translation", "res://server/data/7.4.translation", "res://server/data/7.12.translation", "res://server/data/7.10.translation", "res://server/data/7.12.translation", "res://server/data/7.4.translation", "res://server/data/7.3.translation", "res://server/data/7.4.translation", "res://server/data/7.4.translation", "res://server/data/7.4.translation", "res://server/data/7.11.translation", "res://server/data/7.11.translation", "res://server/data/7.4.translation", "res://server/data/7.4.translation", "res://server/data/7.3.translation", "res://server/data/7.3.translation", "res://server/data/7.12.translation"]
+
+source_file="res://server/data/7.CSV"
+dest_files=["res://server/data/7.12.translation", "res://server/data/7.12.translation", "res://server/data/7.1.translation", "res://server/data/7.4.translation", "res://server/data/7.3.translation", "res://server/data/7.4.translation", "res://server/data/7.4.translation", "res://server/data/7.12.translation", "res://server/data/7.12.translation", "res://server/data/7.12.translation", "res://server/data/7.12.translation", "res://server/data/7.12.translation", "res://server/data/7.12.translation", "res://server/data/7.4.translation", "res://server/data/7.3.translation", "res://server/data/7.4.translation", "res://server/data/7.12.translation", "res://server/data/7.10.translation", "res://server/data/7.12.translation", "res://server/data/7.4.translation", "res://server/data/7.3.translation", "res://server/data/7.4.translation", "res://server/data/7.4.translation", "res://server/data/7.4.translation", "res://server/data/7.11.translation", "res://server/data/7.11.translation", "res://server/data/7.4.translation", "res://server/data/7.4.translation", "res://server/data/7.3.translation", "res://server/data/7.3.translation", "res://server/data/7.12.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

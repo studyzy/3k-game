@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://ddd6jhnc4i1vf"
+
+[deps]
+
+files=["res://server/data/24.3.translation", "res://server/data/24.3.translation", "res://server/data/24.3.translation", "res://server/data/24.3.translation", "res://server/data/24.3.translation", "res://server/data/24.3.translation", "res://server/data/24.21.translation", "res://server/data/24.2.translation", "res://server/data/24.2.translation", "res://server/data/24.14.translation", "res://server/data/24.3.translation", "res://server/data/24.3.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.9.translation", "res://server/data/24.4.translation", "res://server/data/24.4.translation", "res://server/data/24.4.translation", "res://server/data/24.3.translation", "res://server/data/24.10.translation", "res://server/data/24.10.translation"]
+
+source_file="res://server/data/24.CSV"
+dest_files=["res://server/data/24.3.translation", "res://server/data/24.3.translation", "res://server/data/24.3.translation", "res://server/data/24.3.translation", "res://server/data/24.3.translation", "res://server/data/24.3.translation", "res://server/data/24.21.translation", "res://server/data/24.2.translation", "res://server/data/24.2.translation", "res://server/data/24.14.translation", "res://server/data/24.3.translation", "res://server/data/24.3.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.12.translation", "res://server/data/24.9.translation", "res://server/data/24.4.translation", "res://server/data/24.4.translation", "res://server/data/24.4.translation", "res://server/data/24.3.translation", "res://server/data/24.10.translation", "res://server/data/24.10.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

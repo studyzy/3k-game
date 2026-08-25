@@ -20,15 +20,21 @@ func _ready() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(title)
 
-	# 参战双方
-	var p_gen := GeneralListCache.get_general(BattleManager.pendingPlayerUnit.genID)
-	var e_gen := GeneralListCache.get_general(BattleManager.pendingEnemyUnit.genID)
+	# 参战双方（从服务器 Mirror.war 取交战单位）
+	var war: Dictionary = Mirror.war
+	var hm: Array = war.get("hmUnits", [])
+	var ai: Array = war.get("aiUnits", [])
 	var info := UIFactory.make_label("", 24, Color.WHITE)
 	info.position = Vector2(150, 100)
 	info.size = Vector2(700, 120)
 	add_child(info)
-	info.text = "我方：%s（兵%d）\n敌方：%s（兵%d）" % [
-		p_gen.generalName, p_gen.soldiers, e_gen.generalName, e_gen.soldiers]
+	var p_name := "我方"
+	var e_name := "敌方"
+	if not hm.is_empty():
+		p_name = "武将ID %d" % int(hm[0].get("genID", 0))
+	if not ai.is_empty():
+		e_name = "武将ID %d" % int(ai[0].get("genID", 0))
+	info.text = "我方：%s\n敌方：%s" % [p_name, e_name]
 
 	UIFactory.add_label(self, "选择阵型：", Vector2(150, 260), 24)
 
@@ -51,7 +57,7 @@ func _ready() -> void:
 			_selected_formation = b
 
 	# 参战信息
-	var battle_info := UIFactory.make_label(_battle_power_text(p_gen, e_gen), 20, Color.WHITE)
+	var battle_info := UIFactory.make_label("选择阵型后点击手动或自动战斗", 20, Color.WHITE)
 	battle_info.position = Vector2(150, 420)
 	battle_info.size = Vector2(700, 100)
 	add_child(battle_info)
@@ -75,65 +81,40 @@ func _ready() -> void:
 
 func _on_formation(index: int) -> void:
 	_formation_index = index
-	BattleManager.formationIndex = index
-
-
-func _battle_power_text(p_gen: General, e_gen: General) -> String:
-	var p_power := p_gen.get_war_value()
-	var e_power := e_gen.get_war_value()
-	return "我方战力：%d    敌方战力：%d\n（战力仅为参考，实战受阵型、地形、特技影响）" % [p_power, e_power]
 
 
 func _on_manual() -> void:
 	if _resolved:
 		return
 	_resolved = true
-	SceneRouter.change_scene("res://scenes/ui/battle_scene.tscn")
+	# 通知服务器进入手动战斗（返回 S2C_BattleStart）
+	NetClient.send(NetClient.C2S_BATTLE_SELECT, {"formationIndex": _formation_index, "mode": "manual"})
+	if not NetClient.server_push.is_connected(_on_battle_select_result):
+		NetClient.server_push.connect(_on_battle_select_result)
 
 
 func _on_fight() -> void:
 	if _resolved:
 		return
 	_resolved = true
-	var p_unit := BattleManager.pendingPlayerUnit
-	var e_unit := BattleManager.pendingEnemyUnit
-	var p_gen := GeneralListCache.get_general(p_unit.genID)
-	var e_gen := GeneralListCache.get_general(e_unit.genID)
-	if p_gen == null or e_gen == null:
-		SceneRouter.change_scene("res://scenes/ui/war_scene.tscn")
+	# 自动战斗：服务器模拟并返回结果
+	NetClient.send(NetClient.C2S_BATTLE_SELECT, {"formationIndex": _formation_index, "mode": "auto"})
+	if not NetClient.server_push.is_connected(_on_battle_result):
+		NetClient.server_push.connect(_on_battle_result)
+
+
+func _on_battle_select_result(op: int, _body: Dictionary) -> void:
+	if op != NetClient.S2C_BATTLE_START:
 		return
-	var terrain := 0
-	if not WarManager.war_map.is_empty():
-		terrain = int(WarManager.war_map[p_unit.arrayPos.y][p_unit.arrayPos.x]) & 0xF
-	BattleManager.init_battle(p_gen, e_gen, terrain, false)
-	BattleManager.hmTurnOrder = BattleManager.create_turn_order(p_gen, true)
-	BattleManager.aiTurnOrder = BattleManager.create_turn_order(e_gen, false)
-	var win := BattleManager.simulated_battle()
-	# 移除败方单位
-	if win:
-		WarManager.aiUnits.erase(e_unit)
-		_clear_map_occupy(e_unit)
-		GameInfo.show_info = "我军击败 %s！" % e_gen.generalName
-	else:
-		WarManager.hmUnits.erase(p_unit)
-		_clear_map_occupy(p_unit)
-		GameInfo.show_info = "%s 战败！" % p_gen.generalName
-	BattleManager.pendingPlayerUnit = null
-	BattleManager.pendingEnemyUnit = null
-	# 检查战争结束
-	if WarManager.aiUnits.is_empty():
-		WarManager.after_war_settlement(true, true, true)
+	NetClient.server_push.disconnect(_on_battle_select_result)
+	SceneRouter.change_scene("res://scenes/ui/battle_scene.tscn")
+
+
+func _on_battle_result(op: int, body: Dictionary) -> void:
+	if op != NetClient.S2C_BATTLE_RESULT:
 		return
-	if WarManager.hmUnits.is_empty():
-		WarManager.after_war_settlement(false, false, true)
-		return
+	NetClient.server_push.disconnect(_on_battle_result)
 	SceneRouter.change_scene("res://scenes/ui/war_scene.tscn")
-
-
-func _clear_map_occupy(u: UnitData) -> void:
-	if u.arrayPos.y < WarManager.war_map.size() and u.arrayPos.x < WarManager.war_map[u.arrayPos.y].size():
-		var v: int = WarManager.war_map[u.arrayPos.y][u.arrayPos.x]
-		WarManager.war_map[u.arrayPos.y][u.arrayPos.x] = v & 0x3F
 
 
 func _on_retreat() -> void:

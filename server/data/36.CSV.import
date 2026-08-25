@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://48h06fgv4g1r"
+
+[deps]
+
+files=["res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.4.translation", "res://server/data/36.4.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.21.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.21.translation", "res://server/data/36.3.translation", "res://server/data/36.4.translation", "res://server/data/36.4.translation", "res://server/data/36.4.translation", "res://server/data/36.4.translation", "res://server/data/36.4.translation", "res://server/data/36.12.translation", "res://server/data/36.4.translation", "res://server/data/36.4.translation"]
+
+source_file="res://server/data/36.CSV"
+dest_files=["res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.4.translation", "res://server/data/36.4.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.21.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.3.translation", "res://server/data/36.21.translation", "res://server/data/36.3.translation", "res://server/data/36.4.translation", "res://server/data/36.4.translation", "res://server/data/36.4.translation", "res://server/data/36.4.translation", "res://server/data/36.4.translation", "res://server/data/36.12.translation", "res://server/data/36.4.translation", "res://server/data/36.4.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

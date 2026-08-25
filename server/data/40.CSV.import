@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://cemhcf3syvjjv"
+
+[deps]
+
+files=["res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.21.translation", "res://server/data/40.3.translation", "res://server/data/40.12.translation", "res://server/data/40.12.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.12.translation", "res://server/data/40.12.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.4.translation", "res://server/data/40.11.translation", "res://server/data/40.4.translation", "res://server/data/40.11.translation", "res://server/data/40.4.translation", "res://server/data/40.12.translation", "res://server/data/40.16.translation", "res://server/data/40.16.translation", "res://server/data/40.16.translation", "res://server/data/40.16.translation", "res://server/data/40.16.translation", "res://server/data/40.12.translation", "res://server/data/40.4.translation", "res://server/data/40.3.translation"]
+
+source_file="res://server/data/40.CSV"
+dest_files=["res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.21.translation", "res://server/data/40.3.translation", "res://server/data/40.12.translation", "res://server/data/40.12.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.12.translation", "res://server/data/40.12.translation", "res://server/data/40.3.translation", "res://server/data/40.3.translation", "res://server/data/40.4.translation", "res://server/data/40.11.translation", "res://server/data/40.4.translation", "res://server/data/40.11.translation", "res://server/data/40.4.translation", "res://server/data/40.12.translation", "res://server/data/40.16.translation", "res://server/data/40.16.translation", "res://server/data/40.16.translation", "res://server/data/40.16.translation", "res://server/data/40.16.translation", "res://server/data/40.12.translation", "res://server/data/40.4.translation", "res://server/data/40.3.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

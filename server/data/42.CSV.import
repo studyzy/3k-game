@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://p3xo2g8qvua7"
+
+[deps]
+
+files=["res://server/data/42.12.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.4.translation", "res://server/data/42.11.translation", "res://server/data/42.11.translation", "res://server/data/42.4.translation", "res://server/data/42.4.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.21.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.21.translation", "res://server/data/42.3.translation", "res://server/data/42.12.translation", "res://server/data/42.12.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation"]
+
+source_file="res://server/data/42.CSV"
+dest_files=["res://server/data/42.12.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.4.translation", "res://server/data/42.11.translation", "res://server/data/42.11.translation", "res://server/data/42.4.translation", "res://server/data/42.4.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.21.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.21.translation", "res://server/data/42.3.translation", "res://server/data/42.12.translation", "res://server/data/42.12.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation", "res://server/data/42.3.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

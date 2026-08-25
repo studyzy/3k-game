@@ -27,14 +27,11 @@ CountryListCache="*res://scripts/cache/country_list_cache.gd"
 GeneralListCache="*res://scripts/cache/general_list_cache.gd"
 DataManager="*res://scripts/data/data_manager.gd"
 SceneRouter="*res://scripts/scene_router.gd"
-MapManager="*res://scripts/war/map_manager.gd"
-WarManager="*res://scripts/war/war_manager.gd"
-BattleManager="*res://scripts/battle/battle_manager.gd"
-TurnManager="*res://scripts/turn_manager.gd"
-SoloManager="*res://scripts/solo_manager.gd"
 UITips="*res://scripts/ui/uitips.gd"
 GameLogger="*res://scripts/game_logger.gd"
 SoundManager="*res://scripts/sound_manager.gd"
+Mirror="*res://scripts/net/mirror.gd"
+NetClient="*res://scripts/net/client.gd"
 
 [gui]
 
@@ -45,7 +42,3 @@ theme/custom="res://assets/theme.tres"
 renderer/rendering_method="mobile"
 renderer/rendering_method.mobile="mobile"
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
-
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")

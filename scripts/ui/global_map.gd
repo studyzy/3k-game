@@ -98,8 +98,8 @@ func _build_action_bar() -> void:
 
 func _on_action(task: int) -> void:
 	if task == -1:
-		# 结束回合
-		TurnManager.end_player_turn()
+		# 结束回合：通知服务器执行 AI 回合 + 月度推进
+		NetClient.send(NetClient.C2S_END_TURN, {})
 		return
 	GameInfo.task = task
 

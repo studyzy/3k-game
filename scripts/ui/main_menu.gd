@@ -14,6 +14,8 @@ func _ready() -> void:
 	_chapters = DataManager.load_json_list(CHAPTERS_PATH)
 	SoundManager.play_bgm("1")
 	_build_ui()
+	# 启动时自动登录并创建新局（服务器权威状态）
+	NetClient.login("p1")
 
 
 func _build_ui() -> void:

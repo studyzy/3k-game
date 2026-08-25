@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bolk8c2mv74bb"
+
+[deps]
+
+files=["res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation"]
+
+source_file="res://server/data/a3.csv"
+dest_files=["res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation", "res://server/data/a3.255.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

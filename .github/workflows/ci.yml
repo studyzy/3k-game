@@ -6,8 +6,27 @@ on:
   pull_request:
 
 jobs:
-  test:
-    name: Godot 测试
+  server-test:
+    name: 服务器测试（Go）
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache-dependency-path: server/go.sum
+
+      - name: Go 静态检查（vet）
+        run: cd server && make vet
+
+      - name: 运行 Go 单元测试（游戏逻辑）
+        run: cd server && make test
+
+  client-test:
+    name: 客户端测试（Godot）
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
@@ -23,19 +42,25 @@ jobs:
       - name: 验证 Godot
         run: godot --version
 
+      - name: 安装 Go（编译 MockServer）
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache-dependency-path: server/go.sum
+
+      - name: 编译 MockServer
+        run: make build-mock
+
       - name: Headless 校验工程（导入资源、检查错误）
         run: make check
 
-      - name: 运行集成测试（scenes/tests/）
+      - name: 运行客户端单元测试（MockServer + gdUnit4）
         run: make test
-
-      - name: 运行单元测试（tests/，gdUnit4）
-        run: make test-unit
 
       - name: 上传测试报告
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports
+          name: client-test-reports
           path: reports/
           if-no-files-found: ignore

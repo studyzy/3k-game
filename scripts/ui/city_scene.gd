@@ -91,8 +91,8 @@ func _refresh() -> void:
 
 func _on_task(task: int) -> void:
 	if task == -1:
-		# 结束回合
-		TurnManager.end_player_turn()
+		# 结束回合：通知服务器（AI 回合 + 月度推进）
+		NetClient.send(NetClient.C2S_END_TURN, {})
 		return
 	if task == 100:
 		_show_interior()
@@ -177,11 +177,10 @@ func _show_save_load() -> void:
 		var save_b := UIFactory.make_button("保存 %d" % (i + 1), Vector2(150, 42), 20)
 		var load_b := UIFactory.make_button("读取 %d" % (i + 1), Vector2(150, 42), 20)
 		var idx := i
-		save_b.pressed.connect(func(): DataManager.save_game(idx))
+		save_b.pressed.connect(func(): NetClient.save_game("slot%d" % (idx + 1)))
 		load_b.pressed.connect(func():
-			DataManager.load_game(idx)
-			_save_panel.queue_free()
-			SceneRouter.change_scene("res://scenes/ui/city_scene.tscn"))
+			NetClient.load_game("slot%d" % (idx + 1))
+			_save_panel.queue_free())
 		hbox.add_child(save_b)
 		hbox.add_child(load_b)
 	var close := UIFactory.make_button("关闭", Vector2(120, 42), 20)

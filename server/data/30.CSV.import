@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://xnnofvxfv3vc"
+
+[deps]
+
+files=["res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.11.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.10.translation", "res://server/data/30.4.translation", "res://server/data/30.4.translation", "res://server/data/30.12.translation", "res://server/data/30.12.translation", "res://server/data/30.12.translation", "res://server/data/30.12.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.4.translation", "res://server/data/30.10.translation", "res://server/data/30.4.translation", "res://server/data/30.3.translation", "res://server/data/30.12.translation", "res://server/data/30.9.translation", "res://server/data/30.12.translation", "res://server/data/30.12.translation", "res://server/data/30.3.translation", "res://server/data/30.4.translation", "res://server/data/30.12.translation", "res://server/data/30.12.translation"]
+
+source_file="res://server/data/30.CSV"
+dest_files=["res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.11.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.10.translation", "res://server/data/30.4.translation", "res://server/data/30.4.translation", "res://server/data/30.12.translation", "res://server/data/30.12.translation", "res://server/data/30.12.translation", "res://server/data/30.12.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.3.translation", "res://server/data/30.4.translation", "res://server/data/30.10.translation", "res://server/data/30.4.translation", "res://server/data/30.3.translation", "res://server/data/30.12.translation", "res://server/data/30.9.translation", "res://server/data/30.12.translation", "res://server/data/30.12.translation", "res://server/data/30.3.translation", "res://server/data/30.4.translation", "res://server/data/30.12.translation", "res://server/data/30.12.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

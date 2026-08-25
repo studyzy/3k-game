@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://c5aribyr2db5g"
+
+[deps]
+
+files=["res://server/data/13.3.translation", "res://server/data/13.3.translation", "res://server/data/13.3.translation", "res://server/data/13.3.translation", "res://server/data/13.3.translation", "res://server/data/13.3.translation", "res://server/data/13.21.translation", "res://server/data/13.2.translation", "res://server/data/13.2.translation", "res://server/data/13.3.translation", "res://server/data/13.10.translation", "res://server/data/13.10.translation", "res://server/data/13.10.translation", "res://server/data/13.3.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.13.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.12.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.13.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.12.translation", "res://server/data/13.4.translation", "res://server/data/13.10.translation"]
+
+source_file="res://server/data/13.CSV"
+dest_files=["res://server/data/13.3.translation", "res://server/data/13.3.translation", "res://server/data/13.3.translation", "res://server/data/13.3.translation", "res://server/data/13.3.translation", "res://server/data/13.3.translation", "res://server/data/13.21.translation", "res://server/data/13.2.translation", "res://server/data/13.2.translation", "res://server/data/13.3.translation", "res://server/data/13.10.translation", "res://server/data/13.10.translation", "res://server/data/13.10.translation", "res://server/data/13.3.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.13.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.12.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.13.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.4.translation", "res://server/data/13.12.translation", "res://server/data/13.4.translation", "res://server/data/13.10.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

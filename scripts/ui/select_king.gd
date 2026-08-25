@@ -93,9 +93,17 @@ func _on_confirm() -> void:
 	if _selected_index < 0:
 		return
 	var c: Country = _countries[_selected_index]
-	GameInfo.playerCountryId = c.countryId
-	GameInfo.playingState = GameInfo.GameState.GAME_START
-	GameInfo.doCityId = c.find_king_city()
-	if GameInfo.doCityId == 0 and not c.cityIDs.is_empty():
-		GameInfo.doCityId = c.cityIDs[0]
+	# 通知服务器选择君主（服务器权威设置 playerCountryId / doCityId）
+	NetClient.send(NetClient.C2S_SELECT_KING, {"countryId": c.countryId})
+	# 等待服务器 SelectKing 响应后进入大地图
+	_confirm_btn.disabled = true
+	if not NetClient.server_push.is_connected(_on_select_king_result):
+		NetClient.server_push.connect(_on_select_king_result)
+
+
+func _on_select_king_result(op: int, body: Dictionary) -> void:
+	if op != NetClient.S2C_DELTA:
+		return
+	# 服务器已确认，进入大地图
+	NetClient.server_push.disconnect(_on_select_king_result)
 	SceneRouter.change_scene("res://scenes/ui/global_map.tscn")
