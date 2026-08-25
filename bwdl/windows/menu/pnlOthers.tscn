@@ -1,0 +1,142 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/28.tres" type="DynamicFont" id=1]
+[ext_resource path="res://resource/images/picture/button.png" type="Texture" id=2]
+[ext_resource path="res://windows/menu/pnlOthers.gd" type="Script" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=4]
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 0.960784, 0.937255, 0.560784, 1 )
+
+[sub_resource type="StyleBoxFlat" id=5]
+bg_color = Color( 0, 0, 0, 0 )
+
+[sub_resource type="StyleBoxTexture" id=1]
+texture = ExtResource( 2 )
+region_rect = Rect2( 0, 0, 162, 47 )
+
+[node name="pnlOthers" type="Panel"]
+margin_left = 243.0
+margin_top = 92.0
+margin_right = 781.0
+margin_bottom = 508.0
+custom_styles/panel = SubResource( 4 )
+script = ExtResource( 3 )
+
+[node name="gv" type="GridContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -225.0
+margin_top = -161.5
+margin_right = 226.0
+margin_bottom = 124.5
+custom_constants/vseparation = 30
+custom_constants/hseparation = 50
+columns = 2
+
+[node name="blank" type="Button" parent="gv"]
+margin_right = 200.0
+margin_bottom = 55.0
+rect_min_size = Vector2( 200, 55 )
+custom_styles/disabled = SubResource( 5 )
+disabled = true
+
+[node name="btnBack" type="Button" parent="gv"]
+self_modulate = Color( 0, 1, 0.133333, 1 )
+margin_left = 250.0
+margin_right = 450.0
+margin_bottom = 55.0
+rect_min_size = Vector2( 200, 55 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 0.984314, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/hover = SubResource( 1 )
+custom_styles/pressed = SubResource( 1 )
+custom_styles/focus = SubResource( 1 )
+custom_styles/disabled = SubResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "返回上一级"
+
+[node name="btnFlowFix" type="Button" parent="gv"]
+margin_top = 85.0
+margin_right = 200.0
+margin_bottom = 140.0
+rect_min_size = Vector2( 200, 55 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 0.984314, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/hover = SubResource( 1 )
+custom_styles/pressed = SubResource( 1 )
+custom_styles/focus = SubResource( 1 )
+custom_styles/disabled = SubResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "卡死修复"
+
+[node name="btnData" type="Button" parent="gv"]
+margin_left = 250.0
+margin_top = 85.0
+margin_right = 450.0
+margin_bottom = 140.0
+rect_min_size = Vector2( 200, 55 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 0.984314, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/hover = SubResource( 1 )
+custom_styles/pressed = SubResource( 1 )
+custom_styles/focus = SubResource( 1 )
+custom_styles/disabled = SubResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "游戏资料"
+
+[node name="btnCheater" type="Button" parent="gv"]
+margin_top = 170.0
+margin_right = 200.0
+margin_bottom = 225.0
+rect_min_size = Vector2( 200, 55 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 0.984314, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/hover = SubResource( 1 )
+custom_styles/pressed = SubResource( 1 )
+custom_styles/focus = SubResource( 1 )
+custom_styles/disabled = SubResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "内置修改"
+
+[node name="btnChallange" type="Button" parent="gv"]
+margin_left = 250.0
+margin_top = 170.0
+margin_right = 450.0
+margin_bottom = 225.0
+rect_min_size = Vector2( 200, 55 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 0.984314, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/hover = SubResource( 1 )
+custom_styles/pressed = SubResource( 1 )
+custom_styles/focus = SubResource( 1 )
+custom_styles/disabled = SubResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "挑战赛"
+
+[node name="Label" type="Label" parent="."]
+margin_left = 35.0
+margin_top = 22.0
+margin_right = 158.0
+margin_bottom = 61.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "请选择"
+
+[connection signal="pressed" from="gv/btnBack" to="." method="_on_btnBack_pressed"]
+[connection signal="pressed" from="gv/btnFlowFix" to="." method="_on_btnFlowFix_pressed"]
+[connection signal="pressed" from="gv/btnData" to="." method="_on_btnData_pressed"]
+[connection signal="pressed" from="gv/btnCheater" to="." method="_on_btnCheater_pressed"]
+[connection signal="pressed" from="gv/btnChallange" to="." method="_on_btnChallange_pressed"]

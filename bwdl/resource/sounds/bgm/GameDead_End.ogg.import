@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/GameDead_End.ogg-2744a20ebf0276f8a3bfee4435480208.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/bgm/GameDead_End.ogg"
+dest_files=[ "res://.import/GameDead_End.ogg-2744a20ebf0276f8a3bfee4435480208.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

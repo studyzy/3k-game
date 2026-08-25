@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/Town_Alienate.ogg-1107d40fecce5a6b2edbaeeddc6650a5.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/se/Town_Alienate.ogg"
+dest_files=[ "res://.import/Town_Alienate.ogg-1107d40fecce5a6b2edbaeeddc6650a5.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

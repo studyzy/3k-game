@@ -1,0 +1,123 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://resource/images/picture/window2.png" type="Texture" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/27.tres" type="DynamicFont" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=3]
+[ext_resource path="res://windows/unoffice_top.gd" type="Script" id=4]
+[ext_resource path="res://resource/font/FandolSong-Bold/28.tres" type="DynamicFont" id=5]
+
+[node name="unoffice_top" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource( 4 )
+
+[node name="con" type="Control" parent="."]
+visible = false
+
+[node name="Label" type="Label" parent="con"]
+margin_left = 4.0
+margin_top = 5.0
+margin_right = 209.0
+margin_bottom = 37.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 5 )
+text = "207  诸葛亮   在野"
+
+[node name="bottom_scene" type="ColorRect" parent="."]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -300.0
+margin_top = -600.0
+margin_right = 300.0
+margin_bottom = -192.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="Window2" type="NinePatchRect" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -300.0
+margin_right = 300.0
+margin_bottom = 408.0
+texture = ExtResource( 1 )
+region_rect = Rect2( -11.8143, -3, 111.22, 97.5095 )
+patch_margin_left = 44
+patch_margin_top = 33
+patch_margin_right = 41
+patch_margin_bottom = 43
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Label" type="Label" parent="."]
+margin_left = 399.0
+margin_top = 23.0
+margin_right = 604.0
+margin_bottom = 62.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "荆州"
+align = 1
+
+[node name="GridContainer" type="GridContainer" parent="."]
+margin_left = 259.0
+margin_top = 61.0
+margin_right = 779.0
+margin_bottom = 367.0
+custom_constants/vseparation = 40
+custom_constants/hseparation = 270
+columns = 2
+
+[node name="con" type="Control" parent="GridContainer"]
+
+[node name="Label" type="Label" parent="GridContainer/con"]
+margin_left = 4.0
+margin_top = 5.0
+margin_right = 209.0
+margin_bottom = 37.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "207  诸葛亮   在野"
+
+[node name="con2" type="Control" parent="GridContainer"]
+margin_left = 270.0
+margin_right = 270.0
+
+[node name="Label" type="Label" parent="GridContainer/con2"]
+margin_left = 4.0
+margin_top = 5.0
+margin_right = 209.0
+margin_bottom = 37.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "207  诸葛亮   在野"
+
+[node name="con3" type="Control" parent="GridContainer"]
+margin_top = 40.0
+margin_bottom = 40.0
+
+[node name="Label" type="Label" parent="GridContainer/con3"]
+margin_left = 4.0
+margin_top = 5.0
+margin_right = 209.0
+margin_bottom = 37.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "207  诸葛亮   在野"
+
+[node name="con4" type="Control" parent="GridContainer"]
+margin_left = 270.0
+margin_top = 40.0
+margin_right = 270.0
+margin_bottom = 40.0
+
+[node name="Label" type="Label" parent="GridContainer/con4"]
+margin_left = 4.0
+margin_top = 5.0
+margin_right = 209.0
+margin_bottom = 37.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "207  诸葛亮   在野"

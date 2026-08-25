@@ -1,0 +1,123 @@
+[gd_scene load_steps=13 format=2]
+
+[ext_resource path="res://windows/affiars_bottom/affiars_menu.gd" type="Script" id=1]
+[ext_resource path="res://resource/images/picture/bob_ceil.png" type="Texture" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/32.tres" type="DynamicFont" id=3]
+[ext_resource path="res://resource/images/picture/bob_horse.png" type="Texture" id=4]
+[ext_resource path="res://resource/images/picture/bob_skill.png" type="Texture" id=5]
+[ext_resource path="res://windows/children/conOrderbook.tscn" type="PackedScene" id=6]
+[ext_resource path="res://resource/images/picture/lightChooose1.png" type="Texture" id=7]
+[ext_resource path="res://resource/images/picture/temple.png" type="Texture" id=8]
+[ext_resource path="res://resource/images/picture/town.png" type="Texture" id=9]
+[ext_resource path="res://resource/images/picture/fair.png" type="Texture" id=10]
+[ext_resource path="res://resource/images/picture/warehouse.png" type="Texture" id=11]
+[ext_resource path="res://resource/images/picture/barrack.png" type="Texture" id=14]
+
+[node name="Control" type="Control"]
+margin_right = 600.0
+margin_bottom = 190.0
+script = ExtResource( 1 )
+
+[node name="bottom_scene" type="ColorRect" parent="."]
+margin_right = 600.0
+margin_bottom = 190.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="rtlMessage" type="RichTextLabel" parent="."]
+margin_left = 140.0
+margin_top = 20.0
+margin_right = 544.0
+margin_bottom = 61.0
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 3 )
+text = "往何处去？"
+scroll_active = false
+scroll_following = true
+
+[node name="container" type="HBoxContainer" parent="."]
+margin_left = 130.0
+margin_top = 54.0
+margin_right = 568.0
+margin_bottom = 179.0
+custom_constants/separation = 85
+
+[node name="conTown" type="Control" parent="container"]
+margin_bottom = 125.0
+
+[node name="Town" type="Sprite" parent="container/conTown"]
+position = Vector2( 49, 76 )
+scale = Vector2( 1.2, 1.2 )
+texture = ExtResource( 9 )
+
+[node name="conBarrack" type="Control" parent="container"]
+margin_left = 85.0
+margin_right = 85.0
+margin_bottom = 125.0
+
+[node name="barrack" type="Sprite" parent="container/conBarrack"]
+position = Vector2( 49, 76 )
+scale = Vector2( 1.2, 1.2 )
+texture = ExtResource( 14 )
+
+[node name="BobCeil" type="Sprite" parent="container/conBarrack"]
+position = Vector2( 77, 32.7418 )
+scale = Vector2( 0.293429, 0.3028 )
+texture = ExtResource( 2 )
+
+[node name="BobSkill" type="Sprite" parent="container/conBarrack"]
+visible = false
+position = Vector2( 77, 32.7418 )
+scale = Vector2( 0.293429, 0.3028 )
+texture = ExtResource( 5 )
+
+[node name="conWarehouse" type="Control" parent="container"]
+margin_left = 170.0
+margin_right = 170.0
+margin_bottom = 125.0
+
+[node name="warehouse" type="Sprite" parent="container/conWarehouse"]
+position = Vector2( 49, 76 )
+scale = Vector2( 1.2, 1.2 )
+texture = ExtResource( 11 )
+
+[node name="conFair" type="Control" parent="container"]
+margin_left = 255.0
+margin_right = 255.0
+margin_bottom = 125.0
+
+[node name="fair" type="Sprite" parent="container/conFair"]
+position = Vector2( 49, 76 )
+scale = Vector2( 1.2, 1.2 )
+texture = ExtResource( 10 )
+
+[node name="BobHorse" type="Sprite" parent="container/conFair"]
+position = Vector2( 77, 31.7418 )
+scale = Vector2( 0.293429, 0.317398 )
+texture = ExtResource( 4 )
+
+[node name="conTemple" type="Control" parent="container"]
+margin_left = 340.0
+margin_right = 340.0
+margin_bottom = 125.0
+
+[node name="fair" type="Sprite" parent="container/conTemple"]
+position = Vector2( 49, 76 )
+scale = Vector2( 1.2, 1.2 )
+texture = ExtResource( 8 )
+
+[node name="cursor" type="TextureRect" parent="."]
+margin_left = 165.0
+margin_top = 73.0
+margin_right = 191.0
+margin_bottom = 90.0
+texture = ExtResource( 7 )
+expand = true
+flip_v = true
+
+[node name="Tween" type="Tween" parent="."]
+
+[node name="conOrderbook" parent="." instance=ExtResource( 6 )]
+margin_left = -4.0
+margin_top = 0.0
+margin_right = 146.0
+margin_bottom = 190.0

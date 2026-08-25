@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/Town_Save.ogg-608ba6c6de6b78b848ee8d489abc59be.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/se/Town_Save.ogg"
+dest_files=[ "res://.import/Town_Save.ogg-608ba6c6de6b78b848ee8d489abc59be.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

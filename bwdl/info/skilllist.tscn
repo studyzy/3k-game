@@ -1,0 +1,357 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://info/skilllist.gd" type="Script" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=2]
+[ext_resource path="res://info/keyword.gd" type="Script" id=3]
+[ext_resource path="res://info/skill_preview.gd" type="Script" id=4]
+[ext_resource path="res://cheat/pager.gd" type="Script" id=5]
+[ext_resource path="res://info/skill_detail.tscn" type="PackedScene" id=6]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=7]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0.145098, 0.145098, 0.164706, 1 )
+
+[node name="skilllist" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -232.0
+margin_bottom = -180.0
+rect_min_size = Vector2( 900, 430 )
+script = ExtResource( 1 )
+
+[node name="nav" type="HBoxContainer" parent="."]
+margin_top = 8.0
+margin_right = 900.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 900, 42 )
+custom_constants/separation = 0
+
+[node name="sep3" type="Panel" parent="nav"]
+margin_right = 20.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 20, 42 )
+
+[node name="keyword" type="LineEdit" parent="nav"]
+margin_left = 20.0
+margin_right = 220.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 200, 42 )
+custom_fonts/font = ExtResource( 2 )
+script = ExtResource( 3 )
+__meta__ = {
+"_editor_description_": "0,5"
+}
+
+[node name="sep1" type="Panel" parent="nav"]
+margin_left = 220.0
+margin_right = 240.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 20, 42 )
+
+[node name="search" type="Button" parent="nav"]
+margin_left = 240.0
+margin_right = 300.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 2 )
+text = "搜"
+
+[node name="sep2" type="Panel" parent="nav"]
+margin_left = 300.0
+margin_right = 360.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 42 )
+
+[node name="total" type="Label" parent="nav"]
+margin_left = 360.0
+margin_right = 480.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 120, 42 )
+align = 1
+valign = 1
+
+[node name="sep4" type="Panel" parent="nav"]
+margin_left = 480.0
+margin_right = 540.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 42 )
+
+[node name="first" type="Button" parent="nav"]
+margin_left = 540.0
+margin_right = 600.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 42 )
+custom_fonts/font = ExtResource( 2 )
+text = "|<"
+
+[node name="prev" type="Button" parent="nav"]
+margin_left = 600.0
+margin_right = 660.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 42 )
+custom_fonts/font = ExtResource( 2 )
+text = "<"
+
+[node name="page" type="LineEdit" parent="nav"]
+margin_left = 660.0
+margin_right = 760.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 100, 42 )
+custom_fonts/font = ExtResource( 2 )
+align = 1
+caret_blink = true
+caret_blink_speed = 0.5
+script = ExtResource( 5 )
+__meta__ = {
+"_editor_description_": "1,3"
+}
+
+[node name="next" type="Button" parent="nav"]
+margin_left = 760.0
+margin_right = 820.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 42 )
+custom_fonts/font = ExtResource( 2 )
+text = ">"
+
+[node name="last" type="Button" parent="nav"]
+margin_left = 820.0
+margin_right = 880.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 42 )
+custom_fonts/font = ExtResource( 2 )
+text = ">|"
+
+[node name="header" type="HBoxContainer" parent="."]
+margin_top = 80.0
+margin_right = 790.0
+margin_bottom = 120.0
+rect_min_size = Vector2( 900, 40 )
+custom_constants/separation = 0
+
+[node name="技能" type="Button" parent="header"]
+margin_right = 150.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 150, 40 )
+custom_fonts/font = ExtResource( 2 )
+text = "技能"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "id"
+}
+
+[node name="场景" type="Button" parent="header"]
+margin_left = 150.0
+margin_right = 250.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 100, 40 )
+custom_fonts/font = ExtResource( 2 )
+text = "场景"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "scene"
+}
+
+[node name="类型" type="Button" parent="header"]
+margin_left = 250.0
+margin_right = 370.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 2 )
+text = "类型"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "category"
+}
+
+[node name="分配" type="Button" parent="header"]
+margin_left = 370.0
+margin_right = 530.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 160, 40 )
+custom_fonts/font = ExtResource( 2 )
+text = "分配"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "assign"
+}
+
+[node name="效果" type="Button" parent="header"]
+margin_left = 530.0
+margin_right = 840.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 310, 40 )
+custom_fonts/font = ExtResource( 2 )
+text = "效果"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "weight"
+}
+
+[node name="操作区" type="Button" parent="header"]
+margin_left = 840.0
+margin_right = 900.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 2 )
+
+[node name="row" type="HBoxContainer" parent="."]
+visible = false
+margin_top = 120.0
+margin_right = 900.0
+margin_bottom = 170.0
+rect_min_size = Vector2( 900, 50 )
+custom_constants/separation = 0
+
+[node name="名称" type="Label" parent="row"]
+margin_right = 150.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 150, 50 )
+custom_fonts/font = ExtResource( 2 )
+custom_styles/normal = SubResource( 1 )
+text = "无双（女专）"
+align = 1
+valign = 1
+
+[node name="场景" type="Label" parent="row"]
+margin_left = 150.0
+margin_right = 250.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 100, 50 )
+custom_fonts/font = ExtResource( 2 )
+custom_styles/normal = SubResource( 1 )
+text = "大&小"
+align = 1
+valign = 1
+__meta__ = {
+"_editor_description_": "大战场 & 小战场"
+}
+
+[node name="类型" type="Button" parent="row"]
+margin_left = 250.0
+margin_right = 370.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 120, 50 )
+custom_fonts/font = ExtResource( 2 )
+custom_styles/normal = SubResource( 1 )
+text = "君主限定"
+
+[node name="分配" type="Label" parent="row"]
+margin_left = 370.0
+margin_right = 530.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 160, 50 )
+custom_fonts/font = ExtResource( 2 )
+custom_styles/normal = SubResource( 1 )
+text = "木鹿大王 Lv7"
+align = 1
+valign = 1
+
+[node name="效果" type="NinePatchRect" parent="row"]
+margin_left = 530.0
+margin_right = 840.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 310, 50 )
+mouse_filter = 1
+
+[node name="lbl" type="Label" parent="row/效果"]
+margin_left = 8.0
+margin_right = 388.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 380, 60 )
+rect_scale = Vector2( 0.8, 0.8 )
+mouse_filter = 0
+custom_colors/font_color = Color( 0.6, 0.6, 0.6, 1 )
+custom_fonts/font = ExtResource( 2 )
+custom_styles/normal = SubResource( 1 )
+text = " 非城战，你拥有弓骑兵。弓骑兵：默认可对2-3距离的敌人进行射箭攻击，基础伤害倍率0.7，基础减伤倍率-0.15"
+valign = 1
+autowrap = true
+clip_text = true
+__meta__ = {
+"_editor_description_": "非城战，你拥有弓骑兵。弓骑兵：默认可对2-3距离的敌人进行射箭攻击，基础伤害倍率0.7，基础减伤倍率-0.15"
+}
+
+[node name="operation" type="Panel" parent="row"]
+margin_left = 840.0
+margin_right = 900.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 60, 50 )
+
+[node name="btn" type="Button" parent="row/operation"]
+margin_left = 5.0
+margin_top = 5.0
+margin_right = 55.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 50, 40 )
+custom_fonts/font = ExtResource( 2 )
+text = "详"
+
+[node name="list" type="VBoxContainer" parent="."]
+margin_top = 120.0
+margin_right = 792.0
+margin_bottom = 420.0
+rect_min_size = Vector2( 900, 300 )
+custom_constants/separation = 0
+
+[node name="detail" parent="." instance=ExtResource( 6 )]
+visible = false
+margin_right = -160.0
+margin_bottom = 10.0
+
+[node name="preview" type="Panel" parent="."]
+visible = false
+margin_left = 20.0
+margin_top = 40.0
+margin_right = 520.0
+margin_bottom = 340.0
+rect_min_size = Vector2( 500, 350 )
+script = ExtResource( 4 )
+
+[node name="name" type="Label" parent="preview"]
+margin_left = 20.0
+margin_top = 10.0
+margin_right = 120.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 100, 50 )
+custom_fonts/font = ExtResource( 7 )
+text = "无双"
+valign = 1
+
+[node name="brief" type="Label" parent="preview"]
+margin_left = 100.0
+margin_top = 20.0
+margin_right = 500.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 400, 40 )
+custom_fonts/font = ExtResource( 2 )
+text = "大战场&小战场，主将锁定技"
+
+[node name="close" type="Button" parent="preview"]
+margin_left = 418.0
+margin_top = 2.0
+margin_right = 498.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 80, 40 )
+custom_fonts/font = ExtResource( 2 )
+text = "关闭"
+
+[node name="desc" type="RichTextLabel" parent="preview"]
+margin_left = 20.0
+margin_top = 85.0
+margin_right = 480.0
+margin_bottom = 335.0
+rect_min_size = Vector2( 460, 250 )
+custom_fonts/normal_font = ExtResource( 2 )
+text = "非城战，你拥有弓骑兵。弓骑兵：默认可对2-3距离的敌人进行射箭攻击，基础伤害倍率0.7，基础减伤倍率-0.15"
+
+[connection signal="pressed" from="nav/search" to="." method="search"]
+[connection signal="pressed" from="nav/first" to="." method="page_first"]
+[connection signal="pressed" from="nav/prev" to="." method="page_prev"]
+[connection signal="pressed" from="nav/next" to="." method="page_next"]
+[connection signal="pressed" from="nav/last" to="." method="page_last"]
+[connection signal="pressed" from="header/技能" to="." method="sorting" binds= [ "id" ]]
+[connection signal="pressed" from="header/场景" to="." method="sorting" binds= [ "scene" ]]
+[connection signal="pressed" from="header/类型" to="." method="sorting" binds= [ "category" ]]
+[connection signal="pressed" from="header/分配" to="." method="sorting" binds= [ "assign" ]]
+[connection signal="pressed" from="preview/close" to="." method="preview_close"]

@@ -1,0 +1,128 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://windows/set_game.tscn" type="PackedScene" id=1]
+[ext_resource path="res://windows/light_select.tscn" type="PackedScene" id=2]
+[ext_resource path="res://windows/Solo_Dialog.tscn" type="PackedScene" id=4]
+[ext_resource path="res://resource/font/FandolSong-Bold/40.tres" type="DynamicFont" id=5]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Control
+
+onready var save_lord = get_node(\"save_lord\");
+onready var set_game = get_node(\"set_game\");
+onready var lsc = get_node(\"Control/lsc\");
+
+
+
+func _ready() -> void:
+	change_show(false);
+	pass
+
+func change_show(b:bool):
+	if(b):
+		if(\"scene_net\" in SceneManager.current_scene_path):
+			b = false;
+		if(AutoLoad.get_local_id()!=1):
+			b = false;
+			var lblspeed = SceneManager.VirtualKey.get_node(\"lblspeed\");
+			lblspeed.show();
+			SceneManager.VirtualKey.lblspeed_show_time = 300;
+			lblspeed.text = \"联机过程只有1P可用菜单键\";
+	SceneManager.pause(b);
+	visible = b;
+	
+	set_process(b);
+	lsc.cursor_index = 0;
+	save_lord.hide();
+	set_game.hide();
+
+func _process(delta: float) -> void:
+	if(SceneManager.dialog.visible):
+		return;
+	if(save_lord.visible):
+		save_lord.input_key();
+		return;
+	if(set_game.visible):
+		set_game.input_key();
+		return;
+	if(Input.is_action_just_pressed(\"ANALOG_UP\")):
+		lsc.move_up()
+	if(Input.is_action_just_pressed(\"ANALOG_DOWN\")):
+		lsc.move_down()
+	if(Input.is_action_just_pressed(\"EMU_A\")):
+		match get_cursor_name():
+			\"返回游戏\":
+				change_show(false);
+			\"退出游戏\":
+				get_tree().quit();
+			\"保存游戏\":
+				save_lord.init_data(true);
+				save_lord.show();
+			\"读取游戏\":
+				save_lord.init_data(false);
+				save_lord.show();
+			\"标题画面\":
+				SceneManager.restart();
+				change_show(false);
+			\"其他设置\":
+				set_game.init_set();
+				set_game.show();
+	if(Input.is_action_just_pressed(\"EMU_B\")):
+		Input.action_release(\"EMU_B\");
+		change_show(false);
+	
+	pass
+
+func get_cursor_name()->String:
+	return str(lsc.items[lsc.cursor_index]);
+"
+
+[node name="Control" type="Control"]
+pause_mode = 2
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 192.0
+margin_right = -13.0
+script = SubResource( 1 )
+
+[node name="Control" type="Control" parent="."]
+margin_left = -54.0
+margin_right = 116.0
+margin_bottom = 9.0
+
+[node name="ColorRect" type="ColorRect" parent="Control"]
+margin_right = 1024.0
+margin_bottom = 600.0
+color = Color( 0, 0, 0, 0.556863 )
+
+[node name="lsc" parent="Control" instance=ExtResource( 2 )]
+margin_left = 57.0
+margin_top = 97.5
+margin_right = 17.0
+margin_bottom = 459.5
+h_separation = 220
+v_separation = 60
+items = [ "返回游戏", "保存游戏", "读取游戏", "标题画面", "其他设置", "退出游戏" ]
+font_color = Color( 1, 1, 1, 1 )
+
+[node name="lblTitle" type="Label" parent="Control"]
+margin_left = 4.0
+margin_top = 30.0
+margin_right = 251.0
+margin_bottom = 83.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 5 )
+text = "主菜单"
+align = 1
+
+[node name="save_lord" parent="." instance=ExtResource( 4 )]
+visible = false
+margin_left = 166.0
+margin_right = -32.0
+
+[node name="set_game" parent="." instance=ExtResource( 1 )]
+visible = false
+margin_left = -102.0
+margin_top = 1.0
+margin_right = -352.0
+margin_bottom = 1.0

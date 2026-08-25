@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/Fair_Readbook.ogg-04683ddcf621c06e492ff510f088cbc6.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/se/Fair_Readbook.ogg"
+dest_files=[ "res://.import/Fair_Readbook.ogg-04683ddcf621c06e492ff510f088cbc6.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

@@ -1,0 +1,101 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://resource/images/picture/window2.png" type="Texture" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/35.tres" type="DynamicFont" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=4]
+[ext_resource path="res://windows/war_log.gd" type="Script" id=5]
+
+[sub_resource type="StyleBoxFlat" id=1]
+content_margin_left = 10.0
+content_margin_right = 10.0
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+bg_color = Color( 0, 0, 0, 1 )
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+corner_detail = 20
+
+[node name="war_log" type="Control"]
+margin_right = 600.0
+margin_bottom = 600.0
+script = ExtResource( 5 )
+
+[node name="bottom_scene_color" type="ColorRect" parent="."]
+margin_top = 410.0
+margin_right = 600.0
+margin_bottom = 600.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="Window2" type="NinePatchRect" parent="."]
+margin_right = 600.0
+margin_bottom = 410.0
+texture = ExtResource( 1 )
+region_rect = Rect2( -11.8143, -3, 111.22, 97.5095 )
+patch_margin_left = 44
+patch_margin_top = 33
+patch_margin_right = 41
+patch_margin_bottom = 43
+
+[node name="history" type="RichTextLabel" parent="Window2"]
+margin_left = 40.0
+margin_top = 80.0
+margin_right = 564.0
+margin_bottom = 330.0
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+custom_fonts/normal_font = ExtResource( 4 )
+custom_styles/normal = SubResource( 1 )
+bbcode_enabled = true
+bbcode_text = "1
+2
+3
+4
+5
+6
+7
+8
+
+0
+0
+0
+0
+00
+
+"
+text = "1
+2
+3
+4
+5
+6
+7
+8
+
+0
+0
+0
+0
+00
+
+"
+
+[node name="lblCity" type="Label" parent="Window2"]
+margin_left = 40.0
+margin_top = 25.0
+margin_right = 564.0
+margin_bottom = 72.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "濮阳"
+align = 1
+
+[node name="lblEndless" type="Label" parent="Window2"]
+margin_left = 86.0
+margin_top = 344.0
+margin_right = 478.0
+margin_bottom = 376.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "【简单】无尽模式 第1关"
+align = 1

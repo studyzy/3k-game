@@ -1,0 +1,106 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/40.tres" type="DynamicFont" id=1]
+[ext_resource path="res://scene/scene_net/scene_net.gd" type="Script" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=4]
+
+[node name="scene_net" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 2 )
+
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_right = 1024.0
+margin_bottom = 600.0
+color = Color( 0, 0, 0, 0.556863 )
+
+[node name="lblTitle" type="Label" parent="."]
+margin_left = 357.0
+margin_top = 11.0
+margin_right = 604.0
+margin_bottom = 64.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "联机游戏"
+align = 1
+
+[node name="btnServer" type="Button" parent="."]
+margin_left = 186.0
+margin_top = 111.0
+margin_right = 360.0
+margin_bottom = 172.0
+custom_fonts/font = ExtResource( 3 )
+text = "创建游戏"
+
+[node name="btnClient" type="Button" parent="."]
+margin_left = 399.0
+margin_top = 111.0
+margin_right = 573.0
+margin_bottom = 172.0
+custom_fonts/font = ExtResource( 3 )
+text = "加入游戏"
+
+[node name="lblPlayersNum" type="Label" parent="."]
+margin_left = 852.0
+margin_top = 531.0
+margin_right = 1006.0
+margin_bottom = 570.0
+custom_fonts/font = ExtResource( 4 )
+text = "当前人数："
+
+[node name="lblMessage" type="RichTextLabel" parent="."]
+margin_left = 149.0
+margin_top = 250.0
+margin_right = 845.0
+margin_bottom = 489.0
+custom_fonts/normal_font = ExtResource( 4 )
+text = "此处为对话框"
+scroll_following = true
+
+[node name="LineEdit" type="LineEdit" parent="."]
+margin_left = 152.0
+margin_top = 519.0
+margin_right = 710.0
+margin_bottom = 567.0
+custom_fonts/font = ExtResource( 4 )
+placeholder_text = "在此输入信息聊天"
+
+[node name="btnSend" type="Button" parent="."]
+margin_left = 726.0
+margin_top = 520.0
+margin_right = 841.0
+margin_bottom = 568.0
+custom_fonts/font = ExtResource( 3 )
+text = "发送"
+
+[node name="btnBack" type="Button" parent="."]
+margin_left = 16.0
+margin_top = 11.0
+margin_right = 111.0
+margin_bottom = 64.0
+custom_fonts/font = ExtResource( 3 )
+text = "返回"
+
+[node name="btnGameStart" type="Button" parent="."]
+margin_left = 605.0
+margin_top = 111.0
+margin_right = 779.0
+margin_bottom = 172.0
+custom_fonts/font = ExtResource( 3 )
+disabled = true
+text = "游戏开始"
+
+[node name="txtName" type="LineEdit" parent="."]
+margin_left = 816.0
+margin_top = 12.0
+margin_right = 990.0
+margin_bottom = 60.0
+custom_fonts/font = ExtResource( 4 )
+placeholder_text = "玩家名称"
+
+[connection signal="pressed" from="btnServer" to="." method="_on_btnServer_pressed"]
+[connection signal="pressed" from="btnClient" to="." method="_on_btnClient_pressed"]
+[connection signal="pressed" from="btnSend" to="." method="_on_btnSend_pressed"]
+[connection signal="pressed" from="btnBack" to="." method="_on_btnBack_pressed"]
+[connection signal="pressed" from="btnGameStart" to="." method="_on_btnGameStart_pressed"]

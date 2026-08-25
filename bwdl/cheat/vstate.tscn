@@ -1,0 +1,227 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://cheat/cityicon.gd" type="Script" id=2]
+[ext_resource path="res://cheat/vstate.gd" type="Script" id=3]
+[ext_resource path="res://cheat/actorlist.tscn" type="PackedScene" id=4]
+[ext_resource path="res://cheat/vstatelist.tscn" type="PackedScene" id=5]
+
+[node name="vstate" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -424.0
+margin_bottom = -200.0
+rect_min_size = Vector2( 600, 400 )
+script = ExtResource( 3 )
+
+[node name="icon" type="Panel" parent="."]
+margin_left = 32.0
+margin_top = 16.0
+margin_right = 112.0
+margin_bottom = 76.0
+rect_min_size = Vector2( 80, 60 )
+rect_scale = Vector2( 2, 2 )
+script = ExtResource( 2 )
+
+[node name="lord" type="Label" parent="."]
+margin_left = 32.0
+margin_top = 156.0
+margin_right = 112.0
+margin_bottom = 196.0
+rect_min_size = Vector2( 80, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "君主："
+valign = 1
+
+[node name="君主" type="Label" parent="."]
+margin_left = 112.0
+margin_top = 156.0
+margin_right = 262.0
+margin_bottom = 196.0
+rect_min_size = Vector2( 150, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "彼得洛维奇"
+align = 1
+valign = 1
+
+[node name="更换" type="Button" parent="."]
+margin_left = 272.0
+margin_top = 156.0
+margin_right = 372.0
+margin_bottom = 196.0
+rect_min_size = Vector2( 100, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "更换"
+
+[node name="capital" type="Label" parent="."]
+margin_left = 32.0
+margin_top = 206.0
+margin_right = 112.0
+margin_bottom = 246.0
+rect_min_size = Vector2( 80, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "首都："
+valign = 1
+
+[node name="首都" type="Label" parent="."]
+margin_left = 112.0
+margin_top = 206.0
+margin_right = 262.0
+margin_bottom = 246.0
+rect_min_size = Vector2( 150, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "彼得洛维奇"
+align = 1
+valign = 1
+
+[node name="修改边框" type="Label" parent="."]
+margin_left = 212.0
+margin_top = 26.0
+margin_right = 352.0
+margin_bottom = 66.0
+rect_min_size = Vector2( 140, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "修改边框："
+valign = 1
+
+[node name="边框颜色" type="ColorPickerButton" parent="."]
+margin_left = 342.0
+margin_top = 26.0
+margin_right = 502.0
+margin_bottom = 66.0
+rect_min_size = Vector2( 160, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "边框颜色"
+
+[node name="修改填充" type="Label" parent="."]
+margin_left = 212.0
+margin_top = 76.0
+margin_right = 352.0
+margin_bottom = 116.0
+rect_min_size = Vector2( 140, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "修改填充："
+valign = 1
+
+[node name="填充颜色" type="ColorPickerButton" parent="."]
+margin_left = 342.0
+margin_top = 76.0
+margin_right = 502.0
+margin_bottom = 116.0
+rect_min_size = Vector2( 160, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "填充颜色"
+
+[node name="ally" type="Label" parent="."]
+margin_left = 32.0
+margin_top = 256.0
+margin_right = 112.0
+margin_bottom = 296.0
+rect_min_size = Vector2( 80, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "同盟："
+valign = 1
+
+[node name="同盟" type="Button" parent="."]
+margin_left = 120.0
+margin_top = 256.0
+margin_right = 240.0
+margin_bottom = 296.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "0个势力"
+
+[node name="save" type="Button" parent="."]
+margin_left = 82.0
+margin_top = 330.0
+margin_right = 202.0
+margin_bottom = 370.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "保存"
+
+[node name="reset" type="Button" parent="."]
+margin_left = 232.0
+margin_top = 330.0
+margin_right = 352.0
+margin_bottom = 370.0
+rect_min_size = Vector2( 120, 40 )
+rect_rotation = -0.135564
+custom_fonts/font = ExtResource( 1 )
+text = "重置"
+
+[node name="cancel" type="Button" parent="."]
+margin_left = 382.0
+margin_top = 330.0
+margin_right = 502.0
+margin_bottom = 370.0
+rect_min_size = Vector2( 120, 40 )
+rect_rotation = -0.135564
+custom_fonts/font = ExtResource( 1 )
+text = "返回"
+
+[node name="更换君主" type="Panel" parent="."]
+visible = false
+margin_right = 40.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 600, 400 )
+
+[node name="notice" type="Label" parent="更换君主"]
+margin_right = 400.0
+margin_bottom = 60.0
+custom_fonts/font = ExtResource( 1 )
+text = "选择势力下武将，替换君主："
+valign = 1
+
+[node name="cancel" type="Button" parent="更换君主"]
+margin_left = 450.0
+margin_top = 10.0
+margin_right = 570.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "不换了"
+
+[node name="actorlist" parent="更换君主" instance=ExtResource( 4 )]
+margin_top = 60.0
+margin_right = 0.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 600, 300 )
+pageSize = 4
+
+[node name="修改同盟" type="Panel" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 600, 400 )
+
+[node name="notice" type="Label" parent="修改同盟"]
+margin_right = 400.0
+margin_bottom = 60.0
+custom_fonts/font = ExtResource( 1 )
+text = "调整<VSTATE>的同盟（默认12月）："
+valign = 1
+
+[node name="cancel" type="Button" parent="修改同盟"]
+margin_left = 450.0
+margin_top = 10.0
+margin_right = 570.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "返回"
+
+[node name="vstatelist" parent="修改同盟" instance=ExtResource( 5 )]
+margin_top = 60.0
+margin_right = 0.0
+margin_bottom = 0.0
+pageSize = 4
+
+[connection signal="pressed" from="更换" to="." method="change_lord"]
+[connection signal="popup_closed" from="边框颜色" to="." method="change_color"]
+[connection signal="popup_closed" from="填充颜色" to="." method="change_color"]
+[connection signal="pressed" from="同盟" to="." method="change_ally"]
+[connection signal="pressed" from="save" to="." method="save_data"]
+[connection signal="pressed" from="reset" to="." method="reset"]
+[connection signal="pressed" from="cancel" to="." method="cancel"]
+[connection signal="pressed" from="更换君主/cancel" to="." method="cancel_change_lord"]
+[connection signal="pressed" from="修改同盟/cancel" to="." method="cancel_change_ally"]

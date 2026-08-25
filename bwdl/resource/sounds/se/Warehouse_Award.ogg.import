@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/Warehouse_Award.ogg-288e99ef00556e576fee571b9dd9beb4.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/se/Warehouse_Award.ogg"
+dest_files=[ "res://.import/Warehouse_Award.ogg-288e99ef00556e576fee571b9dd9beb4.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

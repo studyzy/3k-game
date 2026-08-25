@@ -1,0 +1,46 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=1]
+[ext_resource path="res://windows/light_select.tscn" type="PackedScene" id=2]
+[ext_resource path="res://windows/dialog_top.gd" type="Script" id=3]
+
+[node name="dialog" type="ColorRect"]
+pause_mode = 2
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -259.5
+margin_top = -122.5
+margin_right = 259.5
+margin_bottom = 122.5
+color = Color( 0.494118, 0.054902, 0.713726, 0.964706 )
+script = ExtResource( 3 )
+
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_left = 14.0
+margin_top = 11.0
+margin_right = 504.0
+margin_bottom = 236.0
+color = Color( 0, 0.741176, 1, 0.85098 )
+
+[node name="Label" type="Label" parent="."]
+margin_left = 48.5
+margin_top = 43.5
+margin_right = 466.5
+margin_bottom = 132.5
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "对话框？"
+align = 1
+
+[node name="lsc" parent="." instance=ExtResource( 2 )]
+margin_left = 161.0
+margin_top = 38.5
+margin_right = -172.0
+margin_bottom = 108.5
+columns = 2
+h_separation = 150
+items = [ "是", "否" ]
+font_size = 30
+cursor_offset = Vector2( -5, 7 )

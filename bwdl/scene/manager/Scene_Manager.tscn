@@ -1,0 +1,427 @@
+[gd_scene load_steps=32 format=2]
+
+[ext_resource path="res://scene/manager/Scene_Manager.gd" type="Script" id=1]
+[ext_resource path="res://windows/virtukey.tscn" type="PackedScene" id=2]
+[ext_resource path="res://windows/dialog_top.tscn" type="PackedScene" id=4]
+[ext_resource path="res://windows/Dialog.tscn" type="PackedScene" id=5]
+[ext_resource path="res://windows/ActorInfoList.tscn" type="PackedScene" id=6]
+[ext_resource path="res://windows/cityinfo.tscn" type="PackedScene" id=7]
+[ext_resource path="res://windows/actor_list.tscn" type="PackedScene" id=8]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=9]
+[ext_resource path="res://windows/lsc_menu.tscn" type="PackedScene" id=10]
+[ext_resource path="res://windows/lsc_image_menu.tscn" type="PackedScene" id=11]
+[ext_resource path="res://windows/InputNumber.tscn" type="PackedScene" id=12]
+[ext_resource path="res://windows/lsc_menu_top.tscn" type="PackedScene" id=13]
+[ext_resource path="res://resource/images/picture/window2.png" type="Texture" id=14]
+[ext_resource path="res://resource/font/FandolSong-Bold/32.tres" type="DynamicFont" id=15]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=16]
+[ext_resource path="res://windows/Solo_Dialog.tscn" type="PackedScene" id=17]
+[ext_resource path="res://windows/over_animation.tscn" type="PackedScene" id=18]
+[ext_resource path="res://windows/actor_add_point.tscn" type="PackedScene" id=20]
+[ext_resource path="res://windows/conEquipInfo.tscn" type="PackedScene" id=21]
+[ext_resource path="res://windows/menu/Quit.tscn" type="PackedScene" id=22]
+[ext_resource path="res://scene/manager/war_intro.tscn" type="PackedScene" id=23]
+
+[sub_resource type="Shader" id=5]
+code = "shader_type canvas_item;
+
+void fragment() {
+    // 获取输入颜色
+    vec4 color = texture(SCREEN_TEXTURE, SCREEN_UV);
+    // 计算灰度值
+    float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+    // 输出灰度颜色
+    color.rgb = vec3(gray);
+    // 设置颜色
+    COLOR = color;
+}
+"
+
+[sub_resource type="ShaderMaterial" id=6]
+shader = SubResource( 5 )
+
+[sub_resource type="StyleBoxFlat" id=8]
+bg_color = Color( 0.882353, 0.866667, 0.866667, 1 )
+
+[sub_resource type="StyleBoxFlat" id=10]
+bg_color = Color( 0.74902, 0.67451, 0.466667, 1 )
+
+[sub_resource type="Theme" id=7]
+Button/colors/font_color_focus = Color( 0, 0, 0, 1 )
+Button/colors/font_color_hover = Color( 0.0509804, 0, 0.627451, 1 )
+Button/fonts/font = ExtResource( 16 )
+Button/styles/focus = SubResource( 8 )
+Button/styles/hover = SubResource( 10 )
+
+[sub_resource type="Theme" id=9]
+Button/fonts/font = ExtResource( 16 )
+
+[sub_resource type="Image" id=11]
+data = {
+"data": PoolByteArray( 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176 ),
+"format": "RGB8",
+"height": 10,
+"mipmaps": false,
+"width": 32
+}
+
+[sub_resource type="ImageTexture" id=3]
+image = SubResource( 11 )
+size = Vector2( 32, 10 )
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0, 0, 0, 1 )
+
+[node name="Scene_Manager" type="Control"]
+margin_right = 1024.0
+margin_bottom = 600.0
+script = ExtResource( 1 )
+
+[node name="aboveAll" type="CanvasLayer" parent="."]
+layer = 99
+
+[node name="grayscale" type="ColorRect" parent="aboveAll"]
+material = SubResource( 6 )
+margin_right = 1024.0
+margin_bottom = 600.0
+mouse_filter = 2
+color = Color( 1, 1, 1, 0 )
+
+[node name="system_layer" type="CanvasLayer" parent="."]
+layer = 9
+
+[node name="confirmation" type="ConfirmationDialog" parent="system_layer"]
+pause_mode = 2
+margin_right = 400.0
+margin_bottom = 140.0
+rect_min_size = Vector2( 400, 140 )
+theme = SubResource( 7 )
+window_title = "请确认"
+
+[node name="notice" type="AcceptDialog" parent="system_layer"]
+pause_mode = 2
+margin_right = 350.0
+margin_bottom = 150.0
+rect_min_size = Vector2( 350, 150 )
+theme = SubResource( 9 )
+window_title = "请注意"
+
+[node name="scene_layer" type="CanvasLayer" parent="."]
+
+[node name="tool_layer" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="bottom" type="Control" parent="tool_layer"]
+margin_left = 212.0
+margin_top = 410.0
+margin_right = 812.0
+margin_bottom = 600.0
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="actor_dialog" parent="tool_layer" instance=ExtResource( 5 )]
+visible = false
+mouse_filter = 1
+
+[node name="con_affiars_animations" type="Control" parent="tool_layer"]
+visible = false
+margin_left = 513.0
+margin_top = 103.0
+margin_right = 776.0
+margin_bottom = 364.0
+
+[node name="con_war_animations" type="Control" parent="tool_layer"]
+visible = false
+margin_left = 212.0
+margin_top = 75.0
+margin_right = 812.0
+margin_bottom = 407.0
+
+[node name="color1" type="ColorRect" parent="tool_layer/con_war_animations"]
+margin_top = 43.0
+margin_right = 600.0
+margin_bottom = 338.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="Window2" type="NinePatchRect" parent="tool_layer/con_war_animations"]
+anchor_top = 0.5
+anchor_bottom = 0.5
+margin_left = 347.0
+margin_top = -108.0
+margin_right = 596.0
+margin_bottom = 171.0
+texture = ExtResource( 14 )
+region_rect = Rect2( -1, -0.507, 89.251, 84.756 )
+patch_margin_left = 28
+patch_margin_top = 29
+patch_margin_right = 29
+patch_margin_bottom = 30
+
+[node name="color2" type="ColorRect" parent="tool_layer/con_war_animations"]
+margin_top = 63.0
+margin_right = 346.0
+margin_bottom = 332.0
+
+[node name="con_conmation" type="Control" parent="tool_layer/con_war_animations"]
+margin_left = 10.0
+margin_top = 73.0
+margin_right = 334.0
+margin_bottom = 324.0
+
+[node name="info" type="Control" parent="tool_layer/con_war_animations"]
+margin_left = 370.0
+margin_top = 84.0
+margin_right = 560.0
+margin_bottom = 304.0
+
+[node name="lblName" type="Label" parent="tool_layer/con_war_animations/info"]
+margin_left = 18.0
+margin_top = -2.0
+margin_right = 147.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 15 )
+text = "袁熙"
+
+[node name="HP" type="Control" parent="tool_layer/con_war_animations/info"]
+margin_left = 2.0
+margin_top = 51.0
+margin_right = 2.0
+margin_bottom = 51.0
+
+[node name="lblTitle" type="Label" parent="tool_layer/con_war_animations/info/HP"]
+margin_left = 23.0
+margin_right = 57.0
+margin_bottom = 39.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 16 )
+text = "体"
+
+[node name="lblValue" type="Label" parent="tool_layer/con_war_animations/info/HP"]
+margin_left = 71.0
+margin_top = 3.0
+margin_right = 151.0
+margin_bottom = 42.0
+grow_horizontal = 0
+grow_vertical = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 16 )
+text = "190"
+align = 2
+
+[node name="INT" type="Control" parent="tool_layer/con_war_animations/info"]
+margin_left = 2.0
+margin_top = 91.0
+margin_right = 2.0
+margin_bottom = 91.0
+
+[node name="lblTitle" type="Label" parent="tool_layer/con_war_animations/info/INT"]
+margin_left = 23.0
+margin_right = 57.0
+margin_bottom = 39.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 16 )
+text = "知"
+
+[node name="lblValue" type="Label" parent="tool_layer/con_war_animations/info/INT"]
+margin_left = 71.0
+margin_top = 3.0
+margin_right = 151.0
+margin_bottom = 42.0
+grow_horizontal = 0
+grow_vertical = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 16 )
+text = "190"
+align = 2
+
+[node name="LOY" type="Control" parent="tool_layer/con_war_animations/info"]
+margin_left = 2.0
+margin_top = 132.0
+margin_right = 2.0
+margin_bottom = 132.0
+
+[node name="lblTitle" type="Label" parent="tool_layer/con_war_animations/info/LOY"]
+margin_left = 23.0
+margin_right = 57.0
+margin_bottom = 39.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 16 )
+text = "忠"
+
+[node name="lblValue" type="Label" parent="tool_layer/con_war_animations/info/LOY"]
+visible = false
+margin_left = 71.0
+margin_top = 3.0
+margin_right = 152.0
+margin_bottom = 42.0
+grow_horizontal = 0
+grow_vertical = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 16 )
+text = "190"
+align = 2
+
+[node name="Loy100" type="Sprite" parent="tool_layer/con_war_animations/info/LOY"]
+position = Vector2( 131.5, 22 )
+scale = Vector2( 1.156, 1.7 )
+texture = SubResource( 3 )
+
+[node name="Sodiers" type="Control" parent="tool_layer/con_war_animations/info"]
+margin_left = 2.0
+margin_top = 172.0
+margin_right = 2.0
+margin_bottom = 172.0
+
+[node name="lblTitle" type="Label" parent="tool_layer/con_war_animations/info/Sodiers"]
+margin_left = 23.0
+margin_right = 57.0
+margin_bottom = 39.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 16 )
+text = "兵"
+
+[node name="lblValue" type="Label" parent="tool_layer/con_war_animations/info/Sodiers"]
+margin_left = 71.0
+margin_top = 3.0
+margin_right = 152.0
+margin_bottom = 42.0
+grow_horizontal = 0
+grow_vertical = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 16 )
+text = "1900"
+align = 2
+
+[node name="cityinfo" parent="tool_layer" instance=ExtResource( 7 )]
+visible = false
+
+[node name="actorlist" parent="tool_layer" instance=ExtResource( 8 )]
+visible = false
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 212.0
+margin_top = 0.0
+margin_right = 812.0
+margin_bottom = 600.0
+grow_vertical = 0
+
+[node name="lsc_menu" parent="tool_layer" instance=ExtResource( 10 )]
+visible = false
+
+[node name="image_menu" parent="tool_layer" instance=ExtResource( 11 )]
+visible = false
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 812.0
+margin_bottom = 600.0
+
+[node name="input_numbers" parent="tool_layer" instance=ExtResource( 12 )]
+visible = false
+margin_left = 212.0
+margin_top = 410.0
+margin_right = 812.0
+margin_bottom = 600.0
+
+[node name="lsc_menu_top" parent="tool_layer" instance=ExtResource( 13 )]
+visible = false
+margin_left = 212.0
+margin_right = 812.0
+
+[node name="solo_dialog" parent="tool_layer" instance=ExtResource( 17 )]
+visible = false
+mouse_filter = 2
+
+[node name="actor_addpoint" parent="tool_layer" instance=ExtResource( 20 )]
+visible = false
+mouse_filter = 2
+
+[node name="conEquipInfo" parent="tool_layer" instance=ExtResource( 21 )]
+visible = false
+margin_left = 212.0
+margin_top = 301.0
+margin_right = 812.0
+margin_bottom = 383.0
+
+[node name="actor_info" parent="tool_layer" instance=ExtResource( 6 )]
+
+[node name="lblTips" type="Label" parent="tool_layer"]
+visible = false
+margin_left = 212.0
+margin_top = 378.0
+margin_right = 812.0
+margin_bottom = 410.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 9 )
+custom_styles/normal = SubResource( 4 )
+text = "君の指先が躍動する電光は"
+align = 1
+
+[node name="set_menu_layer" type="CanvasLayer" parent="."]
+layer = 3
+
+[node name="over_animation" parent="set_menu_layer" instance=ExtResource( 18 )]
+visible = false
+
+[node name="dialog" parent="set_menu_layer" instance=ExtResource( 4 )]
+visible = false
+
+[node name="Virtukey" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="VirtualKey" parent="Virtukey" instance=ExtResource( 2 )]
+
+[node name="black" type="ColorRect" parent="Virtukey"]
+visible = false
+margin_right = 1024.0
+margin_bottom = 600.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="WarIntro" parent="Virtukey" instance=ExtResource( 23 )]
+
+[node name="lblmessage" type="Label" parent="Virtukey"]
+visible = false
+margin_left = 441.0
+margin_top = 9.0
+margin_right = 614.0
+margin_bottom = 43.0
+rect_scale = Vector2( 0.9, 0.9 )
+custom_fonts/font = ExtResource( 9 )
+custom_styles/normal = SubResource( 1 )
+text = "游戏速度:100%"
+align = 1
+max_lines_visible = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Quit" parent="Virtukey" instance=ExtResource( 22 )]
+visible = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="conTime" type="Control" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="animation_timer" type="Timer" parent="."]
+wait_time = 0.1
+
+[node name="skill_timer" type="Timer" parent="."]
+wait_time = 0.05
+autostart = true
+
+[node name="FSM" type="Control" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[connection signal="hide" from="system_layer/confirmation" to="." method="on_confirmation_hide"]
+[connection signal="hide" from="system_layer/notice" to="." method="on_notice_hide"]
+[connection signal="timeout" from="animation_timer" to="." method="_on_animation_timer_timeout"]
+[connection signal="timeout" from="skill_timer" to="." method="_on_skill_timer_timeout"]

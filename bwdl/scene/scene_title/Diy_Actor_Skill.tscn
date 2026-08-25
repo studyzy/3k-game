@@ -1,0 +1,640 @@
+[gd_scene load_steps=24 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://scene/scene_title/Diy_Actor_Skill.gd" type="Script" id=2]
+[ext_resource path="res://windows/ActorInfo.tscn" type="PackedScene" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=4]
+[ext_resource path="res://resource/images/picture/button.png" type="Texture" id=5]
+[ext_resource path="res://windows/avatar_selector.tscn" type="PackedScene" id=6]
+[ext_resource path="res://resource/font/FandolSong-Bold/26.tres" type="DynamicFont" id=7]
+[ext_resource path="res://resource/images/picture/lock.png" type="Texture" id=8]
+
+[sub_resource type="StyleBoxFlat" id=8]
+bg_color = Color( 0, 0, 0.803922, 1 )
+
+[sub_resource type="StyleBoxFlat" id=2]
+bg_color = Color( 0, 0.141176, 1, 1 )
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="Theme" id=3]
+default_font = ExtResource( 1 )
+
+[sub_resource type="StyleBoxFlat" id=5]
+bg_color = Color( 0.886275, 0.12549, 0.12549, 1 )
+
+[sub_resource type="StyleBoxFlat" id=11]
+bg_color = Color( 0.2, 0.2, 0.2, 1 )
+
+[sub_resource type="StyleBoxFlat" id=12]
+bg_color = Color( 0.133333, 0.133333, 0.133333, 1 )
+
+[sub_resource type="StyleBoxFlat" id=13]
+bg_color = Color( 0.2, 0.2, 0.2, 1 )
+
+[sub_resource type="StyleBoxFlat" id=10]
+bg_color = Color( 0.133333, 0.133333, 0.133333, 1 )
+
+[sub_resource type="StyleBoxFlat" id=14]
+bg_color = Color( 0.2, 0.2, 0.2, 1 )
+
+[sub_resource type="StyleBoxFlat" id=15]
+bg_color = Color( 0.133333, 0.133333, 0.133333, 1 )
+
+[sub_resource type="StyleBoxFlat" id=16]
+bg_color = Color( 0.2, 0.2, 0.2, 1 )
+
+[sub_resource type="StyleBoxFlat" id=17]
+bg_color = Color( 0.133333, 0.133333, 0.133333, 1 )
+
+[sub_resource type="StyleBoxFlat" id=9]
+bg_color = Color( 0, 0, 0, 1 )
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color( 1, 1, 1, 0.4 )
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 0, 0, 0, 1 )
+
+[node name="Control" type="Control"]
+rect_min_size = Vector2( 1024, 600 )
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="bottom_scene_color" type="ColorRect" parent="."]
+margin_right = 1024.0
+margin_bottom = 600.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="lblFirstName" type="Label" parent="."]
+margin_left = 249.0
+margin_top = 18.0
+margin_right = 299.0
+margin_bottom = 50.0
+grow_horizontal = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "姓:"
+align = 2
+
+[node name="txtFirstName" type="LineEdit" parent="."]
+margin_left = 320.0
+margin_top = 11.0
+margin_right = 440.0
+margin_bottom = 58.0
+custom_fonts/font = ExtResource( 1 )
+max_length = 2
+placeholder_text = "1 ~ 2 字"
+caret_blink = true
+
+[node name="lblName" type="Label" parent="."]
+margin_left = 459.0
+margin_top = 18.0
+margin_right = 509.0
+margin_bottom = 50.0
+grow_horizontal = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "名:"
+align = 2
+
+[node name="txtName" type="LineEdit" parent="."]
+margin_left = 530.0
+margin_top = 11.0
+margin_right = 650.0
+margin_bottom = 58.0
+custom_fonts/font = ExtResource( 1 )
+max_length = 4
+placeholder_text = "1 ~ 2 字"
+caret_blink = true
+
+[node name="lblNick" type="Label" parent="."]
+margin_left = 669.0
+margin_top = 18.0
+margin_right = 719.0
+margin_bottom = 50.0
+grow_horizontal = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "字:"
+align = 2
+
+[node name="txtNick" type="LineEdit" parent="."]
+margin_left = 740.0
+margin_top = 12.0
+margin_right = 890.0
+margin_bottom = 59.0
+custom_fonts/font = ExtResource( 1 )
+max_length = 4
+placeholder_text = "1 ~ 3 字"
+caret_blink = true
+
+[node name="btnSave" type="Button" parent="."]
+margin_left = 48.0
+margin_top = 88.0
+margin_right = 138.0
+margin_bottom = 138.0
+rect_pivot_offset = Vector2( -1219, -79 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/hover = SubResource( 8 )
+text = "SAVE"
+
+[node name="btnLoad" type="Button" parent="."]
+margin_left = 48.0
+margin_top = 148.0
+margin_right = 138.0
+margin_bottom = 198.0
+rect_pivot_offset = Vector2( -1219, -79 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/hover = SubResource( 8 )
+text = "LOAD"
+
+[node name="btnLevels" type="Button" parent="."]
+margin_left = 48.0
+margin_top = 283.0
+margin_right = 160.0
+margin_bottom = 333.0
+rect_pivot_offset = Vector2( -1219, -79 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/hover = SubResource( 8 )
+text = "成长预览"
+
+[node name="SLConfirmation" type="ConfirmationDialog" parent="."]
+margin_left = 300.0
+margin_top = 100.0
+margin_right = 724.0
+margin_bottom = 350.0
+rect_min_size = Vector2( 424, 200 )
+popup_exclusive = true
+window_title = ""
+
+[node name="notice" type="RichTextLabel" parent="SLConfirmation"]
+margin_left = 8.0
+margin_top = 8.0
+margin_right = 416.0
+margin_bottom = 205.0
+custom_fonts/normal_font = ExtResource( 7 )
+bbcode_enabled = true
+
+[node name="sex" type="Control" parent="."]
+margin_left = 19.0
+margin_top = -2.0
+margin_right = 59.0
+margin_bottom = 125.0
+
+[node name="Label3" type="Label" parent="sex"]
+margin_left = 229.0
+margin_top = 83.0
+margin_right = 305.0
+margin_bottom = 115.0
+grow_horizontal = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "性别:"
+align = 2
+
+[node name="chkMale" type="CheckBox" parent="sex"]
+margin_left = 322.0
+margin_top = 80.0
+margin_right = 375.0
+margin_bottom = 120.0
+custom_colors/font_color_hover_pressed = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 0, 0, 0, 1 )
+custom_colors/font_color_pressed = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+pressed = true
+text = "男"
+
+[node name="chkFemale" type="CheckBox" parent="sex"]
+margin_left = 383.0
+margin_top = 81.0
+margin_right = 436.0
+margin_bottom = 121.0
+custom_colors/font_color_hover_pressed = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 0, 0, 0, 1 )
+custom_colors/font_color_pressed = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "女"
+
+[node name="chkNoGender" type="CheckBox" parent="sex"]
+margin_left = 439.0
+margin_top = 81.0
+margin_right = 542.0
+margin_bottom = 121.0
+custom_colors/font_color_hover_pressed = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 0, 0, 0, 1 )
+custom_colors/font_color_pressed = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "无性别"
+
+[node name="avatar" type="Label" parent="sex"]
+margin_left = 557.0
+margin_top = 86.0
+margin_right = 633.0
+margin_bottom = 118.0
+grow_horizontal = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "头像:"
+align = 2
+
+[node name="btnAvatar" type="Button" parent="sex"]
+margin_left = 640.0
+margin_top = 83.0
+margin_right = 700.0
+margin_bottom = 121.0
+rect_scale = Vector2( 1, 0.9 )
+custom_fonts/font = ExtResource( 1 )
+action_mode = 0
+text = "<"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+margin_left = 242.0
+margin_top = 143.0
+margin_right = 808.0
+margin_bottom = 201.0
+custom_constants/separation = 15
+
+[node name="文" type="Button" parent="HBoxContainer"]
+margin_right = 92.0
+margin_bottom = 58.0
+rect_min_size = Vector2( 92, 50 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/pressed = SubResource( 2 )
+custom_styles/normal = SubResource( 1 )
+toggle_mode = true
+text = "文臣"
+
+[node name="武" type="Button" parent="HBoxContainer"]
+margin_left = 107.0
+margin_right = 199.0
+margin_bottom = 58.0
+rect_min_size = Vector2( 92, 50 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/pressed = SubResource( 2 )
+custom_styles/normal = SubResource( 1 )
+toggle_mode = true
+text = "武将"
+
+[node name="凡" type="Button" parent="HBoxContainer"]
+margin_left = 214.0
+margin_right = 306.0
+margin_bottom = 58.0
+rect_min_size = Vector2( 92, 50 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/pressed = SubResource( 2 )
+custom_styles/normal = SubResource( 1 )
+toggle_mode = true
+text = "凡人"
+
+[node name="仙" type="Button" parent="HBoxContainer"]
+margin_left = 321.0
+margin_right = 413.0
+margin_bottom = 58.0
+rect_min_size = Vector2( 92, 50 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/pressed = SubResource( 2 )
+custom_styles/normal = SubResource( 1 )
+toggle_mode = true
+text = "仙体"
+
+[node name="actorDetailInfo" parent="." instance=ExtResource( 3 )]
+
+[node name="Label3" type="Label" parent="."]
+margin_left = 189.0
+margin_top = 227.0
+margin_right = 345.0
+margin_bottom = 259.0
+grow_horizontal = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "初始势力:"
+align = 2
+
+[node name="OptionButton" type="OptionButton" parent="."]
+margin_left = 371.0
+margin_top = 221.0
+margin_right = 872.0
+margin_bottom = 275.0
+grow_horizontal = 2
+grow_vertical = 2
+rect_scale = Vector2( 0.8, 0.8 )
+theme = SubResource( 3 )
+custom_fonts/font = ExtResource( 1 )
+action_mode = 1
+text = "请选择势力"
+
+[node name="btnBack" type="Button" parent="."]
+margin_left = 38.0
+margin_top = 503.0
+margin_right = 164.0
+margin_bottom = 575.0
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 5 )
+text = "取消登录"
+
+[node name="btnConfirm" type="Button" parent="."]
+margin_left = 857.0
+margin_top = 503.0
+margin_right = 983.0
+margin_bottom = 582.0
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 5 )
+text = "登录武将"
+
+[node name="btnMenu" type="TouchScreenButton" parent="."]
+position = Vector2( 9, 11 )
+scale = Vector2( 0.969136, 1.06383 )
+normal = ExtResource( 5 )
+
+[node name="Label" type="Label" parent="btnMenu"]
+margin_left = 16.5095
+margin_top = 2.82
+margin_right = 148.51
+margin_bottom = 41.82
+mouse_filter = 1
+custom_fonts/font = ExtResource( 4 )
+text = "菜单"
+align = 1
+
+[node name="con_Skill" type="ColorRect" parent="."]
+margin_left = 176.0
+margin_top = 283.0
+margin_right = 842.0
+margin_bottom = 408.0
+color = Color( 0.12549, 0.101961, 0.101961, 1 )
+
+[node name="Label" type="Label" parent="con_Skill"]
+margin_left = 8.0
+margin_top = 5.0
+margin_right = 71.0
+margin_bottom = 107.0
+mouse_filter = 1
+custom_fonts/font = ExtResource( 4 )
+text = "技
+能"
+align = 1
+valign = 1
+
+[node name="btnRefreshSkill" type="Button" parent="con_Skill"]
+margin_left = 676.0
+margin_right = 802.0
+margin_bottom = 70.0
+custom_fonts/font = ExtResource( 1 )
+text = "刷新技能"
+
+[node name="GridContainer" type="GridContainer" parent="con_Skill"]
+margin_left = 60.0
+margin_top = 10.0
+margin_right = 660.0
+margin_bottom = 130.0
+rect_min_size = Vector2( 600, 120 )
+custom_constants/vseparation = 50
+custom_constants/hseparation = 150
+columns = 4
+
+[node name="conTitleLV1" type="Control" parent="con_Skill/GridContainer"]
+
+[node name="Label" type="Label" parent="con_Skill/GridContainer/conTitleLV1"]
+margin_left = 40.0
+margin_top = 3.0
+margin_right = 120.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 80, 30 )
+mouse_filter = 1
+custom_fonts/font = ExtResource( 4 )
+text = "LV1"
+align = 1
+
+[node name="conTitleLV3" type="Control" parent="con_Skill/GridContainer"]
+margin_left = 150.0
+margin_right = 150.0
+
+[node name="Label" type="Label" parent="con_Skill/GridContainer/conTitleLV3"]
+margin_left = 40.0
+margin_top = 3.0
+margin_right = 120.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 80, 39 )
+mouse_filter = 1
+custom_fonts/font = ExtResource( 4 )
+text = "LV3"
+align = 1
+
+[node name="conTitleLV5" type="Control" parent="con_Skill/GridContainer"]
+margin_left = 300.0
+margin_right = 300.0
+
+[node name="Label" type="Label" parent="con_Skill/GridContainer/conTitleLV5"]
+margin_left = 40.0
+margin_top = 3.0
+margin_right = 120.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 80, 39 )
+mouse_filter = 1
+custom_fonts/font = ExtResource( 4 )
+text = "LV5"
+align = 1
+
+[node name="conTitleLV7" type="Control" parent="con_Skill/GridContainer"]
+margin_left = 450.0
+margin_right = 450.0
+
+[node name="Label" type="Label" parent="con_Skill/GridContainer/conTitleLV7"]
+margin_left = 40.0
+margin_top = 3.0
+margin_right = 120.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 80, 39 )
+mouse_filter = 1
+custom_fonts/font = ExtResource( 4 )
+text = "LV7"
+align = 1
+
+[node name="conLV1" type="Control" parent="con_Skill/GridContainer"]
+margin_top = 50.0
+margin_bottom = 50.0
+
+[node name="Button" type="Button" parent="con_Skill/GridContainer/conLV1"]
+margin_left = 17.0
+margin_top = 1.0
+margin_right = 137.0
+margin_bottom = 46.0
+rect_min_size = Vector2( 120, 45 )
+custom_colors/font_color_disabled = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color_focus = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0.960784, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+custom_styles/hover = SubResource( 11 )
+custom_styles/normal = SubResource( 12 )
+keep_pressed_outside = true
+text = "神武"
+
+[node name="lock" type="Sprite" parent="con_Skill/GridContainer/conLV1"]
+visible = false
+position = Vector2( 139, 33 )
+scale = Vector2( 0.15, 0.15 )
+texture = ExtResource( 8 )
+
+[node name="conLV3" type="Control" parent="con_Skill/GridContainer"]
+margin_left = 150.0
+margin_top = 50.0
+margin_right = 150.0
+margin_bottom = 50.0
+
+[node name="Button" type="Button" parent="con_Skill/GridContainer/conLV3"]
+margin_left = 17.0
+margin_top = 1.0
+margin_right = 137.0
+margin_bottom = 46.0
+rect_min_size = Vector2( 120, 45 )
+custom_colors/font_color_disabled = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color_focus = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0.960784, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+custom_styles/hover = SubResource( 13 )
+custom_styles/normal = SubResource( 10 )
+text = "神武"
+
+[node name="lock" type="Sprite" parent="con_Skill/GridContainer/conLV3"]
+visible = false
+position = Vector2( 139, 33 )
+scale = Vector2( 0.15, 0.15 )
+texture = ExtResource( 8 )
+
+[node name="conLV5" type="Control" parent="con_Skill/GridContainer"]
+margin_left = 300.0
+margin_top = 50.0
+margin_right = 300.0
+margin_bottom = 50.0
+
+[node name="Button" type="Button" parent="con_Skill/GridContainer/conLV5"]
+margin_left = 17.0
+margin_top = 1.0
+margin_right = 137.0
+margin_bottom = 46.0
+rect_min_size = Vector2( 120, 45 )
+custom_colors/font_color_disabled = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color_focus = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0.960784, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+custom_styles/hover = SubResource( 14 )
+custom_styles/normal = SubResource( 15 )
+text = "神武"
+
+[node name="lock" type="Sprite" parent="con_Skill/GridContainer/conLV5"]
+visible = false
+position = Vector2( 139, 33 )
+scale = Vector2( 0.15, 0.15 )
+texture = ExtResource( 8 )
+
+[node name="conLV7" type="Control" parent="con_Skill/GridContainer"]
+margin_left = 450.0
+margin_top = 50.0
+margin_right = 450.0
+margin_bottom = 50.0
+
+[node name="Button" type="Button" parent="con_Skill/GridContainer/conLV7"]
+margin_left = 17.0
+margin_top = 1.0
+margin_right = 137.0
+margin_bottom = 46.0
+rect_min_size = Vector2( 120, 45 )
+custom_colors/font_color_disabled = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color_focus = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 0.960784, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0.960784, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+custom_styles/hover = SubResource( 16 )
+custom_styles/normal = SubResource( 17 )
+text = "神武"
+
+[node name="lock" type="Sprite" parent="con_Skill/GridContainer/conLV7"]
+visible = false
+position = Vector2( 139, 33 )
+scale = Vector2( 0.15, 0.15 )
+texture = ExtResource( 8 )
+
+[node name="skillDescription" type="Panel" parent="."]
+margin_left = 190.0
+margin_top = 180.0
+margin_right = 830.0
+margin_bottom = 332.0
+rect_min_size = Vector2( 640, 152 )
+custom_styles/panel = SubResource( 9 )
+
+[node name="txt" type="RichTextLabel" parent="skillDescription"]
+margin_left = 10.0
+margin_top = 10.0
+margin_right = 630.0
+margin_bottom = 142.0
+grow_horizontal = 2
+grow_vertical = 0
+rect_min_size = Vector2( 620, 132 )
+custom_colors/default_color = Color( 0.780392, 0.737255, 0.737255, 1 )
+custom_colors/selection_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_selected = Color( 0.780392, 0.737255, 0.737255, 1 )
+custom_fonts/normal_font = ExtResource( 1 )
+custom_styles/normal = SubResource( 4 )
+bbcode_enabled = true
+bbcode_text = "技能描述
+
+
+"
+text = "技能描述
+
+
+"
+fit_content_height = true
+scroll_active = false
+
+[node name="avatar_selector" parent="." instance=ExtResource( 6 )]
+
+[connection signal="text_changed" from="txtFirstName" to="." method="_on_txtFirstName_text_changed"]
+[connection signal="text_changed" from="txtName" to="." method="_on_txtName_text_changed"]
+[connection signal="text_changed" from="txtNick" to="." method="_on_txtNick_text_changed"]
+[connection signal="pressed" from="btnSave" to="." method="_on_btnSave_pressed"]
+[connection signal="pressed" from="btnLoad" to="." method="_on_btnLoad_pressed"]
+[connection signal="pressed" from="btnLevels" to="." method="_on_btnLevels_pressed"]
+[connection signal="pressed" from="sex/btnAvatar" to="." method="choose_avatar"]
+[connection signal="item_selected" from="OptionButton" to="." method="_on_OptionButton_item_selected"]
+[connection signal="pressed" from="btnBack" to="." method="_on_btnBack_pressed"]
+[connection signal="pressed" from="btnConfirm" to="." method="_on_btnConfirm_pressed"]
+[connection signal="pressed" from="btnMenu" to="." method="_on_btnMenu_pressed"]
+[connection signal="released" from="btnMenu" to="." method="_on_btnMenu_released"]
+[connection signal="pressed" from="con_Skill/btnRefreshSkill" to="." method="_on_btnRefreshSkill_pressed"]
+[connection signal="pressed" from="con_Skill/GridContainer/conLV1/Button" to="." method="_on_Button_skill_pressed" binds= [ "LV1" ]]
+[connection signal="pressed" from="con_Skill/GridContainer/conLV3/Button" to="." method="_on_Button_skill_pressed" binds= [ "LV3" ]]
+[connection signal="pressed" from="con_Skill/GridContainer/conLV5/Button" to="." method="_on_Button_skill_pressed" binds= [ "LV5" ]]
+[connection signal="pressed" from="con_Skill/GridContainer/conLV7/Button" to="." method="_on_Button_skill_pressed" binds= [ "LV7" ]]
+[connection signal="meta_clicked" from="skillDescription/txt" to="." method="_on_skillDescription_meta_clicked"]

@@ -1,0 +1,72 @@
+extends "effect_20000.gd"
+
+#激励主动技
+#【激励】大战场，主动技。若队友未处于 {激励} 状态，你可以消耗10点机动力发动，使其获得1回合 {激励}，同时，若其战场技能处于冷却中（非限定技），技能冷却回合-5。每4个回合限1次。
+
+const EFFECT_ID = 20278
+const FLOW_BASE = "effect_" + str(EFFECT_ID)
+const COST_AP = 10
+const COST_CD = 4
+const CD_REDUCE = 5
+
+func effect_20278_start():
+	if not assert_action_point(actorId, COST_AP):
+		return
+	var targets = []
+	for targetId in get_teammate_targets(me):
+		var wa = DataManager.get_war_actor(targetId)
+		if wa.get_buff_label_turn(["激励"]) > 0:
+			continue
+		targets.append(targetId)
+	if not wait_choose_actors(targets, "选择队友发动【{0}】"):
+		return
+	LoadControl.set_view_model(2000)
+	return
+
+func on_view_model_2000()->void:
+	wait_for_choose_actor(FLOW_BASE + "_2")
+	return
+
+func effect_20278_2():
+	var targetId = DataManager.get_env_int("目标")
+	var targetActor = ActorHelper.actor(targetId)
+	var msg = "消耗{0}机动力\n对{1}发动【{2}】\n可否？".format([
+		COST_AP, targetActor.get_name(), ske.skill_name
+	])
+	play_dialog(actorId, msg, 2, 2001, true)
+	return
+
+func on_view_model_2001()->void:
+	wait_for_yesno(FLOW_BASE + "_3")
+	return
+
+func effect_20278_3():
+	var targetId = DataManager.get_env_int("目标")
+	var targetWA = DataManager.get_war_actor(targetId)
+
+	ske.cost_war_cd(COST_CD)
+	ske.cost_ap(COST_AP, true)
+	ske.set_war_buff(targetId, "激励", 1)
+	var ret = ske.reduce_actor_skill_cd(targetId, CD_REDUCE, [20000, 30000, 40000])
+	ske.war_report()
+	
+	var msg = "我助{0}一臂之力\n定能摧破敌胆！".format([
+		DataManager.get_actor_honored_title(targetId, actorId),
+	])
+	me.attach_free_dialog(msg, 2)
+	var cleared = []
+	for skillName in ret:
+		if ret[skillName] > 0:
+			msg = "【{0}】的冷却减为 {1}".format([skillName, ret[skillName]])
+			me.attach_free_dialog(msg, 1, 20000, targetId)
+		else:
+			cleared.append("【" + skillName + "】")
+	if cleared.size() > 0:
+		if cleared.size() > 3:
+			cleared[2] += "等{0}个技能".format([cleared.size()])
+			cleared = cleared.slice(0, 2)
+		msg = "".join(cleared) + "的冷却被清除"
+		me.attach_free_dialog(msg, 1, 20000, targetId)
+	skill_end_clear()
+	FlowManager.add_flow("player_skill_end_trigger")
+	return

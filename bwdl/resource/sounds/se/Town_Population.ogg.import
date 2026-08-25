@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/Town_Population.ogg-7a733daf5c1323bb1418a2ff9d8910e5.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/se/Town_Population.ogg"
+dest_files=[ "res://.import/Town_Population.ogg-7a733daf5c1323bb1418a2ff9d8910e5.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

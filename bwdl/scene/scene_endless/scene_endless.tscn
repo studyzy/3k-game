@@ -1,0 +1,376 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://windows/light_select.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scene/scene_endless/scene_endless.gd" type="Script" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/26.tres" type="DynamicFont" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/30_outline.tres" type="DynamicFont" id=4]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=6]
+[ext_resource path="res://resource/images/JoyControl/emu_start.png" type="Texture" id=7]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0.988235, 0.737255, 0.690196, 1 )
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color( 0, 0, 0, 1 )
+border_blend = true
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="Control2" type="Control"]
+margin_left = 192.0
+margin_right = 832.0
+margin_bottom = 600.0
+script = ExtResource( 2 )
+
+[node name="bg" type="ColorRect" parent="."]
+margin_right = 640.0
+margin_bottom = 600.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="title" type="Label" parent="."]
+margin_right = 640.0
+margin_bottom = 60.0
+custom_colors/font_color = Color( 1, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 4 )
+text = "无尽模式"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="top" type="GridContainer" parent="."]
+margin_left = 30.0
+margin_top = 60.0
+margin_right = 630.0
+margin_bottom = 210.0
+custom_constants/vseparation = 20
+custom_constants/hseparation = 20
+columns = 5
+
+[node name="pnlActorHide0" type="Panel" parent="top"]
+margin_right = 100.0
+margin_bottom = 65.0
+rect_min_size = Vector2( 100, 65 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="top/pnlActorHide0"]
+visible = false
+margin_right = 100.0
+margin_bottom = 65.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="top/pnlActorHide0"]
+margin_left = 10.0
+margin_right = 90.0
+margin_bottom = 65.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "金环三节"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlActorHide1" type="Panel" parent="top"]
+margin_left = 120.0
+margin_right = 220.0
+margin_bottom = 65.0
+rect_min_size = Vector2( 100, 65 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="top/pnlActorHide1"]
+visible = false
+margin_right = 100.0
+margin_bottom = 65.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="top/pnlActorHide1"]
+margin_left = 10.0
+margin_right = 90.0
+margin_bottom = 65.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "金环三节"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlActorHide2" type="Panel" parent="top"]
+margin_left = 240.0
+margin_right = 340.0
+margin_bottom = 65.0
+rect_min_size = Vector2( 100, 65 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="top/pnlActorHide2"]
+visible = false
+margin_right = 100.0
+margin_bottom = 65.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="top/pnlActorHide2"]
+margin_left = 10.0
+margin_right = 90.0
+margin_bottom = 65.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "金环三节"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlActorHide3" type="Panel" parent="top"]
+margin_left = 360.0
+margin_right = 460.0
+margin_bottom = 65.0
+rect_min_size = Vector2( 100, 65 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="top/pnlActorHide3"]
+visible = false
+margin_right = 100.0
+margin_bottom = 65.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="top/pnlActorHide3"]
+margin_left = 10.0
+margin_right = 90.0
+margin_bottom = 65.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "金环三节"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlActorHide4" type="Panel" parent="top"]
+margin_left = 480.0
+margin_right = 580.0
+margin_bottom = 65.0
+rect_min_size = Vector2( 100, 65 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="top/pnlActorHide4"]
+visible = false
+margin_right = 100.0
+margin_bottom = 65.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="top/pnlActorHide4"]
+margin_left = 10.0
+margin_right = 90.0
+margin_bottom = 65.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "金环三节"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlActorHide5" type="Panel" parent="top"]
+margin_top = 85.0
+margin_right = 100.0
+margin_bottom = 150.0
+rect_min_size = Vector2( 100, 65 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="top/pnlActorHide5"]
+visible = false
+margin_right = 100.0
+margin_bottom = 65.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="top/pnlActorHide5"]
+margin_left = 10.0
+margin_right = 90.0
+margin_bottom = 65.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "金环三节"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlActorHide6" type="Panel" parent="top"]
+margin_left = 120.0
+margin_top = 85.0
+margin_right = 220.0
+margin_bottom = 150.0
+rect_min_size = Vector2( 100, 65 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="top/pnlActorHide6"]
+visible = false
+margin_right = 100.0
+margin_bottom = 65.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="top/pnlActorHide6"]
+margin_left = 10.0
+margin_right = 90.0
+margin_bottom = 65.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "金环三节"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlActorHide7" type="Panel" parent="top"]
+margin_left = 240.0
+margin_top = 85.0
+margin_right = 340.0
+margin_bottom = 150.0
+rect_min_size = Vector2( 100, 65 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="top/pnlActorHide7"]
+visible = false
+margin_right = 100.0
+margin_bottom = 65.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="top/pnlActorHide7"]
+margin_left = 10.0
+margin_right = 90.0
+margin_bottom = 65.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "金环三节"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlActorHide8" type="Panel" parent="top"]
+margin_left = 360.0
+margin_top = 85.0
+margin_right = 460.0
+margin_bottom = 150.0
+rect_min_size = Vector2( 100, 65 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="top/pnlActorHide8"]
+visible = false
+margin_right = 100.0
+margin_bottom = 65.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="top/pnlActorHide8"]
+margin_left = 10.0
+margin_right = 90.0
+margin_bottom = 65.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "金环三节"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlActorHide9" type="Panel" parent="top"]
+margin_left = 480.0
+margin_top = 85.0
+margin_right = 580.0
+margin_bottom = 150.0
+rect_min_size = Vector2( 100, 65 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="top/pnlActorHide9"]
+visible = false
+margin_right = 100.0
+margin_bottom = 65.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="top/pnlActorHide9"]
+margin_left = 10.0
+margin_right = 90.0
+margin_bottom = 65.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "金环三节"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pick_area" type="Control" parent="."]
+margin_top = 220.0
+margin_right = 640.0
+margin_bottom = 410.0
+
+[node name="notice" type="Label" parent="pick_area"]
+margin_left = 510.0
+margin_top = 167.0
+margin_right = 647.0
+margin_bottom = 200.0
+rect_scale = Vector2( 0.7, 0.7 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "-决定阵容"
+valign = 1
+
+[node name="btnemu_start" type="TouchScreenButton" parent="pick_area" groups=["press_key", "show_key"]]
+position = Vector2( 430, 157 )
+scale = Vector2( 0.604316, 0.671429 )
+normal = ExtResource( 7 )
+
+[node name="top" type="ColorRect" parent="pick_area"]
+margin_left = 20.0
+margin_top = 5.0
+margin_right = 620.0
+margin_bottom = 7.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="lsc" parent="pick_area" instance=ExtResource( 1 )]
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 30.0
+margin_top = 15.0
+margin_right = 610.0
+margin_bottom = 175.0
+columns = 4
+h_separation = 140
+items = [ "随机", "鲍信", "蔡瑁", "曹操", "曹洪", "曹仁", "陈登", "陈宫", "陈珪", "陈纪", "成宜", "程普", "←上页", "下页→" ]
+font_size = 25
+cursor_offset = Vector2( -5, 4 )
+
+[node name="lblpage" type="Label" parent="pick_area"]
+margin_left = 530.0
+margin_top = 15.0
+margin_right = 672.0
+margin_bottom = 54.0
+rect_scale = Vector2( 0.8, 0.8 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 6 )
+text = "1/10"
+align = 1
+
+[node name="bottom" type="ColorRect" parent="pick_area"]
+margin_left = 20.0
+margin_top = 180.0
+margin_right = 420.0
+margin_bottom = 182.0
+color = Color( 0, 0, 0, 1 )

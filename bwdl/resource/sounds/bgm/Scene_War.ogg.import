@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/Scene_War.ogg-3d4a8b941ddc697bd2f08d3a61a1cf56.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/bgm/Scene_War.ogg"
+dest_files=[ "res://.import/Scene_War.ogg-3d4a8b941ddc697bd2f08d3a61a1cf56.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

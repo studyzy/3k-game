@@ -1,0 +1,67 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://cheat/solo.gd" type="Script" id=2]
+
+[sub_resource type="Theme" id=7]
+default_font = ExtResource( 1 )
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 1, 1, 1, 1 )
+
+[sub_resource type="StyleBoxFlat" id=2]
+bg_color = Color( 0.294118, 0.27451, 0.27451, 1 )
+
+[node name="单挑" type="HBoxContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -232.0
+margin_bottom = -180.0
+rect_min_size = Vector2( 792, 420 )
+script = ExtResource( 2 )
+
+[node name="notice" type="ConfirmationDialog" parent="."]
+margin_right = 500.0
+margin_bottom = 200.0
+rect_min_size = Vector2( 500, 200 )
+theme = SubResource( 7 )
+popup_exclusive = true
+window_title = ""
+dialog_text = "内存中的数据修改已生效。
+请注意：
+需要存档才会保存到存档文件中。"
+
+[node name="menu" type="VBoxContainer" parent="."]
+margin_right = 120.0
+margin_bottom = 420.0
+rect_min_size = Vector2( 120, 416 )
+size_flags_horizontal = 2
+
+[node name="item" type="Button" parent="menu"]
+visible = false
+margin_right = 120.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 120, 50 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/disabled = SubResource( 1 )
+custom_styles/normal = SubResource( 2 )
+text = "武将"
+
+[node name="right" type="Panel" parent="."]
+margin_left = 128.0
+margin_right = 792.0
+margin_bottom = 420.0
+rect_min_size = Vector2( 664, 420 )
+
+[node name="notice" type="Label" parent="right"]
+visible = false
+margin_left = 100.0
+margin_top = 32.0
+margin_right = 600.0
+margin_bottom = 64.0
+custom_fonts/font = ExtResource( 1 )
+text = "尚未加载存档数据！"
+
+[connection signal="confirmed" from="notice" to="." method="notice_confirmed"]

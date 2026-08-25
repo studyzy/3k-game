@@ -1,0 +1,287 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://resource/images/picture/window2.png" type="Texture" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/38.tres" type="DynamicFont" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/35.tres" type="DynamicFont" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=4]
+[ext_resource path="res://windows/War_Communique.gd" type="Script" id=5]
+
+[node name="War_Communique" type="Control"]
+margin_right = 600.0
+margin_bottom = 600.0
+script = ExtResource( 5 )
+
+[node name="bottom_scene_color" type="ColorRect" parent="."]
+margin_top = 410.0
+margin_right = 600.0
+margin_bottom = 600.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="Window2" type="NinePatchRect" parent="."]
+margin_right = 600.0
+margin_bottom = 410.0
+texture = ExtResource( 1 )
+region_rect = Rect2( -11.8143, -3, 111.22, 97.5095 )
+patch_margin_left = 44
+patch_margin_top = 33
+patch_margin_right = 41
+patch_margin_bottom = 43
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Atk" type="Control" parent="Window2"]
+margin_left = 66.0
+margin_top = 31.0
+margin_right = 273.0
+margin_bottom = 338.0
+
+[node name="lord" type="Control" parent="Window2/Atk"]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="lblName" type="Label" parent="Window2/Atk/lord"]
+margin_left = 9.0
+margin_top = 5.0
+margin_right = 185.0
+margin_bottom = 47.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "刘备  军"
+align = 1
+
+[node name="result" type="Control" parent="Window2/Atk"]
+margin_left = -2.0
+margin_top = 51.0
+margin_right = 38.0
+margin_bottom = 91.0
+
+[node name="lblName" type="Label" parent="Window2/Atk/result"]
+margin_left = 121.0
+margin_top = 19.0
+margin_right = 197.0
+margin_bottom = 68.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "败战"
+align = 2
+
+[node name="lblTitle" type="Label" parent="Window2/Atk/result"]
+margin_left = 8.0
+margin_top = 19.0
+margin_right = 84.0
+margin_bottom = 68.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "结果"
+
+[node name="lose_sodiers" type="Control" parent="Window2/Atk"]
+margin_left = -2.0
+margin_top = 107.0
+margin_right = 38.0
+margin_bottom = 147.0
+
+[node name="lblName" type="Label" parent="Window2/Atk/lose_sodiers"]
+margin_left = 86.0
+margin_top = 27.0
+margin_right = 191.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "2000"
+align = 2
+valign = 2
+
+[node name="lblTitle" type="Label" parent="Window2/Atk/lose_sodiers"]
+margin_left = 8.0
+margin_top = 25.0
+margin_right = 84.0
+margin_bottom = 74.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "损兵"
+
+[node name="lose_actors" type="Control" parent="Window2/Atk"]
+margin_left = -2.0
+margin_top = 161.0
+margin_right = 38.0
+margin_bottom = 201.0
+
+[node name="lblName" type="Label" parent="Window2/Atk/lose_actors"]
+margin_left = 85.0
+margin_top = 35.0
+margin_right = 190.0
+margin_bottom = 75.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "10"
+align = 2
+valign = 2
+
+[node name="lblTitle" type="Label" parent="Window2/Atk/lose_actors"]
+margin_left = 8.0
+margin_top = 33.0
+margin_right = 84.0
+margin_bottom = 82.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "损将"
+
+[node name="add_actors" type="Control" parent="Window2/Atk"]
+margin_left = -2.0
+margin_top = 216.0
+margin_right = 38.0
+margin_bottom = 256.0
+
+[node name="lblName" type="Label" parent="Window2/Atk/add_actors"]
+margin_left = 85.0
+margin_top = 38.0
+margin_right = 190.0
+margin_bottom = 78.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "10"
+align = 2
+valign = 2
+
+[node name="lblTitle" type="Label" parent="Window2/Atk/add_actors"]
+margin_left = 8.0
+margin_top = 36.0
+margin_right = 84.0
+margin_bottom = 85.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "降将"
+
+[node name="Def" type="Control" parent="Window2"]
+margin_left = 334.0
+margin_top = 32.0
+margin_right = 541.0
+margin_bottom = 339.0
+
+[node name="lord" type="Control" parent="Window2/Def"]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="lblName" type="Label" parent="Window2/Def/lord"]
+margin_left = 9.0
+margin_top = 5.0
+margin_right = 185.0
+margin_bottom = 47.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "袁绍  军"
+align = 1
+
+[node name="result" type="Control" parent="Window2/Def"]
+margin_left = -2.0
+margin_top = 51.0
+margin_right = 38.0
+margin_bottom = 91.0
+
+[node name="lblName" type="Label" parent="Window2/Def/result"]
+margin_left = 121.0
+margin_top = 19.0
+margin_right = 197.0
+margin_bottom = 68.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "防卫"
+align = 2
+
+[node name="lblTitle" type="Label" parent="Window2/Def/result"]
+margin_left = 8.0
+margin_top = 19.0
+margin_right = 84.0
+margin_bottom = 68.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "结果"
+
+[node name="lose_sodiers" type="Control" parent="Window2/Def"]
+margin_left = -2.0
+margin_top = 107.0
+margin_right = 38.0
+margin_bottom = 147.0
+
+[node name="lblName" type="Label" parent="Window2/Def/lose_sodiers"]
+margin_left = 86.0
+margin_top = 27.0
+margin_right = 191.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "2000"
+align = 2
+valign = 2
+
+[node name="lblTitle" type="Label" parent="Window2/Def/lose_sodiers"]
+margin_left = 8.0
+margin_top = 25.0
+margin_right = 84.0
+margin_bottom = 74.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "损兵"
+
+[node name="lose_actors" type="Control" parent="Window2/Def"]
+margin_left = -2.0
+margin_top = 161.0
+margin_right = 38.0
+margin_bottom = 201.0
+
+[node name="lblName" type="Label" parent="Window2/Def/lose_actors"]
+margin_left = 85.0
+margin_top = 35.0
+margin_right = 190.0
+margin_bottom = 75.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "10"
+align = 2
+valign = 2
+
+[node name="lblTitle" type="Label" parent="Window2/Def/lose_actors"]
+margin_left = 8.0
+margin_top = 33.0
+margin_right = 84.0
+margin_bottom = 82.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "损将"
+
+[node name="add_actors" type="Control" parent="Window2/Def"]
+margin_left = -2.0
+margin_top = 216.0
+margin_right = 38.0
+margin_bottom = 256.0
+
+[node name="lblName" type="Label" parent="Window2/Def/add_actors"]
+margin_left = 85.0
+margin_top = 38.0
+margin_right = 190.0
+margin_bottom = 78.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "10"
+align = 2
+valign = 2
+
+[node name="lblTitle" type="Label" parent="Window2/Def/add_actors"]
+margin_left = 8.0
+margin_top = 36.0
+margin_right = 84.0
+margin_bottom = 85.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "降将"
+
+[node name="lblEndless" type="Label" parent="Window2"]
+margin_left = 86.0
+margin_top = 344.0
+margin_right = 478.0
+margin_bottom = 376.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "【简单】无尽模式 第1关"
+align = 1

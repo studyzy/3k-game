@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/horse_run.ogg-778bec896c7b25272083baafb56e8067.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/se/horse_run.ogg"
+dest_files=[ "res://.import/horse_run.ogg-778bec896c7b25272083baafb56e8067.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

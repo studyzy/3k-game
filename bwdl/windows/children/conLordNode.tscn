@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://resource/images/vassalIcon/2_BIG.png" type="Texture" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=3]
+[ext_resource path="res://windows/children/conLordNode.gd" type="Script" id=4]
+
+[node name="conLordNode" type="Control"]
+script = ExtResource( 4 )
+vstateId = 4
+scale = 1
+vstate_name = "刘备"
+
+[node name="LordName" type="Label" parent="."]
+margin_left = 2.0
+margin_top = 3.0
+margin_right = 133.0
+margin_bottom = 50.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "刘备"
+
+[node name="cityNums" type="Label" parent="."]
+margin_left = 155.0
+margin_top = 8.0
+margin_right = 196.0
+margin_bottom = 47.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "×1"
+
+[node name="Big" type="Sprite" parent="."]
+position = Vector2( 129.496, 20.496 )
+scale = Vector2( 1.219, 1.219 )
+texture = ExtResource( 1 )

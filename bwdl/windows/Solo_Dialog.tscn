@@ -1,0 +1,117 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://windows/children/actor_face.tscn" type="PackedScene" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=3]
+[ext_resource path="res://resource/images/picture/lightChooose1.png" type="Texture" id=4]
+[ext_resource path="res://windows/Solo_Dialog.gd" type="Script" id=5]
+
+[sub_resource type="Animation" id=1]
+resource_name = "confirm_cursor"
+length = 0.4
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("confirm_curosr:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ false, true ]
+}
+
+[node name="solo_dialog" type="Control"]
+margin_left = 212.0
+margin_top = 410.0
+margin_right = 812.0
+margin_bottom = 600.0
+script = ExtResource( 5 )
+
+[node name="bottom_scene" type="ColorRect" parent="."]
+margin_right = 600.0
+margin_bottom = 190.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="left" type="Control" parent="."]
+margin_right = 140.0
+margin_bottom = 190.0
+
+[node name="1" type="NinePatchRect" parent="left"]
+margin_left = 24.0
+margin_top = 26.0
+margin_right = 116.0
+margin_bottom = 138.0
+region_rect = Rect2( 32, 0, 32, 40 )
+
+[node name="lblName" type="Label" parent="left"]
+margin_left = 5.0
+margin_top = 142.0
+margin_right = 135.0
+margin_bottom = 184.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "关羽暗按"
+align = 1
+
+[node name="nprFace" parent="left" instance=ExtResource( 1 )]
+margin_left = 24.0
+margin_top = 26.0
+margin_right = -24.0
+margin_bottom = -52.0
+
+[node name="right" type="Control" parent="."]
+margin_left = 460.0
+margin_right = 600.0
+margin_bottom = 190.0
+
+[node name="1" type="NinePatchRect" parent="right"]
+margin_left = 24.0
+margin_top = 26.0
+margin_right = 116.0
+margin_bottom = 138.0
+region_rect = Rect2( 32, 0, 32, 40 )
+
+[node name="lblName" type="Label" parent="right"]
+margin_left = 5.0
+margin_top = 142.0
+margin_right = 135.0
+margin_bottom = 184.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "关羽暗按"
+align = 1
+
+[node name="nprFace" parent="right" instance=ExtResource( 1 )]
+margin_left = 24.0
+margin_top = 26.0
+margin_right = -24.0
+margin_bottom = -52.0
+
+[node name="rtlMessage" type="RichTextLabel" parent="."]
+margin_left = 143.0
+margin_top = 20.0
+margin_right = 453.0
+margin_bottom = 144.0
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 3 )
+text = "吾乃关羽，逆贼快快下马受死！"
+scroll_active = false
+scroll_following = true
+
+[node name="Tween" type="Tween" parent="."]
+
+[node name="confirm_curosr" type="Sprite" parent="."]
+visible = false
+position = Vector2( 291.429, 164 )
+scale = Vector2( 0.357142, 0.357142 )
+texture = ExtResource( 4 )
+flip_v = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+anims/confirm_cursor = SubResource( 1 )
+
+[connection signal="tween_all_completed" from="Tween" to="." method="_on_Tween_tween_all_completed"]
+[connection signal="tween_step" from="Tween" to="." method="_on_Tween_tween_step"]
+[connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_AnimationPlayer_animation_finished"]

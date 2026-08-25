@@ -1,0 +1,165 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/28.tres" type="DynamicFont" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/32.tres" type="DynamicFont" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=3]
+[ext_resource path="res://info/skill_detail.gd" type="Script" id=4]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0.145098, 0.145098, 0.164706, 1 )
+
+[sub_resource type="StyleBoxFlat" id=2]
+bg_color = Color( 1, 1, 1, 1 )
+
+[node name="skill_detail" type="VBoxContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -424.0
+margin_bottom = -200.0
+rect_min_size = Vector2( 900, 430 )
+custom_constants/separation = 0
+script = ExtResource( 4 )
+
+[node name="header" type="HBoxContainer" parent="."]
+margin_right = 900.0
+margin_bottom = 78.0
+rect_min_size = Vector2( 900, 78 )
+custom_constants/separation = 0
+
+[node name="name" type="Label" parent="header"]
+margin_right = 220.0
+margin_bottom = 78.0
+rect_min_size = Vector2( 220, 78 )
+custom_fonts/font = ExtResource( 2 )
+custom_styles/normal = SubResource( 1 )
+text = "毅谋"
+align = 1
+valign = 1
+
+[node name="brief" type="Label" parent="header"]
+margin_left = 220.0
+margin_right = 720.0
+margin_bottom = 78.0
+rect_min_size = Vector2( 500, 78 )
+custom_fonts/font = ExtResource( 3 )
+custom_styles/normal = SubResource( 1 )
+text = "大战场&小战场，君主锁定技·转换"
+valign = 1
+
+[node name="pnl" type="Panel" parent="header"]
+margin_left = 720.0
+margin_right = 900.0
+margin_bottom = 78.0
+rect_min_size = Vector2( 180, 78 )
+
+[node name="close" type="Button" parent="header/pnl"]
+margin_left = 60.0
+margin_top = 10.0
+margin_right = 160.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 100, 40 )
+custom_fonts/font = ExtResource( 3 )
+text = "关闭 X"
+
+[node name="sep" type="HBoxContainer" parent="."]
+margin_top = 78.0
+margin_right = 900.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 820, 2 )
+custom_constants/separation = 0
+
+[node name="left" type="Panel" parent="sep"]
+margin_right = 60.0
+margin_bottom = 2.0
+rect_min_size = Vector2( 60, 2 )
+
+[node name="center" type="Panel" parent="sep"]
+margin_left = 60.0
+margin_right = 840.0
+margin_bottom = 2.0
+rect_min_size = Vector2( 780, 2 )
+custom_styles/panel = SubResource( 2 )
+
+[node name="right" type="Panel" parent="sep"]
+margin_left = 840.0
+margin_right = 900.0
+margin_bottom = 2.0
+rect_min_size = Vector2( 60, 2 )
+
+[node name="detail" type="VBoxContainer" parent="."]
+margin_top = 80.0
+margin_right = 900.0
+margin_bottom = 430.0
+rect_min_size = Vector2( 740, 350 )
+custom_constants/separation = 0
+
+[node name="content" type="Panel" parent="detail"]
+margin_right = 900.0
+margin_bottom = 300.0
+rect_min_size = Vector2( 900, 300 )
+
+[node name="lbl" type="Label" parent="detail/content"]
+margin_left = 60.0
+margin_top = 20.0
+margin_right = 210.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 150, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "技能效果："
+
+[node name="effect" type="RichTextLabel" parent="detail/content"]
+margin_left = 60.0
+margin_top = 70.0
+margin_right = 440.0
+margin_bottom = 250.0
+rect_min_size = Vector2( 380, 180 )
+custom_fonts/normal_font = ExtResource( 3 )
+bbcode_text = "非城战，你拥有弓骑兵。弓骑兵：默认可对2-3距离的敌人进行射箭攻击，基础伤害倍率0.7，基础减伤倍率-0.15"
+text = "非城战，你拥有弓骑兵。弓骑兵：默认可对2-3距离的敌人进行射箭攻击，基础伤害倍率0.7，基础减伤倍率-0.15"
+
+[node name="lbl2" type="Label" parent="detail/content"]
+margin_left = 460.0
+margin_top = 20.0
+margin_right = 610.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 150, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "创作背景："
+
+[node name="memo" type="RichTextLabel" parent="detail/content"]
+margin_left = 460.0
+margin_top = 70.0
+margin_right = 840.0
+margin_bottom = 270.0
+rect_min_size = Vector2( 380, 180 )
+custom_fonts/normal_font = ExtResource( 3 )
+bbcode_text = "非城战，你拥有弓骑兵。弓骑兵：默认可对2-3距离的敌人进行射箭攻击，基础伤害倍率0.7，基础减伤倍率-0.15"
+text = "“义之所至，生死相随！苍天可鉴，白马为证！”白马义从——乃公孙瓒和其副将严纲统领的一支精锐轻骑兵，善于骑射，把乌桓人打得见了白马就跑。界桥之战后，世间再无白马义从。哦不，好像还有一位：他身骑白驹，腰挂木弓，为了他心中的义，生死追随他的主公。"
+
+[node name="nav" type="Panel" parent="detail"]
+margin_top = 300.0
+margin_right = 900.0
+margin_bottom = 350.0
+rect_min_size = Vector2( 900, 50 )
+
+[node name="prev" type="Button" parent="detail/nav"]
+margin_left = 20.0
+margin_top = 10.0
+margin_right = 140.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 3 )
+text = "< 良策"
+
+[node name="next" type="Button" parent="detail/nav"]
+margin_left = 760.0
+margin_top = 10.0
+margin_right = 880.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 3 )
+text = "飞将 >"
+
+[connection signal="pressed" from="header/pnl/close" to="." method="close"]
+[connection signal="pressed" from="detail/nav/prev" to="." method="nav_prev"]
+[connection signal="pressed" from="detail/nav/next" to="." method="nav_next"]

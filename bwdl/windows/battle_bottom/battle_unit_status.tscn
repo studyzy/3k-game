@@ -1,0 +1,264 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/35.tres" type="DynamicFont" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=5]
+[ext_resource path="res://windows/battle_bottom/battle_unit_status.gd" type="Script" id=6]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0, 0, 0, 0.682353 )
+
+[node name="battle_unit_status" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 410.0
+margin_right = -424.0
+script = ExtResource( 6 )
+
+[node name="bottom_scene" type="ColorRect" parent="."]
+margin_right = 600.0
+margin_bottom = 190.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="lblTopMsg" type="Label" parent="."]
+visible = false
+margin_top = -31.0
+margin_right = 600.0
+margin_bottom = 1.0
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "小提示：包围状态下，武将不会射箭"
+align = 1
+
+[node name="info" type="Control" parent="."]
+margin_right = 300.0
+margin_bottom = 190.0
+
+[node name="avatar" type="Control" parent="info"]
+margin_right = 160.0
+margin_bottom = 190.0
+
+[node name="name" type="Label" parent="info/avatar"]
+margin_left = 10.0
+margin_top = 120.0
+margin_right = 140.0
+margin_bottom = 162.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 5 )
+text = "关羽暗啊"
+align = 1
+
+[node name="sp" type="Sprite" parent="info/avatar"]
+position = Vector2( 75, 70 )
+scale = Vector2( 1.5, 1.5 )
+
+[node name="status" type="GridContainer" parent="info"]
+margin_left = 160.0
+margin_top = 10.0
+margin_right = 660.0
+margin_bottom = 210.0
+rect_min_size = Vector2( 500, 0 )
+rect_scale = Vector2( 0.75, 0.75 )
+columns = 2
+
+[node name="hp" type="Control" parent="info/status"]
+margin_right = 250.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 250, 50 )
+
+[node name="lbl" type="Label" parent="info/status/hp"]
+margin_top = 10.0
+margin_right = 120.0
+margin_bottom = 60.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "体力"
+
+[node name="val" type="Label" parent="info/status/hp"]
+margin_left = 120.0
+margin_top = 4.0
+margin_right = 200.0
+margin_bottom = 54.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 5 )
+text = "97"
+align = 2
+valign = 2
+
+[node name="times" type="Control" parent="info/status"]
+margin_left = 254.0
+margin_right = 504.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 250, 50 )
+
+[node name="lbl" type="Label" parent="info/status/times"]
+margin_top = 10.0
+margin_right = 120.0
+margin_bottom = 60.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "行动"
+
+[node name="val" type="Label" parent="info/status/times"]
+margin_left = 120.0
+margin_top = 4.0
+margin_right = 200.0
+margin_bottom = 54.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 5 )
+text = "97"
+align = 2
+valign = 2
+
+[node name="attack" type="Control" parent="info/status"]
+margin_top = 54.0
+margin_right = 250.0
+margin_bottom = 104.0
+rect_min_size = Vector2( 250, 50 )
+
+[node name="lbl" type="Label" parent="info/status/attack"]
+margin_top = 10.0
+margin_right = 120.0
+margin_bottom = 60.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "攻击"
+
+[node name="val" type="Label" parent="info/status/attack"]
+margin_left = 120.0
+margin_top = 4.0
+margin_right = 200.0
+margin_bottom = 54.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 5 )
+text = "97"
+align = 2
+valign = 2
+
+[node name="defence" type="Control" parent="info/status"]
+margin_left = 254.0
+margin_top = 54.0
+margin_right = 504.0
+margin_bottom = 104.0
+rect_min_size = Vector2( 250, 50 )
+
+[node name="lbl" type="Label" parent="info/status/defence"]
+margin_top = 10.0
+margin_right = 120.0
+margin_bottom = 60.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "防御"
+
+[node name="val" type="Label" parent="info/status/defence"]
+margin_left = 120.0
+margin_top = 4.0
+margin_right = 200.0
+margin_bottom = 54.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 5 )
+text = "97"
+align = 2
+valign = 2
+
+[node name="melee" type="Control" parent="info/status"]
+margin_top = 108.0
+margin_right = 250.0
+margin_bottom = 158.0
+rect_min_size = Vector2( 250, 50 )
+
+[node name="lbl" type="Label" parent="info/status/melee"]
+margin_top = 10.0
+margin_right = 120.0
+margin_bottom = 60.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "近身"
+
+[node name="val" type="Label" parent="info/status/melee"]
+margin_left = 120.0
+margin_top = 4.0
+margin_right = 200.0
+margin_bottom = 54.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 5 )
+text = "97"
+align = 2
+valign = 2
+
+[node name="range" type="Control" parent="info/status"]
+margin_left = 254.0
+margin_top = 108.0
+margin_right = 504.0
+margin_bottom = 158.0
+rect_min_size = Vector2( 250, 50 )
+
+[node name="lbl" type="Label" parent="info/status/range"]
+margin_top = 10.0
+margin_right = 120.0
+margin_bottom = 60.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "远程"
+
+[node name="val" type="Label" parent="info/status/range"]
+margin_left = 120.0
+margin_top = 4.0
+margin_right = 200.0
+margin_bottom = 54.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 5 )
+text = "97"
+align = 2
+valign = 2
+
+[node name="avoid" type="Control" parent="info/status"]
+margin_top = 162.0
+margin_right = 250.0
+margin_bottom = 212.0
+rect_min_size = Vector2( 250, 50 )
+
+[node name="lbl" type="Label" parent="info/status/avoid"]
+margin_top = 10.0
+margin_right = 120.0
+margin_bottom = 60.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "免伤"
+
+[node name="val" type="Label" parent="info/status/avoid"]
+margin_left = 120.0
+margin_top = 4.0
+margin_right = 200.0
+margin_bottom = 54.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 5 )
+text = "97"
+align = 2
+valign = 2
+
+[node name="block" type="Control" parent="info/status"]
+margin_left = 254.0
+margin_top = 162.0
+margin_right = 504.0
+margin_bottom = 212.0
+rect_min_size = Vector2( 250, 50 )
+
+[node name="lbl" type="Label" parent="info/status/block"]
+margin_top = 10.0
+margin_right = 120.0
+margin_bottom = 60.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "格挡"
+
+[node name="val" type="Label" parent="info/status/block"]
+margin_left = 120.0
+margin_top = 4.0
+margin_right = 200.0
+margin_bottom = 54.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 5 )
+text = "97"
+align = 2
+valign = 2

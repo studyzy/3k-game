@@ -1,0 +1,101 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://resource/images/picture/window3.png" type="Texture" id=2]
+[ext_resource path="res://scene/scene_test/scene_test.gd" type="Script" id=3]
+[ext_resource path="res://scene/scene_test/simulated_war_map.gd" type="Script" id=4]
+[ext_resource path="res://windows/light_select.tscn" type="PackedScene" id=5]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0, 0, 0, 1 )
+
+[node name="Control" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 3 )
+
+[node name="Background" type="ColorRect" parent="."]
+margin_left = 192.0
+margin_right = 832.0
+margin_bottom = 600.0
+rect_pivot_offset = Vector2( 189.465, 56.1982 )
+color = Color( 0.360784, 0.580392, 0.988235, 1 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="bottom" type="Control" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="window2" type="NinePatchRect" parent="bottom"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = 178.0
+margin_top = 222.0
+margin_right = 801.0
+margin_bottom = 558.0
+texture = ExtResource( 2 )
+region_rect = Rect2( -2.717, -3.033, 94.275, 91.951 )
+patch_margin_left = 29
+patch_margin_top = 23
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="window3" type="NinePatchRect" parent="bottom"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = 179.0
+margin_top = -31.0
+margin_right = 800.0
+margin_bottom = 219.0
+texture = ExtResource( 2 )
+region_rect = Rect2( -2.717, -3.033, 94.275, 91.951 )
+patch_margin_left = 29
+patch_margin_top = 23
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="RichTextLabel" type="RichTextLabel" parent="bottom"]
+margin_left = 224.0
+margin_top = 275.0
+margin_right = 802.0
+margin_bottom = 585.0
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+custom_fonts/normal_font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+bbcode_enabled = true
+bbcode_text = "log messages"
+text = "log messages"
+
+[node name="Label" type="Label" parent="."]
+margin_left = 225.0
+margin_top = 210.0
+margin_right = 945.0
+margin_bottom = 260.0
+rect_scale = Vector2( 0.8, 0.8 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "notice"
+autowrap = true
+
+[node name="lsc" parent="." instance=ExtResource( 5 )]
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 269.0
+margin_top = 29.0
+margin_right = 269.0
+margin_bottom = 307.0
+columns = 2
+h_separation = 250
+items = [  ]
+font_size = 30
+
+[node name="war_map" type="Panel" parent="."]
+visible = false
+script = ExtResource( 4 )

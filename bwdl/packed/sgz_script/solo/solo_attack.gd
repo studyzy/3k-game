@@ -1,0 +1,61 @@
+extends Resource
+const view_model_name = "单挑-玩家-步骤";
+
+#攻击
+func _init() -> void:
+	LoadControl.view_model_name = view_model_name;
+	FlowManager.bind_import_flow("solo_attack",self,"solo_attack");
+
+func _input_key(delta: float):
+	return
+
+#攻击
+func solo_attack():
+	var sf = DataManager.get_current_solo_fight()
+	var scene = SceneManager.current_scene()
+
+	var wa = sf.current()
+	var target = sf.target()
+
+	var rateFixKey = "战争.{0}命中".format([wa.actorId])
+	var node = scene.get_actor_node(wa.actorId)
+
+	var rate = wa.get_solo_accuracy_rate()
+	#显示的命中率
+	var rateShow = rate
+	
+	if wa.get_controlNo() >= 0:
+		rate = DataManager.get_fix_v_rate(rate, rateFixKey)
+	elif target.get_controlNo() >= 0:
+		if target.actor().get_hp() < 40 and wa.actor().get_power() < target.actor().get_power():
+			rate /= 2
+
+	#玩家对AI攻击，保底命中率70%
+	if wa.get_controlNo() >= 0 and wa.actor().get_power() > target.actor().get_power():
+		if target.get_controlNo() < 0:
+			rate = max(70, rate)
+
+	var result = 1
+	if not Global.get_rate_result(rate):
+		result = 0
+	DataManager.set_env("单挑.是否命中", result)
+	if wa.get_controlNo() >= 0:
+		DataManager.set_fix_rate_v(rateFixKey, result > 0)
+
+	var damage = wa.get_solo_base_damege()
+	DataManager.set_env("单挑.伤害数值", damage)
+	# 在 get_solo_base_damage 时计算
+	var criticalChance = DataManager.get_env_int("单挑.暴击率")
+	DataManager.set_env("单挑.反伤", 0)
+	var recover = 0
+	if result == 0:
+		recover = wa.actor().get_equip_feature_total("单挑MISS回体")
+	DataManager.set_env("单挑.攻击回体", recover)
+
+	SceneManager.show_unconfirm_dialog("{0}之攻击\n命中率：{1}%\n暴击率：{2}%".format([
+		wa.get_name(), rateShow, criticalChance
+	]))
+	SceneManager.dialog_msg_complete(true)
+	node.action_attack("solo_before_say_hurt")
+	LoadControl.set_view_model(100)
+	return

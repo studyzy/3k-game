@@ -1,0 +1,111 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://scene/scene_open/scene_open.gd" type="Script" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=3]
+[ext_resource path="res://icon.png" type="Texture" id=6]
+[ext_resource path="res://resource/images/picture/window3.png" type="Texture" id=7]
+
+[node name="Control" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 192.0
+margin_right = -192.0
+script = ExtResource( 1 )
+
+[node name="Background" type="ColorRect" parent="."]
+margin_right = 640.0
+margin_bottom = 600.0
+grow_horizontal = 0
+grow_vertical = 0
+rect_pivot_offset = Vector2( 320, 300 )
+color = Color( 0.360784, 0.580392, 0.988235, 1 )
+
+[node name="top" type="Control" parent="."]
+margin_right = 640.0
+margin_bottom = 90.0
+
+[node name="window" type="NinePatchRect" parent="top"]
+margin_left = 5.0
+margin_top = 5.0
+margin_right = 221.0
+margin_bottom = 90.0
+texture = ExtResource( 7 )
+region_rect = Rect2( -2.717, -3.033, 94.275, 93.033 )
+patch_margin_left = 29
+patch_margin_top = 23
+patch_margin_right = 20
+patch_margin_bottom = 23
+
+[node name="Label" type="Label" parent="top"]
+margin_left = 79.0
+margin_top = 9.0
+margin_right = 209.0
+margin_bottom = 78.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "百度贴吧
+霸王的大陆"
+
+[node name="icon" type="Sprite" parent="top"]
+position = Vector2( 42, 42 )
+scale = Vector2( 1.54688, 1.54688 )
+texture = ExtResource( 6 )
+
+[node name="lblVersion" type="Label" parent="top"]
+margin_left = 228.0
+margin_top = 10.0
+margin_right = 303.0
+margin_bottom = 42.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "版本号"
+
+[node name="bottom" type="Control" parent="."]
+margin_top = 90.0
+margin_right = 640.0
+margin_bottom = 600.0
+
+[node name="window" type="NinePatchRect" parent="bottom"]
+margin_left = 5.0
+margin_top = 5.0
+margin_right = 635.0
+margin_bottom = 505.0
+texture = ExtResource( 7 )
+region_rect = Rect2( -2.717, -3.033, 94.275, 91.951 )
+patch_margin_left = 29
+patch_margin_top = 23
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="Label" type="RichTextLabel" parent="bottom"]
+margin_left = 20.0
+margin_top = 20.0
+margin_right = 620.0
+margin_bottom = 500.0
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_constants/table_vseparation = 5
+custom_fonts/normal_font = ExtResource( 3 )
+bbcode_enabled = true
+bbcode_text = "[table=2]
+[cell]制作组     [/cell][cell]科南   凤婶   姜饼   老白   黑铁[/cell]
+[cell][/cell][cell]落月   小蹲   一乐   聪聪   天子[/cell]
+[cell]名人堂      [/cell]
+[cell]qxqy19   粉墨    渣渣皮    小召    zhlake[/cell]
+[cell][/cell]
+[cell]SG   惊云   风恋   魏延    黑天使    云游[/cell]
+[cell][/cell][cell]百川  辉夜   星彩    鹏叔  bofndc   疯生[/cell]
+[cell][/cell][cell]落雪   脆皮    洪老七  子龙   彩虹   偷瓜[/cell][cell][/cell]
+[cell]非飞    三胖    许由   裕隆   惊风   一刀[/cell]
+[cell][/cell]
+[cell]俊霖  chikaifa  阿喽啰  Belive  冷然御风[/cell][cell][/cell]
+[cell]樱筱雅   MR.王   宣云    张晓波  蓝一冬  [/cell]
+[cell][/cell][cell][/cell]
+[cell]特别鸣谢[/cell]
+[cell]骉哥    没文化君    邓果斯基[/cell]
+[cell][/cell][cell]水羊羊    草心难报晖    小辛辛[/cell]
+[/table]"
+text = "制作组     科南   凤婶   姜饼   老白   黑铁落月   小蹲   一乐   聪聪   天子名人堂      qxqy19   粉墨    渣渣皮    小召    zhlakeSG   惊云   风恋   魏延    黑天使    云游百川  辉夜   星彩    鹏叔  bofndc   疯生落雪   脆皮    洪老七  子龙   彩虹   偷瓜非飞    三胖    许由   裕隆   惊风   一刀俊霖  chikaifa  阿喽啰  Belive  冷然御风樱筱雅   MR.王   宣云    张晓波  蓝一冬  特别鸣谢骉哥    没文化君    邓果斯基水羊羊    草心难报晖    小辛辛"
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
+
+[connection signal="request_completed" from="HTTPRequest" to="." method="_on_HTTPRequest_request_completed"]

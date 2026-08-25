@@ -1,0 +1,183 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://windows/children/solo_actor.tscn" type="PackedScene" id=1]
+[ext_resource path="res://resource/images/solo/bloodArea.png" type="Texture" id=2]
+[ext_resource path="res://scene/scene_solo/scene_solo.gd" type="Script" id=4]
+[ext_resource path="res://windows/solo_bottom/solo_menu.tscn" type="PackedScene" id=5]
+[ext_resource path="res://windows/solo_bottom/solo_tactic_menu.tscn" type="PackedScene" id=6]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=7]
+[ext_resource path="res://resource/font/FandolSong-Bold/32.tres" type="DynamicFont" id=8]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0, 0, 0, 1 )
+
+[node name="Control" type="Control"]
+margin_right = 600.0
+margin_bottom = 600.0
+script = ExtResource( 4 )
+
+[node name="black" type="ColorRect" parent="."]
+margin_right = 600.0
+margin_bottom = 410.0
+color = Color( 0, 0, 0, 1 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="bottom_scene_color" type="ColorRect" parent="."]
+margin_top = 410.0
+margin_right = 600.0
+margin_bottom = 600.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="top_scene_color" type="ColorRect" parent="."]
+margin_right = 600.0
+margin_bottom = 110.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="solo_menu" parent="." instance=ExtResource( 5 )]
+visible = false
+
+[node name="solo_tactic_menu" parent="." instance=ExtResource( 6 )]
+visible = false
+
+[node name="stage" type="Control" parent="."]
+margin_right = 600.0
+margin_bottom = 410.0
+rect_clip_content = true
+
+[node name="left-actor" type="Control" parent="stage"]
+margin_top = 184.0
+margin_right = 600.0
+margin_bottom = 482.0
+
+[node name="blood" type="Control" parent="stage/left-actor"]
+margin_left = 38.0
+margin_top = -177.0
+margin_right = 294.0
+margin_bottom = -76.0
+
+[node name="white" type="ColorRect" parent="stage/left-actor/blood"]
+margin_left = 20.0
+margin_top = 80.0
+margin_right = 216.0
+margin_bottom = 95.0
+
+[node name="red" type="ColorRect" parent="stage/left-actor/blood"]
+margin_left = 20.0
+margin_top = 80.0
+margin_right = 216.0
+margin_bottom = 95.0
+color = Color( 1, 0, 0, 1 )
+
+[node name="images" type="TextureRect" parent="stage/left-actor/blood"]
+margin_left = 20.0
+margin_top = 79.0
+margin_right = 217.0
+margin_bottom = 96.0
+texture = ExtResource( 2 )
+expand = true
+
+[node name="lblName" type="Label" parent="stage/left-actor"]
+margin_left = 58.0
+margin_top = -158.0
+margin_right = 222.0
+margin_bottom = -116.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 8 )
+custom_styles/normal = SubResource( 1 )
+text = "风魔小次郎"
+align = 1
+valign = 2
+
+[node name="lblRole" type="Label" parent="stage/left-actor"]
+margin_left = 205.0
+margin_top = -158.0
+margin_right = 252.0
+margin_bottom = -111.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 7 )
+text = "1P"
+align = 2
+valign = 2
+
+[node name="solo_actor" parent="stage/left-actor" instance=ExtResource( 1 )]
+margin_right = 0.0
+color1 = Color( 1, 1, 1, 1 )
+actorId = 222
+
+[node name="right-actor" type="Control" parent="stage"]
+margin_top = 184.0
+margin_right = 600.0
+margin_bottom = 482.0
+
+[node name="blood" type="Control" parent="stage/right-actor"]
+margin_left = 318.0
+margin_top = -177.0
+margin_right = 555.0
+margin_bottom = -76.0
+
+[node name="white" type="ColorRect" parent="stage/right-actor/blood"]
+margin_left = 20.0
+margin_top = 80.0
+margin_right = 216.0
+margin_bottom = 95.0
+
+[node name="red" type="ColorRect" parent="stage/right-actor/blood"]
+margin_left = 20.0
+margin_top = 80.0
+margin_right = 216.0
+margin_bottom = 95.0
+color = Color( 1, 0, 0, 1 )
+
+[node name="images" type="TextureRect" parent="stage/right-actor/blood"]
+margin_left = 20.0
+margin_top = 79.0
+margin_right = 216.0
+margin_bottom = 96.0
+texture = ExtResource( 2 )
+expand = true
+
+[node name="lblName" type="Label" parent="stage/right-actor"]
+margin_left = 456.0
+margin_top = -158.0
+margin_right = 534.0
+margin_bottom = -116.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 8 )
+custom_styles/normal = SubResource( 1 )
+text = "金环"
+align = 1
+valign = 2
+max_lines_visible = 1
+
+[node name="lblRole" type="Label" parent="stage/right-actor"]
+margin_left = 341.0
+margin_top = -158.0
+margin_right = 388.0
+margin_bottom = -111.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 7 )
+text = "AI"
+valign = 2
+
+[node name="solo_actor" parent="stage/right-actor" instance=ExtResource( 1 )]
+margin_left = 80.0
+margin_right = 80.0
+color1 = Color( 0.772549, 0.054902, 0.054902, 1 )
+default_flip = true
+actorId = 153
+
+[node name="bottom" type="Control" parent="."]
+margin_top = 410.0
+margin_right = 600.0
+margin_bottom = 600.0
+
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_top = 110.0
+margin_right = 600.0
+margin_bottom = 190.0
+color = Color( 0, 0, 0, 1 )

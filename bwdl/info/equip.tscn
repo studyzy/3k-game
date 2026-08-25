@@ -1,0 +1,123 @@
+[gd_scene load_steps=13 format=2]
+
+[ext_resource path="res://info/weaponlist.tscn" type="PackedScene" id=1]
+[ext_resource path="res://info/suitlist.tscn" type="PackedScene" id=2]
+[ext_resource path="res://info/jewelrylist.tscn" type="PackedScene" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=4]
+[ext_resource path="res://info/steedlist.tscn" type="PackedScene" id=5]
+[ext_resource path="res://info/equip.gd" type="Script" id=8]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 1, 1, 1, 1 )
+
+[sub_resource type="StyleBoxFlat" id=2]
+bg_color = Color( 0.294118, 0.27451, 0.27451, 1 )
+
+[sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 1, 1, 1, 1 )
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 0.294118, 0.27451, 0.27451, 1 )
+
+[sub_resource type="StyleBoxFlat" id=5]
+bg_color = Color( 1, 1, 1, 1 )
+
+[sub_resource type="StyleBoxFlat" id=6]
+bg_color = Color( 0.294118, 0.27451, 0.27451, 1 )
+
+[node name="equip" type="HBoxContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -232.0
+margin_bottom = -180.0
+rect_min_size = Vector2( 900, 450 )
+custom_constants/separation = 8
+script = ExtResource( 8 )
+
+[node name="menu" type="VBoxContainer" parent="."]
+margin_right = 120.0
+margin_bottom = 450.0
+rect_min_size = Vector2( 120, 450 )
+size_flags_horizontal = 2
+
+[node name="武器" type="Button" parent="menu"]
+margin_right = 120.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 120, 50 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 4 )
+custom_styles/disabled = SubResource( 1 )
+custom_styles/normal = SubResource( 2 )
+text = "武器"
+
+[node name="防具" type="Button" parent="menu"]
+margin_top = 54.0
+margin_right = 120.0
+margin_bottom = 104.0
+rect_min_size = Vector2( 120, 50 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 4 )
+custom_styles/disabled = SubResource( 3 )
+custom_styles/normal = SubResource( 4 )
+text = "防具"
+
+[node name="道具" type="Button" parent="menu"]
+margin_top = 108.0
+margin_right = 120.0
+margin_bottom = 158.0
+rect_min_size = Vector2( 120, 50 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 4 )
+custom_styles/disabled = SubResource( 5 )
+custom_styles/normal = SubResource( 6 )
+text = "道具"
+
+[node name="坐骑" type="Button" parent="menu"]
+margin_top = 162.0
+margin_right = 120.0
+margin_bottom = 212.0
+rect_min_size = Vector2( 120, 50 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 4 )
+custom_styles/disabled = SubResource( 5 )
+custom_styles/normal = SubResource( 6 )
+text = "坐骑"
+
+[node name="content" type="Panel" parent="."]
+margin_left = 128.0
+margin_right = 900.0
+margin_bottom = 450.0
+rect_min_size = Vector2( 772, 450 )
+
+[node name="weaponlist" parent="content" instance=ExtResource( 1 )]
+margin_left = 16.0
+margin_top = 10.0
+margin_right = -48.0
+margin_bottom = -10.0
+
+[node name="suitlist" parent="content" instance=ExtResource( 2 )]
+margin_left = 16.0
+margin_top = 10.0
+margin_right = -48.0
+margin_bottom = -10.0
+
+[node name="jewelrylist" parent="content" instance=ExtResource( 3 )]
+margin_left = 16.0
+margin_top = 10.0
+margin_right = -48.0
+margin_bottom = -10.0
+
+[node name="steedlist" parent="content" instance=ExtResource( 5 )]
+margin_left = 16.0
+margin_top = 10.0
+margin_right = -16.0
+margin_bottom = -10.0
+
+[connection signal="pressed" from="menu/武器" to="." method="switch_mode" binds= [ "武器" ]]
+[connection signal="pressed" from="menu/防具" to="." method="switch_mode" binds= [ "防具" ]]
+[connection signal="pressed" from="menu/道具" to="." method="switch_mode" binds= [ "道具" ]]
+[connection signal="pressed" from="menu/坐骑" to="." method="switch_mode" binds= [ "坐骑" ]]

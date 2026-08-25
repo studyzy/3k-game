@@ -1,0 +1,145 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://windows/pnlJoySet.gd" type="Script" id=2]
+
+[node name="Panel" type="Panel"]
+margin_left = 180.0
+margin_right = 540.0
+margin_bottom = 260.0
+rect_min_size = Vector2( 360, 0 )
+rect_pivot_offset = Vector2( -646, 331 )
+script = ExtResource( 2 )
+
+[node name="lblTitle_Size" type="Label" parent="."]
+margin_left = 16.0
+margin_top = 7.0
+margin_right = 75.0
+margin_bottom = 41.0
+rect_scale = Vector2( 0.9, 0.9 )
+custom_fonts/font = ExtResource( 1 )
+text = "大小"
+max_lines_visible = 1
+
+[node name="hsSize" type="HSlider" parent="."]
+margin_left = 99.0
+margin_top = 12.0
+margin_right = 328.0
+margin_bottom = 34.0
+max_value = 150.0
+value = 100.0
+rounded = true
+ticks_on_borders = true
+
+[node name="lblTitle_A" type="Label" parent="."]
+margin_left = 15.0
+margin_top = 41.0
+margin_right = 74.0
+margin_bottom = 75.0
+rect_scale = Vector2( 0.9, 0.9 )
+custom_fonts/font = ExtResource( 1 )
+text = "透明度"
+max_lines_visible = 1
+
+[node name="hsA" type="HSlider" parent="."]
+margin_left = 99.0
+margin_top = 45.0
+margin_right = 328.0
+margin_bottom = 67.0
+min_value = 20.0
+value = 100.0
+rounded = true
+ticks_on_borders = true
+
+[node name="btnDefault" type="Button" parent="."]
+margin_left = 19.0
+margin_top = 172.0
+margin_right = 131.0
+margin_bottom = 210.0
+rect_scale = Vector2( 0.7, 0.7 )
+custom_fonts/font = ExtResource( 1 )
+text = "恢复默认"
+
+[node name="lblTitle_A2" type="Label" parent="."]
+margin_left = 16.0
+margin_top = 79.0
+margin_right = 91.0
+margin_bottom = 113.0
+rect_scale = Vector2( 0.9, 0.9 )
+custom_fonts/font = ExtResource( 1 )
+text = "x坐标"
+max_lines_visible = 1
+
+[node name="hsX" type="HSlider" parent="."]
+margin_left = 100.0
+margin_top = 83.0
+margin_right = 326.0
+margin_bottom = 105.0
+max_value = 1024.0
+value = 100.0
+ticks_on_borders = true
+
+[node name="lblTitle_A3" type="Label" parent="."]
+margin_left = 16.0
+margin_top = 119.0
+margin_right = 91.0
+margin_bottom = 153.0
+rect_scale = Vector2( 0.9, 0.9 )
+custom_fonts/font = ExtResource( 1 )
+text = "y坐标"
+max_lines_visible = 1
+
+[node name="hsY" type="HSlider" parent="."]
+margin_left = 100.0
+margin_top = 123.0
+margin_right = 326.0
+margin_bottom = 145.0
+max_value = 600.0
+value = 100.0
+ticks_on_borders = true
+
+[node name="btnSave" type="Button" parent="."]
+margin_left = 140.0
+margin_top = 172.0
+margin_right = 252.0
+margin_bottom = 210.0
+rect_scale = Vector2( 0.7, 0.7 )
+custom_fonts/font = ExtResource( 1 )
+text = "保存"
+
+[node name="btnCancel" type="Button" parent="."]
+margin_left = 258.0
+margin_top = 172.0
+margin_right = 370.0
+margin_bottom = 210.0
+rect_scale = Vector2( 0.7, 0.7 )
+custom_fonts/font = ExtResource( 1 )
+text = "取消"
+
+[node name="btnAutoSize" type="Button" parent="."]
+margin_left = 20.0
+margin_top = 209.0
+margin_right = 132.0
+margin_bottom = 247.0
+rect_scale = Vector2( 0.7, 0.7 )
+custom_fonts/font = ExtResource( 1 )
+text = "自动尺寸"
+
+[node name="btnAutoAlign" type="Button" parent="."]
+margin_left = 139.0
+margin_top = 209.0
+margin_right = 251.0
+margin_bottom = 247.0
+rect_scale = Vector2( 0.7, 0.7 )
+custom_fonts/font = ExtResource( 1 )
+text = "自动对齐"
+
+[connection signal="value_changed" from="hsSize" to="." method="_on_hsSize_value_changed"]
+[connection signal="value_changed" from="hsA" to="." method="_on_hsA_value_changed"]
+[connection signal="pressed" from="btnDefault" to="." method="_on_btnDefault_pressed"]
+[connection signal="value_changed" from="hsX" to="." method="_on_hsX_value_changed"]
+[connection signal="value_changed" from="hsY" to="." method="_on_hsY_value_changed"]
+[connection signal="pressed" from="btnSave" to="." method="_on_btnSave_pressed"]
+[connection signal="pressed" from="btnCancel" to="." method="_on_btnCancel_pressed"]
+[connection signal="pressed" from="btnAutoSize" to="." method="_on_btnAutoSize_pressed"]
+[connection signal="pressed" from="btnAutoAlign" to="." method="_on_btnAutoAlign_pressed"]

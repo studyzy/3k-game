@@ -1,0 +1,61 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://resource/images/picture/lightChooose1.png" type="Texture" id=1]
+[ext_resource path="res://windows/light_select.gd" type="Script" id=2]
+[ext_resource path="res://resource/images/picture/selected.png" type="Texture" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=4]
+
+[node name="lsc" type="Control"]
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+margin_left = 1.0
+margin_top = -298.0
+margin_right = -833.0
+margin_bottom = -160.0
+script = ExtResource( 2 )
+h_separation = 80
+v_separation = 40
+items = [ "选项1", "选项2", "选项3", "选项4" ]
+
+[node name="gv" type="GridContainer" parent="."]
+margin_top = -1.0
+margin_right = 40.0
+margin_bottom = 119.0
+custom_constants/vseparation = 40
+custom_constants/hseparation = 80
+
+[node name="cursor" type="TextureRect" parent="."]
+margin_left = -5.0
+margin_top = 9.0
+margin_right = 19.0
+margin_bottom = 25.0
+rect_rotation = 90.0
+texture = ExtResource( 1 )
+expand = true
+stretch_mode = 1
+
+[node name="Hide" type="Control" parent="."]
+visible = false
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="Selected" type="Sprite" parent="Hide"]
+position = Vector2( 1, 22 )
+scale = Vector2( 0.75, 0.75 )
+texture = ExtResource( 3 )
+
+[node name="pager" type="Label" parent="."]
+visible = false
+margin_right = 40.0
+margin_bottom = 14.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+
+[node name="deleted" type="ColorRect" parent="."]
+visible = false
+margin_right = 120.0
+margin_bottom = 2.0
+color = Color( 0, 0, 0, 1 )
+
+[connection signal="hide" from="." to="." method="on_hide"]

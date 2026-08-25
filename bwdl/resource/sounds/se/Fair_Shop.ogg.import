@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/Fair_Shop.ogg-5686c73c3bd410352f9416f2d46c2e55.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/se/Fair_Shop.ogg"
+dest_files=[ "res://.import/Fair_Shop.ogg-5686c73c3bd410352f9416f2d46c2e55.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

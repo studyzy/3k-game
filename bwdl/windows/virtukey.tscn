@@ -1,0 +1,418 @@
+[gd_scene load_steps=31 format=2]
+
+[ext_resource path="res://resource/images/JoyControl/analog_up.png" type="Texture" id=1]
+[ext_resource path="res://resource/images/JoyControl/analog.png" type="Texture" id=2]
+[ext_resource path="res://resource/images/JoyControl/analog_left.png" type="Texture" id=3]
+[ext_resource path="res://resource/images/JoyControl/emu_a.png" type="Texture" id=4]
+[ext_resource path="res://resource/images/JoyControl/emu_select.png" type="Texture" id=5]
+[ext_resource path="res://resource/images/JoyControl/emu_start.png" type="Texture" id=6]
+[ext_resource path="res://resource/images/JoyControl/analog_down.png" type="Texture" id=7]
+[ext_resource path="res://resource/images/JoyControl/analog_right.png" type="Texture" id=8]
+[ext_resource path="res://resource/images/JoyControl/emu_b.png" type="Texture" id=9]
+[ext_resource path="res://windows/virtukey.gd" type="Script" id=10]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=11]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=12]
+[ext_resource path="res://resource/images/JoyControl/emu_x.png" type="Texture" id=13]
+[ext_resource path="res://resource/images/JoyControl/emu_y.png" type="Texture" id=14]
+[ext_resource path="res://resource/images/picture/button.png" type="Texture" id=15]
+[ext_resource path="res://windows/pnlJoySet.tscn" type="PackedScene" id=16]
+[ext_resource path="res://windows/con_analog.gd" type="Script" id=17]
+[ext_resource path="res://resource/images/picture/button1.png" type="Texture" id=18]
+[ext_resource path="res://resource/images/picture/button2.png" type="Texture" id=19]
+
+[sub_resource type="StyleBoxFlat" id=15]
+bg_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="StyleBoxFlat" id=12]
+bg_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="RectangleShape2D" id=21]
+extents = Vector2( 30, 30 )
+
+[sub_resource type="RectangleShape2D" id=11]
+extents = Vector2( 30, 30 )
+
+[sub_resource type="CapsuleShape2D" id=17]
+radius = 40.0
+height = 40.0
+
+[sub_resource type="CapsuleShape2D" id=18]
+radius = 40.0
+height = 40.0
+
+[sub_resource type="CapsuleShape2D" id=16]
+custom_solver_bias = 1.0
+radius = 40.0
+height = 40.0
+
+[sub_resource type="CapsuleShape2D" id=19]
+radius = 40.0
+height = 40.0
+
+[sub_resource type="RectangleShape2D" id=20]
+extents = Vector2( 122, 122 )
+
+[sub_resource type="StyleBoxTexture" id=13]
+texture = ExtResource( 15 )
+region_rect = Rect2( 0, 0, 162, 47 )
+
+[sub_resource type="Animation" id=14]
+resource_name = "btnShowskill"
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("btnShowSkill:custom_colors/font_color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.5, 1 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ), Color( 1, 0.960784, 0, 1 ), Color( 1, 1, 1, 1 ) ]
+}
+
+[node name="VirtualKey" type="Control"]
+pause_mode = 2
+margin_right = 1024.0
+margin_bottom = 600.0
+rect_pivot_offset = Vector2( 346, 201 )
+mouse_filter = 2
+script = ExtResource( 10 )
+
+[node name="lblPlayerNo" type="Label" parent="."]
+margin_left = 21.0
+margin_top = 69.0
+margin_right = 152.0
+margin_bottom = 103.0
+mouse_filter = 1
+custom_colors/font_color = Color( 0, 1, 0.905882, 1 )
+custom_fonts/font = ExtResource( 11 )
+custom_styles/normal = SubResource( 15 )
+text = "1P"
+align = 1
+max_lines_visible = 1
+
+[node name="lblVersion" type="Label" parent="."]
+margin_left = 21.0
+margin_top = 103.0
+margin_right = 152.0
+margin_bottom = 137.0
+mouse_filter = 1
+custom_colors/font_color = Color( 0, 1, 0.905882, 1 )
+custom_fonts/font = ExtResource( 11 )
+custom_styles/normal = SubResource( 15 )
+text = "--"
+align = 1
+max_lines_visible = 1
+
+[node name="lblDebug" type="RichTextLabel" parent="."]
+visible = false
+margin_left = 840.0
+margin_top = 100.0
+margin_right = 1060.0
+margin_bottom = 260.0
+rect_scale = Vector2( 0.8, 0.8 )
+mouse_filter = 1
+custom_fonts/normal_font = ExtResource( 11 )
+custom_styles/normal = SubResource( 15 )
+bbcode_enabled = true
+
+[node name="lblspeed" type="Label" parent="."]
+margin_left = 212.0
+margin_right = 385.0
+margin_bottom = 34.0
+rect_min_size = Vector2( 180, 36 )
+rect_scale = Vector2( 0.9, 0.9 )
+custom_fonts/font = ExtResource( 11 )
+custom_styles/normal = SubResource( 12 )
+text = "游戏速度:100%"
+align = 1
+max_lines_visible = 1
+
+[node name="btnSetting" type="TouchScreenButton" parent="."]
+position = Vector2( 9, 11 )
+normal = ExtResource( 18 )
+
+[node name="Label" type="Label" parent="btnSetting"]
+margin_left = 16.5095
+margin_top = 2.82
+margin_right = 148.51
+margin_bottom = 41.82
+mouse_filter = 1
+custom_fonts/font = ExtResource( 12 )
+text = "菜单"
+align = 1
+
+[node name="btnSpeed_down" type="TouchScreenButton" parent="."]
+position = Vector2( 848, 14 )
+normal = ExtResource( 19 )
+
+[node name="Label" type="Label" parent="btnSpeed_down"]
+margin_left = 9.0
+margin_top = 6.76
+margin_right = 75.0
+margin_bottom = 45.76
+rect_scale = Vector2( 0.9, 0.9 )
+mouse_filter = 1
+custom_fonts/font = ExtResource( 12 )
+text = "减速"
+
+[node name="btnSpeed_up" type="TouchScreenButton" parent="."]
+position = Vector2( 936, 14 )
+normal = ExtResource( 19 )
+
+[node name="Label" type="Label" parent="btnSpeed_up"]
+margin_left = 9.0
+margin_top = 6.76
+margin_right = 75.0
+margin_bottom = 45.76
+rect_scale = Vector2( 0.9, 0.9 )
+mouse_filter = 1
+custom_fonts/font = ExtResource( 12 )
+text = "加速"
+
+[node name="VirtualKey" type="Control" parent="."]
+self_modulate = Color( 1, 1, 1, 0 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -1024.0
+margin_bottom = -600.0
+
+[node name="con_analog" type="Control" parent="VirtualKey"]
+margin_left = 3.0
+margin_top = 302.0
+margin_right = 284.0
+margin_bottom = 586.0
+mouse_filter = 1
+script = ExtResource( 17 )
+
+[node name="analog" type="Sprite" parent="VirtualKey/con_analog"]
+light_mask = 0
+position = Vector2( 136.771, 139.867 )
+scale = Vector2( 1.06543, 1.06543 )
+texture = ExtResource( 2 )
+
+[node name="analog_up" type="Sprite" parent="VirtualKey/con_analog" groups=["show_key"]]
+visible = false
+self_modulate = Color( 1, 1, 1, 0.901961 )
+position = Vector2( 136.771, 139.867 )
+scale = Vector2( 1.06543, 1.06543 )
+texture = ExtResource( 1 )
+
+[node name="analog_down" type="Sprite" parent="VirtualKey/con_analog" groups=["show_key"]]
+visible = false
+self_modulate = Color( 1, 1, 1, 0.901961 )
+position = Vector2( 136.771, 139.867 )
+scale = Vector2( 1.06543, 1.06543 )
+texture = ExtResource( 7 )
+
+[node name="analog_left" type="Sprite" parent="VirtualKey/con_analog" groups=["show_key"]]
+visible = false
+self_modulate = Color( 1, 1, 1, 0.901961 )
+position = Vector2( 136.771, 139.867 )
+scale = Vector2( 1.06543, 1.06543 )
+texture = ExtResource( 3 )
+
+[node name="analog_right" type="Sprite" parent="VirtualKey/con_analog" groups=["show_key"]]
+visible = false
+self_modulate = Color( 1, 1, 1, 0.901961 )
+position = Vector2( 136.771, 139.867 )
+scale = Vector2( 1.06543, 1.06543 )
+texture = ExtResource( 8 )
+
+[node name="btnLeftUp" type="TouchScreenButton" parent="VirtualKey/con_analog" groups=["press_key"]]
+position = Vector2( 16, 18 )
+shape = SubResource( 21 )
+passby_press = true
+
+[node name="btnLeftDown" type="TouchScreenButton" parent="VirtualKey/con_analog" groups=["press_key"]]
+position = Vector2( 16, 201 )
+shape = SubResource( 11 )
+passby_press = true
+
+[node name="btnRightUp" type="TouchScreenButton" parent="VirtualKey/con_analog" groups=["press_key"]]
+position = Vector2( 200, 18 )
+shape = SubResource( 11 )
+passby_press = true
+
+[node name="btnRightDown" type="TouchScreenButton" parent="VirtualKey/con_analog" groups=["press_key"]]
+position = Vector2( 200, 200 )
+shape = SubResource( 11 )
+passby_press = true
+
+[node name="btnUp" type="TouchScreenButton" parent="VirtualKey/con_analog" groups=["press_key"]]
+position = Vector2( 98, 3 )
+shape = SubResource( 17 )
+passby_press = true
+
+[node name="btnDown" type="TouchScreenButton" parent="VirtualKey/con_analog" groups=["press_key"]]
+position = Vector2( 97, 159 )
+shape = SubResource( 18 )
+passby_press = true
+
+[node name="btnLeft" type="TouchScreenButton" parent="VirtualKey/con_analog" groups=["press_key"]]
+position = Vector2( 119, 100 )
+rotation = 1.5708
+shape = SubResource( 16 )
+passby_press = true
+
+[node name="btnRight" type="TouchScreenButton" parent="VirtualKey/con_analog" groups=["press_key"]]
+position = Vector2( 275, 100 )
+rotation = 1.5708
+shape = SubResource( 19 )
+passby_press = true
+
+[node name="btn_analog" type="TouchScreenButton" parent="VirtualKey/con_analog"]
+position = Vector2( 16, 18 )
+shape = SubResource( 20 )
+
+[node name="con_btnemu_A" type="Control" parent="VirtualKey"]
+margin_left = 903.0
+margin_top = 410.0
+margin_right = 1025.0
+margin_bottom = 533.0
+script = ExtResource( 17 )
+
+[node name="btnemu_A" type="TouchScreenButton" parent="VirtualKey/con_btnemu_A" groups=["press_key"]]
+position = Vector2( 5, 5 )
+scale = Vector2( 1.23913, 1.23913 )
+normal = ExtResource( 4 )
+shape_visible = false
+
+[node name="con_btnemu_B" type="Control" parent="VirtualKey"]
+margin_left = 779.0
+margin_top = 417.0
+margin_right = 901.0
+margin_bottom = 540.0
+script = ExtResource( 17 )
+
+[node name="btnemu_B" type="TouchScreenButton" parent="VirtualKey/con_btnemu_B" groups=["press_key"]]
+position = Vector2( 3, 3 )
+scale = Vector2( 1.23913, 1.23913 )
+normal = ExtResource( 9 )
+shape_visible = false
+
+[node name="con_btnemu_X" type="Control" parent="VirtualKey"]
+margin_left = 903.0
+margin_top = 283.0
+margin_right = 1021.0
+margin_bottom = 405.0
+script = ExtResource( 17 )
+
+[node name="btnemu_X" type="TouchScreenButton" parent="VirtualKey/con_btnemu_X" groups=["press_key"]]
+position = Vector2( 1, 3 )
+scale = Vector2( 1.23913, 1.23913 )
+normal = ExtResource( 13 )
+shape_visible = false
+
+[node name="con_btnemu_Y" type="Control" parent="VirtualKey"]
+margin_left = 779.0
+margin_top = 284.0
+margin_right = 898.0
+margin_bottom = 404.0
+script = ExtResource( 17 )
+
+[node name="btnemu_Y" type="TouchScreenButton" parent="VirtualKey/con_btnemu_Y" groups=["press_key"]]
+position = Vector2( 2, 3 )
+scale = Vector2( 1.23913, 1.23913 )
+normal = ExtResource( 14 )
+shape_visible = false
+
+[node name="con_btnemu_select" type="Control" parent="VirtualKey"]
+margin_left = 26.0
+margin_top = 142.0
+margin_right = 186.0
+margin_bottom = 199.0
+script = ExtResource( 17 )
+
+[node name="btnemu_select" type="TouchScreenButton" parent="VirtualKey/con_btnemu_select" groups=["press_key", "show_key"]]
+position = Vector2( -8, -12 )
+scale = Vector2( 1.22857, 1.22857 )
+normal = ExtResource( 5 )
+
+[node name="con_btnemu_start" type="Control" parent="VirtualKey"]
+margin_left = 828.0
+margin_top = 141.0
+margin_right = 982.0
+margin_bottom = 199.0
+script = ExtResource( 17 )
+
+[node name="btnemu_start" type="TouchScreenButton" parent="VirtualKey/con_btnemu_start" groups=["press_key", "show_key"]]
+position = Vector2( -10, -11 )
+scale = Vector2( 1.229, 1.229 )
+normal = ExtResource( 6 )
+
+[node name="set" type="Control" parent="."]
+margin_left = 360.0
+margin_top = 10.0
+margin_right = 720.0
+margin_bottom = 270.0
+
+[node name="pnlJoySet" parent="set" instance=ExtResource( 16 )]
+margin_left = 0.0
+margin_right = 360.0
+rect_pivot_offset = Vector2( 0, 0 )
+
+[node name="btnShowSkill" type="Button" parent="."]
+margin_left = 21.0
+margin_top = 216.0
+margin_right = 193.0
+margin_bottom = 277.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 0.984314, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0.984314, 0, 1 )
+custom_fonts/font = ExtResource( 12 )
+custom_styles/hover = SubResource( 13 )
+custom_styles/pressed = SubResource( 13 )
+custom_styles/focus = SubResource( 13 )
+custom_styles/disabled = SubResource( 13 )
+custom_styles/normal = SubResource( 13 )
+text = "装备/技能"
+icon_align = 1
+expand_icon = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+autoplay = "btnShowskill"
+playback_process_mode = 0
+anims/btnShowskill = SubResource( 14 )
+
+[connection signal="gui_input" from="lblPlayerNo" to="." method="switch_version_display"]
+[connection signal="gui_input" from="lblVersion" to="." method="switch_version_display"]
+[connection signal="gui_input" from="lblDebug" to="." method="switch_version_display"]
+[connection signal="meta_clicked" from="lblDebug" to="." method="_on_lblDebug_meta_clicked"]
+[connection signal="pressed" from="btnSetting" to="." method="_on_btnSetting_pressed"]
+[connection signal="released" from="btnSetting" to="." method="_on_btnSetting_released"]
+[connection signal="pressed" from="btnSpeed_down" to="." method="_on_btnSpeed_down_pressed"]
+[connection signal="released" from="btnSpeed_down" to="." method="_on_btnSpeed_down_released"]
+[connection signal="pressed" from="btnSpeed_up" to="." method="_on_btnSpeed_up_pressed"]
+[connection signal="released" from="btnSpeed_up" to="." method="_on_btnSpeed_up_released"]
+[connection signal="pressed" from="VirtualKey/con_analog/btnLeftUp" to="." method="_on_btnLeftUp_pressed"]
+[connection signal="released" from="VirtualKey/con_analog/btnLeftUp" to="." method="_on_btnLeftUp_released"]
+[connection signal="pressed" from="VirtualKey/con_analog/btnLeftDown" to="." method="_on_btnLeftDown_pressed"]
+[connection signal="released" from="VirtualKey/con_analog/btnLeftDown" to="." method="_on_btnLeftDown_released"]
+[connection signal="pressed" from="VirtualKey/con_analog/btnRightUp" to="." method="_on_btnRightUp_pressed"]
+[connection signal="released" from="VirtualKey/con_analog/btnRightUp" to="." method="_on_btnRightUp_released"]
+[connection signal="pressed" from="VirtualKey/con_analog/btnRightDown" to="." method="_on_btnRightDown_pressed"]
+[connection signal="released" from="VirtualKey/con_analog/btnRightDown" to="." method="_on_btnRightDown_released"]
+[connection signal="pressed" from="VirtualKey/con_analog/btnUp" to="." method="_on_btnUp_pressed"]
+[connection signal="released" from="VirtualKey/con_analog/btnUp" to="." method="_on_btnUp_released"]
+[connection signal="pressed" from="VirtualKey/con_analog/btnDown" to="." method="_on_btnDown_pressed"]
+[connection signal="released" from="VirtualKey/con_analog/btnDown" to="." method="_on_btnDown_released"]
+[connection signal="pressed" from="VirtualKey/con_analog/btnLeft" to="." method="_on_btnLeft_pressed"]
+[connection signal="released" from="VirtualKey/con_analog/btnLeft" to="." method="_on_btnLeft_released"]
+[connection signal="pressed" from="VirtualKey/con_analog/btnRight" to="." method="_on_btnRight_pressed"]
+[connection signal="released" from="VirtualKey/con_analog/btnRight" to="." method="_on_btnRight_released"]
+[connection signal="pressed" from="VirtualKey/con_analog/btn_analog" to="." method="_on_btn_analog_pressed"]
+[connection signal="pressed" from="VirtualKey/con_btnemu_A/btnemu_A" to="." method="_on_btnemu_A_pressed"]
+[connection signal="released" from="VirtualKey/con_btnemu_A/btnemu_A" to="." method="_on_btnemu_A_released"]
+[connection signal="pressed" from="VirtualKey/con_btnemu_B/btnemu_B" to="." method="_on_btnemu_B_pressed"]
+[connection signal="released" from="VirtualKey/con_btnemu_B/btnemu_B" to="." method="_on_btnemu_B_released"]
+[connection signal="pressed" from="VirtualKey/con_btnemu_X/btnemu_X" to="." method="_on_btnemu_X_pressed"]
+[connection signal="released" from="VirtualKey/con_btnemu_X/btnemu_X" to="." method="_on_btnemu_X_released"]
+[connection signal="pressed" from="VirtualKey/con_btnemu_Y/btnemu_Y" to="." method="_on_btnemu_Y_pressed"]
+[connection signal="released" from="VirtualKey/con_btnemu_Y/btnemu_Y" to="." method="_on_btnemu_Y_released"]
+[connection signal="pressed" from="VirtualKey/con_btnemu_select/btnemu_select" to="." method="_on_btnemu_select_pressed"]
+[connection signal="released" from="VirtualKey/con_btnemu_select/btnemu_select" to="." method="_on_btnemu_select_released"]
+[connection signal="pressed" from="VirtualKey/con_btnemu_start/btnemu_start" to="." method="_on_btnemu_start_pressed"]
+[connection signal="released" from="VirtualKey/con_btnemu_start/btnemu_start" to="." method="_on_btnemu_start_released"]

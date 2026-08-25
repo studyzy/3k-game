@@ -1,0 +1,363 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://cheat/keyword.gd" type="Script" id=2]
+[ext_resource path="res://resource/images/actor/face/face-0.png" type="Texture" id=3]
+[ext_resource path="res://cheat/pager.gd" type="Script" id=4]
+[ext_resource path="res://cheat/actorlist.gd" type="Script" id=5]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0.145098, 0.145098, 0.164706, 1 )
+
+[node name="actorlist" type="VBoxContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -424.0
+margin_bottom = -200.0
+rect_min_size = Vector2( 600, 340 )
+custom_constants/separation = 0
+script = ExtResource( 5 )
+
+[node name="nav" type="HBoxContainer" parent="."]
+margin_right = 600.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 600, 42 )
+custom_constants/separation = 0
+
+[node name="keyword" type="LineEdit" parent="nav"]
+margin_right = 120.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 1 )
+script = ExtResource( 2 )
+__meta__ = {
+"_editor_description_": "0,5"
+}
+
+[node name="sep1" type="Panel" parent="nav"]
+margin_left = 120.0
+margin_right = 136.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 16, 40 )
+
+[node name="search" type="Button" parent="nav"]
+margin_left = 136.0
+margin_right = 196.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "搜"
+
+[node name="sep2" type="Panel" parent="nav"]
+margin_left = 196.0
+margin_right = 260.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 64, 40 )
+
+[node name="first" type="Button" parent="nav"]
+margin_left = 260.0
+margin_right = 320.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "|<"
+
+[node name="prev" type="Button" parent="nav"]
+margin_left = 320.0
+margin_right = 380.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "<"
+
+[node name="page" type="LineEdit" parent="nav"]
+margin_left = 380.0
+margin_right = 480.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 100, 40 )
+custom_fonts/font = ExtResource( 1 )
+align = 1
+caret_blink = true
+caret_blink_speed = 0.5
+script = ExtResource( 4 )
+__meta__ = {
+"_editor_description_": "1,3"
+}
+
+[node name="next" type="Button" parent="nav"]
+margin_left = 480.0
+margin_right = 540.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = ">"
+
+[node name="last" type="Button" parent="nav"]
+margin_left = 540.0
+margin_right = 600.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = ">|"
+
+[node name="sep" type="Panel" parent="."]
+margin_top = 42.0
+margin_right = 600.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 600, 18 )
+
+[node name="header" type="HBoxContainer" parent="."]
+margin_top = 60.0
+margin_right = 600.0
+margin_bottom = 100.0
+rect_min_size = Vector2( 600, 40 )
+custom_constants/separation = 0
+
+[node name="武将" type="Button" parent="header"]
+margin_right = 190.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 190, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "武将"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "actor"
+}
+
+[node name="体" type="Button" parent="header"]
+margin_left = 190.0
+margin_right = 240.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 50, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "体"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "hp"
+}
+
+[node name="武" type="Button" parent="header"]
+margin_left = 240.0
+margin_right = 290.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 50, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "武"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "power"
+}
+
+[node name="知" type="Button" parent="header"]
+margin_left = 290.0
+margin_right = 340.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 50, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "知"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "wisdom"
+}
+
+[node name="统" type="Button" parent="header"]
+margin_left = 340.0
+margin_right = 390.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 50, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "统"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "leadership"
+}
+
+[node name="政" type="Button" parent="header"]
+margin_left = 390.0
+margin_right = 440.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 50, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "政"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "politics"
+}
+
+[node name="胆" type="Button" parent="header"]
+margin_left = 440.0
+margin_right = 490.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 50, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "胆"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "guts"
+}
+
+[node name="忠" type="Button" parent="header"]
+margin_left = 490.0
+margin_right = 540.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 50, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "忠"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "loyalty"
+}
+
+[node name="操作区" type="Button" parent="header"]
+margin_left = 540.0
+margin_right = 600.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 1 )
+
+[node name="list" type="VBoxContainer" parent="."]
+margin_top = 100.0
+margin_right = 600.0
+margin_bottom = 340.0
+rect_min_size = Vector2( 600, 240 )
+custom_constants/separation = 0
+
+[node name="row" type="HBoxContainer" parent="."]
+visible = false
+margin_top = 340.0
+margin_right = 650.0
+margin_bottom = 400.0
+rect_min_size = Vector2( 600, 60 )
+custom_constants/separation = 0
+
+[node name="ac" type="Panel" parent="row"]
+margin_right = 50.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 50, 60 )
+
+[node name="avatar" type="Sprite" parent="row/ac"]
+scale = Vector2( 1.5, 1.5 )
+texture = ExtResource( 3 )
+centered = false
+region_enabled = true
+region_rect = Rect2( 0, 0, 32, 40 )
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="name" type="Label" parent="row"]
+margin_left = 50.0
+margin_right = 190.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 140, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "完颜阿骨打"
+align = 1
+valign = 1
+
+[node name="体" type="Label" parent="row"]
+margin_left = 190.0
+margin_right = 240.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 50, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "99"
+align = 1
+valign = 1
+
+[node name="武" type="Label" parent="row"]
+margin_left = 240.0
+margin_right = 290.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 50, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "99"
+align = 1
+valign = 1
+
+[node name="知" type="Label" parent="row"]
+margin_left = 290.0
+margin_right = 340.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 50, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "99"
+align = 1
+valign = 1
+
+[node name="统" type="Label" parent="row"]
+margin_left = 340.0
+margin_right = 390.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 50, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "99"
+align = 1
+valign = 1
+
+[node name="政" type="Label" parent="row"]
+margin_left = 390.0
+margin_right = 440.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 50, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "99"
+align = 1
+valign = 1
+
+[node name="胆" type="Label" parent="row"]
+margin_left = 440.0
+margin_right = 490.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 50, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "99"
+align = 1
+valign = 1
+
+[node name="忠" type="Label" parent="row"]
+margin_left = 490.0
+margin_right = 540.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 50, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "99"
+align = 1
+valign = 1
+
+[node name="operation" type="Panel" parent="row"]
+margin_left = 540.0
+margin_right = 600.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 60, 60 )
+
+[node name="btn" type="Button" parent="row/operation"]
+margin_left = 5.0
+margin_top = 10.0
+margin_right = 55.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 50, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "改"
+
+[connection signal="pressed" from="nav/search" to="." method="search"]
+[connection signal="pressed" from="nav/first" to="." method="page_first"]
+[connection signal="pressed" from="nav/prev" to="." method="page_prev"]
+[connection signal="pressed" from="nav/next" to="." method="page_next"]
+[connection signal="pressed" from="nav/last" to="." method="page_last"]
+[connection signal="pressed" from="header/武将" to="." method="sorting" binds= [ "actor" ]]
+[connection signal="pressed" from="header/体" to="." method="sorting" binds= [ "hp" ]]
+[connection signal="pressed" from="header/武" to="." method="sorting" binds= [ "power" ]]
+[connection signal="pressed" from="header/知" to="." method="sorting" binds= [ "wisdom" ]]
+[connection signal="pressed" from="header/统" to="." method="sorting" binds= [ "leadership" ]]
+[connection signal="pressed" from="header/政" to="." method="sorting" binds= [ "politics" ]]
+[connection signal="pressed" from="header/胆" to="." method="sorting" binds= [ "guts" ]]
+[connection signal="pressed" from="header/忠" to="." method="sorting" binds= [ "loyalty" ]]

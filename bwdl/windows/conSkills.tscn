@@ -1,0 +1,37 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://windows/skill_description.tscn" type="PackedScene" id=1]
+[ext_resource path="res://windows/conSkills.gd" type="Script" id=2]
+
+[node name="conSkills" type="Control"]
+margin_right = 600.0
+margin_bottom = 460.0
+script = ExtResource( 2 )
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+margin_right = 600.0
+margin_bottom = 440.0
+rect_min_size = Vector2( 600, 440 )
+follow_focus = true
+scroll_horizontal_enabled = false
+
+[node name="VFlowContainer" type="VBoxContainer" parent="ScrollContainer"]
+margin_right = 580.0
+margin_bottom = 248.0
+size_flags_horizontal = 0
+size_flags_vertical = 2
+
+[node name="止啼" parent="ScrollContainer/VFlowContainer" instance=ExtResource( 1 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 580.0
+margin_bottom = 122.0
+skill_name = "止啼"
+
+[node name="神武" parent="ScrollContainer/VFlowContainer" instance=ExtResource( 1 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = 126.0
+margin_right = 580.0
+margin_bottom = 248.0
+skill_name = "神武*"

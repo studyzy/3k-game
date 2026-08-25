@@ -1,0 +1,245 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/32.tres" type="DynamicFont" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=3]
+[ext_resource path="res://info/skill_detail.gd" type="Script" id=4]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0.145098, 0.145098, 0.164706, 1 )
+
+[sub_resource type="StyleBoxFlat" id=2]
+bg_color = Color( 1, 1, 1, 1 )
+
+[node name="skill_detail" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -424.0
+margin_bottom = -200.0
+rect_min_size = Vector2( 900, 430 )
+script = ExtResource( 4 )
+
+[node name="detail" type="TabContainer" parent="."]
+margin_top = 10.0
+margin_right = 900.0
+margin_bottom = 370.0
+rect_min_size = Vector2( 900, 370 )
+mouse_filter = 1
+custom_fonts/font = ExtResource( 3 )
+
+[node name="技能效果" type="Panel" parent="detail"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 50.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="header" type="Panel" parent="detail/技能效果"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_bottom = -276.0
+rect_min_size = Vector2( 892, 80 )
+
+[node name="name" type="Label" parent="detail/技能效果/header"]
+margin_right = 220.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 220, 80 )
+custom_colors/font_color = Color( 1, 1, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+custom_styles/normal = SubResource( 1 )
+text = "毅谋"
+align = 1
+valign = 1
+
+[node name="brief" type="RichTextLabel" parent="detail/技能效果/header"]
+margin_left = 220.0
+margin_top = 24.0
+margin_right = 720.0
+margin_bottom = 64.0
+rect_min_size = Vector2( 500, 40 )
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+custom_fonts/normal_font = ExtResource( 3 )
+custom_styles/normal = SubResource( 1 )
+bbcode_enabled = true
+bbcode_text = "大战场，锁定技，[color=yellow]女性限定[/color]"
+text = "大战场，锁定技，女性限定"
+
+[node name="line" type="Panel" parent="detail/技能效果"]
+margin_left = 70.0
+margin_top = 70.0
+margin_right = 790.0
+margin_bottom = 72.0
+rect_min_size = Vector2( 720, 2 )
+custom_styles/panel = SubResource( 2 )
+
+[node name="effect" type="RichTextLabel" parent="detail/技能效果"]
+margin_left = 80.0
+margin_top = 100.0
+margin_right = 780.0
+margin_bottom = 300.0
+rect_min_size = Vector2( 700, 200 )
+custom_fonts/normal_font = ExtResource( 3 )
+bbcode_enabled = true
+bbcode_text = "非城战，你拥有弓骑兵。弓骑兵：默认可对2-3距离的敌人进行射箭攻击，基础伤害倍率0.7，基础减伤倍率-0.15"
+text = "非城战，你拥有弓骑兵。弓骑兵：默认可对2-3距离的敌人进行射箭攻击，基础伤害倍率0.7，基础减伤倍率-0.15"
+
+[node name="创作背景" type="Panel" parent="detail"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 50.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="header" type="Panel" parent="detail/创作背景"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_bottom = -276.0
+rect_min_size = Vector2( 892, 80 )
+
+[node name="name" type="Label" parent="detail/创作背景/header"]
+margin_right = 220.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 220, 80 )
+custom_colors/font_color = Color( 1, 1, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+custom_styles/normal = SubResource( 1 )
+text = "毅谋"
+align = 1
+valign = 1
+
+[node name="brief" type="RichTextLabel" parent="detail/创作背景/header"]
+margin_left = 220.0
+margin_top = 24.0
+margin_right = 720.0
+margin_bottom = 64.0
+rect_min_size = Vector2( 500, 40 )
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+custom_fonts/normal_font = ExtResource( 3 )
+custom_styles/normal = SubResource( 1 )
+bbcode_enabled = true
+bbcode_text = "大战场，锁定技，[color=yellow]女性限定[/color]"
+text = "大战场，锁定技，女性限定"
+
+[node name="line" type="Panel" parent="detail/创作背景"]
+margin_left = 70.0
+margin_top = 70.0
+margin_right = 790.0
+margin_bottom = 72.0
+rect_min_size = Vector2( 720, 2 )
+custom_styles/panel = SubResource( 2 )
+
+[node name="memo" type="RichTextLabel" parent="detail/创作背景"]
+margin_left = 80.0
+margin_top = 100.0
+margin_right = 780.0
+margin_bottom = 300.0
+rect_min_size = Vector2( 700, 200 )
+custom_fonts/normal_font = ExtResource( 3 )
+bbcode_enabled = true
+bbcode_text = "非城战，你拥有弓骑兵。弓骑兵：默认可对2-3距离的敌人进行射箭攻击，基础伤害倍率0.7，基础减伤倍率-0.15"
+text = "非城战，你拥有弓骑兵。弓骑兵：默认可对2-3距离的敌人进行射箭攻击，基础伤害倍率0.7，基础减伤倍率-0.15"
+
+[node name="所属武将" type="Panel" parent="detail"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 50.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="header" type="Panel" parent="detail/所属武将"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_bottom = -276.0
+rect_min_size = Vector2( 892, 80 )
+
+[node name="name" type="Label" parent="detail/所属武将/header"]
+margin_right = 220.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 220, 80 )
+custom_colors/font_color = Color( 1, 1, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+custom_styles/normal = SubResource( 1 )
+text = "毅谋"
+align = 1
+valign = 1
+
+[node name="brief" type="RichTextLabel" parent="detail/所属武将/header"]
+margin_left = 220.0
+margin_top = 24.0
+margin_right = 720.0
+margin_bottom = 64.0
+rect_min_size = Vector2( 500, 40 )
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+custom_fonts/normal_font = ExtResource( 3 )
+custom_styles/normal = SubResource( 1 )
+bbcode_enabled = true
+bbcode_text = "大战场，锁定技，[color=yellow]女性限定[/color]"
+text = "大战场，锁定技，女性限定"
+
+[node name="line" type="Panel" parent="detail/所属武将"]
+margin_left = 70.0
+margin_top = 70.0
+margin_right = 790.0
+margin_bottom = 72.0
+rect_min_size = Vector2( 720, 2 )
+custom_styles/panel = SubResource( 2 )
+
+[node name="list" type="Panel" parent="detail/所属武将"]
+margin_left = 80.0
+margin_top = 90.0
+margin_right = 780.0
+margin_bottom = 270.0
+rect_min_size = Vector2( 700, 180 )
+
+[node name="belong" type="Label" parent="detail/所属武将"]
+visible = false
+margin_left = 650.0
+margin_top = 5.0
+margin_right = 816.0
+margin_bottom = 65.0
+rect_min_size = Vector2( 150, 60 )
+custom_fonts/font = ExtResource( 3 )
+custom_styles/normal = SubResource( 1 )
+text = "木鹿大王：Lv8"
+valign = 1
+
+[node name="nav" type="Panel" parent="."]
+margin_top = 380.0
+margin_right = 900.0
+margin_bottom = 430.0
+rect_min_size = Vector2( 900, 50 )
+
+[node name="prev" type="Button" parent="nav"]
+margin_left = 20.0
+margin_top = 10.0
+margin_right = 140.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 3 )
+text = "< 良策"
+
+[node name="close" type="Button" parent="nav"]
+margin_left = 350.0
+margin_top = 10.0
+margin_right = 550.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 200, 40 )
+custom_fonts/font = ExtResource( 3 )
+text = "关闭详情"
+
+[node name="next" type="Button" parent="nav"]
+margin_left = 760.0
+margin_top = 10.0
+margin_right = 880.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 3 )
+text = "飞将 >"
+
+[connection signal="pressed" from="nav/prev" to="." method="nav_prev"]
+[connection signal="pressed" from="nav/close" to="." method="close"]
+[connection signal="pressed" from="nav/next" to="." method="nav_next"]

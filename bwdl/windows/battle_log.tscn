@@ -1,0 +1,246 @@
+[gd_scene load_steps=12 format=2]
+
+[ext_resource path="res://resource/images/picture/window2.png" type="Texture" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/28.tres" type="DynamicFont" id=2]
+[ext_resource path="res://windows/ActorInfo.tscn" type="PackedScene" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=4]
+[ext_resource path="res://windows/battle_log.gd" type="Script" id=5]
+[ext_resource path="res://windows/con_ActorDescription.tscn" type="PackedScene" id=7]
+
+[sub_resource type="StyleBoxFlat" id=1]
+content_margin_left = 10.0
+content_margin_right = 10.0
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+bg_color = Color( 0, 0, 0, 1 )
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+corner_detail = 20
+
+[sub_resource type="StyleBoxFlat" id=6]
+bg_color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[sub_resource type="StyleBoxLine" id=3]
+thickness = 3
+
+[sub_resource type="StyleBoxLine" id=4]
+thickness = 4
+
+[sub_resource type="StyleBoxFlat" id=5]
+bg_color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="battle_log" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -424.0
+script = ExtResource( 5 )
+
+[node name="bottom_scene_color" type="ColorRect" parent="."]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -300.0
+margin_top = -160.0
+margin_right = 300.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="Window" type="NinePatchRect" parent="."]
+margin_right = 600.0
+margin_bottom = 440.0
+texture = ExtResource( 1 )
+region_rect = Rect2( -11.8143, -3, 111.22, 97.5095 )
+patch_margin_left = 44
+patch_margin_top = 33
+patch_margin_right = 41
+patch_margin_bottom = 43
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="lblTitle" type="Label" parent="."]
+margin_left = 40.0
+margin_top = 30.0
+margin_right = 564.0
+margin_bottom = 66.0
+rect_pivot_offset = Vector2( -805, 101 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "战斗日志"
+align = 1
+
+[node name="history" type="RichTextLabel" parent="."]
+visible = false
+margin_left = 40.0
+margin_top = 70.0
+margin_right = 564.0
+margin_bottom = 390.0
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+custom_fonts/normal_font = ExtResource( 4 )
+custom_styles/normal = SubResource( 1 )
+bbcode_enabled = true
+
+[node name="state" type="ScrollContainer" parent="."]
+margin_left = 40.0
+margin_top = 70.0
+margin_right = 564.0
+margin_bottom = 390.0
+
+[node name="pnl" type="Panel" parent="state"]
+margin_right = 524.0
+margin_bottom = 410.0
+rect_min_size = Vector2( 524, 410 )
+custom_styles/panel = SubResource( 6 )
+
+[node name="sep1" type="Panel" parent="state/pnl"]
+margin_left = 12.0
+margin_top = 10.0
+margin_right = 472.0
+margin_bottom = 12.0
+rect_min_size = Vector2( 460, 2 )
+custom_styles/panel = SubResource( 3 )
+
+[node name="actor" parent="state/pnl" instance=ExtResource( 3 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 0.0
+margin_top = 15.0
+margin_right = 0.0
+margin_bottom = 15.0
+rect_scale = Vector2( 0.8, 0.8 )
+
+[node name="sep2" type="Panel" parent="state/pnl"]
+margin_left = 12.0
+margin_top = 185.0
+margin_right = 472.0
+margin_bottom = 187.0
+rect_min_size = Vector2( 460, 2 )
+custom_styles/panel = SubResource( 4 )
+
+[node name="battle_state" type="Panel" parent="state/pnl"]
+margin_left = 12.0
+margin_top = 210.0
+margin_right = 512.0
+margin_bottom = 410.0
+custom_styles/panel = SubResource( 5 )
+
+[node name="title" type="Label" parent="state/pnl/battle_state"]
+margin_right = 40.0
+margin_bottom = 23.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "战斗属性："
+
+[node name="武" type="RichTextLabel" parent="state/pnl/battle_state"]
+margin_top = 40.0
+margin_right = 120.0
+margin_bottom = 72.0
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 4 )
+bbcode_enabled = true
+bbcode_text = "武：999"
+text = "武：999"
+
+[node name="统" type="RichTextLabel" parent="state/pnl/battle_state"]
+margin_left = 120.0
+margin_top = 40.0
+margin_right = 240.0
+margin_bottom = 72.0
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 4 )
+bbcode_enabled = true
+bbcode_text = "武：999"
+text = "武：999"
+
+[node name="知" type="RichTextLabel" parent="state/pnl/battle_state"]
+margin_left = 240.0
+margin_top = 40.0
+margin_right = 360.0
+margin_bottom = 72.0
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 4 )
+bbcode_enabled = true
+bbcode_text = "武：999"
+text = "武：999"
+
+[node name="胆" type="RichTextLabel" parent="state/pnl/battle_state"]
+margin_left = 360.0
+margin_top = 40.0
+margin_right = 480.0
+margin_bottom = 72.0
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 4 )
+bbcode_enabled = true
+bbcode_text = "武：999"
+text = "武：999"
+
+[node name="战术值" type="Label" parent="state/pnl/battle_state"]
+margin_top = 80.0
+margin_right = 150.0
+margin_bottom = 112.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "战术值：999"
+
+[node name="士气" type="Label" parent="state/pnl/battle_state"]
+margin_left = 240.0
+margin_top = 80.0
+margin_right = 385.0
+margin_bottom = 112.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "战术值：999"
+
+[node name="近身倍率" type="Label" parent="state/pnl/battle_state"]
+margin_top = 120.0
+margin_right = 150.0
+margin_bottom = 152.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "战术值：999"
+
+[node name="远程倍率" type="Label" parent="state/pnl/battle_state"]
+margin_left = 240.0
+margin_top = 120.0
+margin_right = 390.0
+margin_bottom = 152.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "战术值：999"
+
+[node name="免伤倍率" type="Label" parent="state/pnl/battle_state"]
+margin_top = 160.0
+margin_right = 150.0
+margin_bottom = 192.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "战术值：999"
+
+[node name="格挡率" type="Label" parent="state/pnl/battle_state"]
+margin_left = 240.0
+margin_top = 160.0
+margin_right = 390.0
+margin_bottom = 192.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "战术值：999"
+
+[node name="lblNotice" type="Label" parent="."]
+margin_left = 40.0
+margin_top = 434.0
+margin_right = 564.0
+margin_bottom = 576.0
+rect_pivot_offset = Vector2( -805, 101 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "<< [左] 守方状态                   攻方状态 [右] >>
+
+                      [上][下] 移动查看日志
+                      [B] 回到小战场"
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="actor_description" parent="CanvasLayer" instance=ExtResource( 7 )]
+visible = false

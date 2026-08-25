@@ -1,0 +1,70 @@
+extends "effect_20000.gd"
+
+# 龙纹主动技
+#【龙纹】大战场，主将主动技。已解锁的技能名中含“龙”或“战”的你方武将，方可成为该技能的目标：你令其体力回复10点，若其与你同姓，你额外令其获得<轻甲>，每回合限1次。
+
+const EFFECT_ID = 20645
+const FLOW_BASE = "effect_" + str(EFFECT_ID)
+
+const RECOVER_HP = 10
+const BUFF_SKILL = "轻甲"
+
+func effect_20645_start() -> void:
+	var fn = actor.get_first_name()
+	var targets = []
+	for targetId in get_teammate_targets(me):
+		var ta = ActorHelper.actor(targetId)
+		if ta.get_first_name() != fn and not ta.is_injured():
+			continue
+		for skillName in SkillHelper.get_actor_unlocked_skill_names(targetId).values():
+			if "龙" in skillName or "战" in skillName:
+				targets.append(targetId)
+				break
+	if targets.empty():
+		var msg = "没有可以发动【{0}】的目标".format([ske.skill_name])
+		play_dialog(actorId, msg, 2, 2999)
+		return
+	if not wait_choose_actors(targets):
+		return
+	LoadControl.set_view_model(2000)
+	return
+
+func on_view_model_2000() -> void:
+	wait_for_choose_actor(FLOW_BASE + "_selected")
+	return
+
+func effect_20645_selected() -> void:
+	var targetId = DataManager.get_env_int("目标")
+	var targetWA = DataManager.get_war_actor(targetId)
+
+	ske.cost_war_cd(1)
+	ske.change_actor_hp(targetId, RECOVER_HP)
+
+	var honoring = DataManager.get_actor_honored_title(targetId, actorId)
+	var name = "龙战"
+	for skillName in SkillHelper.get_actor_unlocked_skill_names(targetId).values():
+		if "龙" in skillName or "战" in skillName:
+			name = skillName
+			break
+	var fn = actor.get_first_name()
+	var msg = "{0}努力\n勿负【{1}】威名".format([honoring, name])
+	if targetWA.actor().get_first_name() == fn:
+		msg = "{0}努力\n勿负吾宗之望".format([honoring])
+		ske.add_war_skill(targetId, BUFF_SKILL, 1)
+		var relation = DataManager.get_actor_honored_title(actorId, targetId)
+		if not "父" in relation:
+			msg = "{0} ……\n吾儿若在，亦当如此风采".format([honoring])
+		msg += "\n取我甲来！"
+
+	ske.war_report()
+
+	report_skill_result_message(ske, 2001, msg, 1)
+	return
+
+func on_view_model_2001() -> void:
+	wait_for_pending_message(FLOW_BASE + "_report")
+	return
+
+func effect_20645_report() -> void:
+	report_skill_result_message(ske, 2001)
+	return

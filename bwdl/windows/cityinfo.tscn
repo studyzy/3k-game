@@ -1,0 +1,482 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/35.tres" type="DynamicFont" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/28.tres" type="DynamicFont" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/32.tres" type="DynamicFont" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=4]
+[ext_resource path="res://resource/images/picture/cityinfo_blank.png" type="Texture" id=8]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=9]
+
+[node name="cityinfo" type="Control"]
+margin_left = 512.0
+margin_top = 86.0
+margin_right = 778.0
+margin_bottom = 403.0
+
+[node name="0" type="TextureRect" parent="."]
+margin_right = 266.0
+margin_bottom = 317.0
+texture = ExtResource( 8 )
+expand = true
+
+[node name="CityName" type="Label" parent="0"]
+margin_left = 21.0
+margin_top = 14.0
+margin_right = 136.0
+margin_bottom = 61.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "并州"
+
+[node name="delegated" type="Label" parent="0/CityName"]
+visible = false
+margin_top = 45.0
+margin_right = 115.0
+margin_bottom = 92.0
+rect_scale = Vector2( 0.7, 0.7 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "委任中"
+
+[node name="LordName" type="Label" parent="0"]
+margin_left = 109.0
+margin_top = 103.0
+margin_right = 252.0
+margin_bottom = 150.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "刘备"
+align = 1
+
+[node name="SatrapName" type="Label" parent="0"]
+margin_left = 109.0
+margin_top = 182.0
+margin_right = 252.0
+margin_bottom = 229.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "刘备"
+align = 1
+
+[node name="Dominance" type="Label" parent="0"]
+margin_left = 158.0
+margin_top = 266.0
+margin_right = 240.0
+margin_bottom = 305.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "100"
+align = 2
+
+[node name="Bob" type="Label" parent="0"]
+margin_left = 156.0
+margin_top = 28.0
+margin_right = 252.0
+margin_bottom = 62.0
+grow_horizontal = 0
+rect_scale = Vector2( 0.8, 0.8 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 9 )
+text = "在野:6人"
+align = 2
+valign = 2
+
+[node name="LordLabel" type="Label" parent="0"]
+margin_left = 21.0
+margin_top = 103.0
+margin_right = 96.0
+margin_bottom = 145.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "君主"
+
+[node name="LeaderLabel" type="Label" parent="0"]
+margin_left = 21.0
+margin_top = 182.0
+margin_right = 96.0
+margin_bottom = 224.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "太守"
+
+[node name="DomLabel" type="Label" parent="0"]
+margin_left = 21.0
+margin_top = 262.0
+margin_right = 119.0
+margin_bottom = 304.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "统治度"
+
+[node name="1" type="TextureRect" parent="."]
+visible = false
+margin_right = 266.0
+margin_bottom = 317.0
+texture = ExtResource( 8 )
+expand = true
+
+[node name="Money" type="Label" parent="1"]
+margin_left = 54.0
+margin_top = 30.0
+margin_right = 129.0
+margin_bottom = 66.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "9999"
+align = 2
+
+[node name="Rice" type="Label" parent="1"]
+margin_left = 168.0
+margin_top = 30.0
+margin_right = 243.0
+margin_bottom = 66.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "9999"
+align = 2
+
+[node name="Farm" type="Label" parent="1"]
+margin_left = 168.0
+margin_top = 69.0
+margin_right = 243.0
+margin_bottom = 105.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "999"
+align = 2
+
+[node name="Bussiness" type="Label" parent="1"]
+margin_left = 168.0
+margin_top = 107.0
+margin_right = 243.0
+margin_bottom = 143.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "999"
+align = 2
+
+[node name="Population" type="Label" parent="1"]
+margin_left = 112.0
+margin_top = 148.0
+margin_right = 243.0
+margin_bottom = 184.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "9999000"
+align = 2
+
+[node name="Defence" type="Label" parent="1"]
+margin_left = 192.0
+margin_top = 188.0
+margin_right = 243.0
+margin_bottom = 224.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "99"
+align = 2
+
+[node name="Actors" type="Label" parent="1"]
+margin_left = 192.0
+margin_top = 228.0
+margin_right = 243.0
+margin_bottom = 264.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "10"
+align = 2
+
+[node name="Sodiers" type="Label" parent="1"]
+margin_left = 117.0
+margin_top = 268.0
+margin_right = 243.0
+margin_bottom = 304.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "10000"
+align = 2
+
+[node name="MoneyLabel" type="Label" parent="1"]
+margin_left = 25.0
+margin_top = 28.0
+margin_right = 70.0
+margin_bottom = 70.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "金"
+
+[node name="RiceLabel" type="Label" parent="1"]
+margin_left = 142.0
+margin_top = 28.0
+margin_right = 187.0
+margin_bottom = 70.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "米"
+
+[node name="FarmLabel" type="Label" parent="1"]
+margin_left = 25.0
+margin_top = 67.0
+margin_right = 70.0
+margin_bottom = 109.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "土地"
+
+[node name="BusLabel" type="Label" parent="1"]
+margin_left = 25.0
+margin_top = 105.0
+margin_right = 86.0
+margin_bottom = 147.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "産業"
+
+[node name="PopLabel" type="Label" parent="1"]
+margin_left = 25.0
+margin_top = 146.0
+margin_right = 86.0
+margin_bottom = 188.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "人口"
+
+[node name="DefLabel" type="Label" parent="1"]
+margin_left = 25.0
+margin_top = 186.0
+margin_right = 86.0
+margin_bottom = 228.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "防災"
+
+[node name="ActorLabel" type="Label" parent="1"]
+margin_left = 25.0
+margin_top = 226.0
+margin_right = 86.0
+margin_bottom = 268.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "武将"
+
+[node name="SolLabel" type="Label" parent="1"]
+margin_left = 25.0
+margin_top = 266.0
+margin_right = 86.0
+margin_bottom = 308.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "兵士"
+
+[node name="2" type="TextureRect" parent="."]
+visible = false
+margin_right = 266.0
+margin_bottom = 317.0
+texture = ExtResource( 8 )
+expand = true
+
+[node name="Money" type="Label" parent="2"]
+margin_left = 168.0
+margin_top = 25.0
+margin_right = 243.0
+margin_bottom = 61.0
+rect_pivot_offset = Vector2( -80, -37 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "9999"
+align = 2
+
+[node name="Rice" type="Label" parent="2"]
+margin_left = 168.0
+margin_top = 61.0
+margin_right = 243.0
+margin_bottom = 97.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "9999"
+align = 2
+
+[node name="Actors" type="Label" parent="2"]
+margin_left = 192.0
+margin_top = 146.0
+margin_right = 243.0
+margin_bottom = 182.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "10"
+align = 2
+
+[node name="Sodiers" type="Label" parent="2"]
+margin_left = 117.0
+margin_top = 226.0
+margin_right = 243.0
+margin_bottom = 262.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "10000"
+align = 2
+
+[node name="BackupSodiers" type="Label" parent="2"]
+margin_left = 117.0
+margin_top = 265.0
+margin_right = 243.0
+margin_bottom = 301.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "10000"
+align = 2
+
+[node name="Population" type="Label" parent="2"]
+margin_left = 113.0
+margin_top = 100.0
+margin_right = 244.0
+margin_bottom = 136.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "9999000"
+align = 2
+
+[node name="MoneyLabel" type="Label" parent="2"]
+margin_left = 31.0
+margin_top = 25.0
+margin_right = 71.0
+margin_bottom = 61.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "金"
+
+[node name="RiceLabel" type="Label" parent="2"]
+margin_left = 31.0
+margin_top = 60.0
+margin_right = 71.0
+margin_bottom = 96.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "米"
+
+[node name="PopLabel" type="Label" parent="2"]
+margin_left = 31.0
+margin_top = 99.0
+margin_right = 87.0
+margin_bottom = 135.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "人口"
+
+[node name="ActorsLabel" type="Label" parent="2"]
+margin_left = 31.0
+margin_top = 145.0
+margin_right = 87.0
+margin_bottom = 181.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "武将"
+
+[node name="SolLabel" type="Label" parent="2"]
+margin_left = 31.0
+margin_top = 188.0
+margin_right = 87.0
+margin_bottom = 224.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "士兵"
+
+[node name="SolCurLabel" type="Label" parent="2"]
+margin_left = 31.0
+margin_top = 226.0
+margin_right = 87.0
+margin_bottom = 262.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "现役"
+
+[node name="SolBacLabel" type="Label" parent="2"]
+margin_left = 31.0
+margin_top = 263.0
+margin_right = 87.0
+margin_bottom = 299.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "后备"
+
+[node name="3" type="TextureRect" parent="."]
+visible = false
+margin_right = 266.0
+margin_bottom = 317.0
+texture = ExtResource( 8 )
+expand = true
+
+[node name="Money" type="Label" parent="3"]
+margin_left = 168.0
+margin_top = 32.0
+margin_right = 243.0
+margin_bottom = 68.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "9999"
+align = 2
+
+[node name="Rice" type="Label" parent="3"]
+margin_left = 168.0
+margin_top = 88.0
+margin_right = 243.0
+margin_bottom = 124.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "9999"
+align = 2
+
+[node name="Treasure" type="Label" parent="3"]
+margin_left = 133.0
+margin_top = 150.0
+margin_right = 243.0
+margin_bottom = 186.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "10"
+align = 2
+
+[node name="Sodiers" type="Label" parent="3"]
+margin_left = 133.0
+margin_top = 213.0
+margin_right = 243.0
+margin_bottom = 249.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "10000"
+align = 2
+
+[node name="GoldLabel" type="Label" parent="3"]
+margin_left = 31.0
+margin_top = 31.0
+margin_right = 115.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "金"
+
+[node name="RiceLabel" type="Label" parent="3"]
+margin_left = 31.0
+margin_top = 87.0
+margin_right = 115.0
+margin_bottom = 123.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "米"
+
+[node name="TreaLabel" type="Label" parent="3"]
+margin_left = 31.0
+margin_top = 149.0
+margin_right = 115.0
+margin_bottom = 185.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "宝"
+
+[node name="SolBacLabel" type="Label" parent="3"]
+margin_left = 31.0
+margin_top = 212.0
+margin_right = 115.0
+margin_bottom = 248.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "后备兵"

@@ -1,0 +1,39 @@
+# ==============================================================================
+# 霸王的大陆（三国志2 复刻版）- 反编译工程
+# 文件：scene/net_test/net_test_player.gd
+# 说明：联网测试玩家脚本。模拟一个联网玩家。
+# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
+# ==============================================================================
+
+extends Sprite
+
+
+var speed = 200;
+
+var dir = Vector2()
+
+
+func _ready() -> void :
+	pass
+
+remote func _set_position(pos):
+	position = pos;
+
+func _process(delta: float) -> void :
+	dir = Vector2()
+	
+	if (Input.is_action_pressed("ui_up")):
+		dir.y -= 1;
+	elif (Input.is_action_pressed("ui_down")):
+		dir.y += 1;
+	if (Input.is_action_pressed("ui_left")):
+		dir.x -= 1;
+	elif (Input.is_action_pressed("ui_right")):
+		dir.x += 1;
+	dir = dir.normalized();
+	
+	if (dir != Vector2()):
+		if (is_network_master()):
+			position += speed * dir * delta;
+		rpc("_set_position", position);
+	pass

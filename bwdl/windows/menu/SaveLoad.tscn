@@ -1,0 +1,189 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/35.tres" type="DynamicFont" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/28.tres" type="DynamicFont" id=3]
+[ext_resource path="res://resource/images/picture/button.png" type="Texture" id=4]
+[ext_resource path="res://windows/menu/SaveLoad.gd" type="Script" id=5]
+[ext_resource path="res://windows/menu/SaveLoad_Item.tscn" type="PackedScene" id=6]
+[ext_resource path="res://resource/font/FandolSong-Bold/25_outline.tres" type="DynamicFont" id=7]
+
+[sub_resource type="StyleBoxTexture" id=1]
+texture = ExtResource( 4 )
+region_rect = Rect2( 0, 0, 162, 47 )
+
+[sub_resource type="StyleBoxFlat" id=2]
+bg_color = Color( 0, 0, 0, 1 )
+
+[node name="Control" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+rect_min_size = Vector2( 1024, 600 )
+script = ExtResource( 5 )
+
+[node name="bg" type="ColorRect" parent="."]
+pause_mode = 2
+rect_min_size = Vector2( 1024, 600 )
+color = Color( 0.360784, 0.580392, 0.988235, 1 )
+
+[node name="gc" type="GridContainer" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0
+custom_constants/vseparation = 10
+
+[node name="header" type="Control" parent="gc"]
+margin_right = 1024.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 1024, 80 )
+
+[node name="btnBack" type="Button" parent="gc/header"]
+margin_left = 4.0
+margin_top = 6.0
+margin_right = 121.0
+margin_bottom = 61.0
+rect_min_size = Vector2( 0, 55 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 0.984314, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+custom_styles/hover = SubResource( 1 )
+custom_styles/pressed = SubResource( 1 )
+custom_styles/focus = SubResource( 1 )
+custom_styles/disabled = SubResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "返回"
+
+[node name="notice" type="Label" parent="gc/header"]
+margin_left = 379.0
+margin_top = 16.0
+margin_right = 648.0
+margin_bottom = 63.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 2 )
+custom_styles/normal = SubResource( 2 )
+text = "保存在哪个存档?"
+align = 1
+
+[node name="list" type="Control" parent="gc"]
+margin_top = 90.0
+margin_right = 1024.0
+margin_bottom = 490.0
+rect_min_size = Vector2( 1024, 400 )
+
+[node name="items" type="GridContainer" parent="gc/list"]
+margin_left = 176.0
+margin_top = 10.0
+margin_right = 1200.0
+margin_bottom = 190.0
+custom_constants/vseparation = 180
+custom_constants/hseparation = 400
+columns = 2
+
+[node name="con_save_item1" type="Control" parent="gc/list/items"]
+
+[node name="save_item" parent="gc/list/items/con_save_item1" instance=ExtResource( 6 )]
+margin_left = 1.0
+margin_top = 4.0
+margin_right = 309.0
+margin_bottom = 146.0
+
+[node name="con_save_item2" type="Control" parent="gc/list/items"]
+margin_left = 400.0
+margin_right = 400.0
+
+[node name="save_item" parent="gc/list/items/con_save_item2" instance=ExtResource( 6 )]
+margin_left = 1.0
+margin_top = 4.0
+margin_right = 309.0
+margin_bottom = 146.0
+
+[node name="con_save_item3" type="Control" parent="gc/list/items"]
+margin_top = 180.0
+margin_bottom = 180.0
+
+[node name="save_item" parent="gc/list/items/con_save_item3" instance=ExtResource( 6 )]
+margin_left = 1.0
+margin_top = 4.0
+margin_right = 309.0
+margin_bottom = 146.0
+
+[node name="con_save_item4" type="Control" parent="gc/list/items"]
+margin_left = 400.0
+margin_top = 180.0
+margin_right = 400.0
+margin_bottom = 180.0
+
+[node name="save_item" parent="gc/list/items/con_save_item4" instance=ExtResource( 6 )]
+margin_left = 1.0
+margin_top = 4.0
+margin_right = 309.0
+margin_bottom = 146.0
+
+[node name="footer" type="Control" parent="gc"]
+margin_top = 500.0
+margin_right = 1024.0
+margin_bottom = 620.0
+rect_min_size = Vector2( 1024, 120 )
+
+[node name="gc" type="GridContainer" parent="gc/footer"]
+margin_left = 232.0
+margin_right = 792.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 560, 60 )
+custom_constants/hseparation = 10
+columns = 3
+
+[node name="btnPrePage" type="Button" parent="gc/footer/gc"]
+margin_right = 180.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 180, 60 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 0.984314, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+custom_styles/hover = SubResource( 1 )
+custom_styles/pressed = SubResource( 1 )
+custom_styles/focus = SubResource( 1 )
+custom_styles/disabled = SubResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "上一页"
+
+[node name="lblPage" type="Label" parent="gc/footer/gc"]
+margin_left = 190.0
+margin_top = 5.0
+margin_right = 370.0
+margin_bottom = 55.0
+rect_min_size = Vector2( 180, 50 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "第1/50页"
+align = 1
+
+[node name="btnNextPage" type="Button" parent="gc/footer/gc"]
+margin_left = 380.0
+margin_right = 560.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 180, 60 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 0.984314, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+custom_styles/hover = SubResource( 1 )
+custom_styles/pressed = SubResource( 1 )
+custom_styles/focus = SubResource( 1 )
+custom_styles/disabled = SubResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "下一页"
+
+[node name="lblLocation" type="Label" parent="gc/footer"]
+margin_left = 50.0
+margin_top = 66.0
+margin_right = 974.0
+margin_bottom = 106.0
+rect_min_size = Vector2( 924, 40 )
+custom_colors/font_color = Color( 0.921569, 1, 0, 1 )
+custom_fonts/font = ExtResource( 7 )
+text = "存档位置："
+
+[connection signal="pressed" from="gc/header/btnBack" to="." method="_on_btnBack_pressed"]
+[connection signal="pressed" from="gc/footer/gc/btnPrePage" to="." method="_on_btnPrePage_pressed"]
+[connection signal="pressed" from="gc/footer/gc/btnNextPage" to="." method="_on_btnNextPage_pressed"]

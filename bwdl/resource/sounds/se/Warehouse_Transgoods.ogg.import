@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/Warehouse_Transgoods.ogg-331cd6b7f994ad1ef65670b4e7797128.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/se/Warehouse_Transgoods.ogg"
+dest_files=[ "res://.import/Warehouse_Transgoods.ogg-331cd6b7f994ad1ef65670b4e7797128.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

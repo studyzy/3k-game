@@ -1,0 +1,116 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://windows/children/conNumberInput.tscn" type="PackedScene" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=2]
+[ext_resource path="res://windows/InputNumber.gd" type="Script" id=3]
+[ext_resource path="res://windows/children/conOrderbook.tscn" type="PackedScene" id=4]
+[ext_resource path="res://windows/children/actor_face.tscn" type="PackedScene" id=5]
+
+[node name="Control" type="Control"]
+margin_right = 600.0
+margin_bottom = 190.0
+script = ExtResource( 3 )
+
+[node name="bottom_scene" type="ColorRect" parent="."]
+margin_right = 600.0
+margin_bottom = 190.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+margin_left = 115.0
+margin_top = 59.0
+margin_right = 376.0
+margin_bottom = 139.0
+
+[node name="gv" type="GridContainer" parent="CenterContainer"]
+margin_left = 130.0
+margin_top = 40.0
+margin_right = 130.0
+margin_bottom = 40.0
+custom_constants/vseparation = 55
+custom_constants/hseparation = 210
+columns = 2
+
+[node name="input0" parent="CenterContainer/gv" instance=ExtResource( 1 )]
+margin_right = 0.0
+margin_bottom = 0.0
+input_name = "金"
+
+[node name="input1" parent="CenterContainer/gv" instance=ExtResource( 1 )]
+visible = false
+margin_left = 210.0
+margin_right = 210.0
+margin_bottom = 0.0
+input_name = "金"
+
+[node name="input2" parent="CenterContainer/gv" instance=ExtResource( 1 )]
+visible = false
+margin_left = 210.0
+margin_right = 210.0
+margin_bottom = 0.0
+input_name = "金"
+
+[node name="input3" parent="CenterContainer/gv" instance=ExtResource( 1 )]
+visible = false
+margin_left = 210.0
+margin_right = 210.0
+margin_bottom = 0.0
+input_name = "金"
+
+[node name="rtlMessage" type="RichTextLabel" parent="."]
+margin_left = 170.0
+margin_top = 15.0
+margin_right = 590.0
+margin_bottom = 55.0
+rect_min_size = Vector2( 420, 40 )
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 2 )
+text = "每100士兵需20两金"
+scroll_active = false
+scroll_following = true
+
+[node name="Tween" type="Tween" parent="."]
+
+[node name="conOrderbook" parent="." instance=ExtResource( 4 )]
+margin_left = -4.0
+margin_top = 0.0
+margin_right = 146.0
+margin_bottom = 190.0
+
+[node name="rtlMessage2" type="RichTextLabel" parent="."]
+margin_left = 160.0
+margin_top = 146.0
+margin_right = 520.0
+margin_bottom = 191.0
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 2 )
+bbcode_enabled = true
+bbcode_text = "[center]剩余人口15000[/center]"
+text = "剩余人口15000"
+scroll_active = false
+scroll_following = true
+
+[node name="conActor" type="Control" parent="."]
+margin_right = 160.0
+margin_bottom = 190.0
+
+[node name="lblName" type="Label" parent="conActor"]
+margin_left = 15.0
+margin_top = 142.0
+margin_right = 145.0
+margin_bottom = 184.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "关羽暗啊"
+align = 1
+
+[node name="nprFace" parent="conActor" instance=ExtResource( 5 )]
+margin_left = 34.0
+margin_top = 26.0
+margin_right = -34.0
+margin_bottom = -52.0
+
+[connection signal="hide" from="." to="." method="_on_Control_hide"]

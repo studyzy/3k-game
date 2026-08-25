@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/flood.ogg-44564639b39b2796f92240d0abf1959f.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/se/flood.ogg"
+dest_files=[ "res://.import/flood.ogg-44564639b39b2796f92240d0abf1959f.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

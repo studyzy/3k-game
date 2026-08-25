@@ -1,0 +1,675 @@
+[gd_scene load_steps=15 format=2]
+
+[ext_resource path="res://resource/images/animationPNG/player_defeat.png" type="Texture" id=1]
+[ext_resource path="res://resource/images/animationPNG/unify1.png" type="Texture" id=2]
+[ext_resource path="res://windows/over_animation.gd" type="Script" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/29.tres" type="DynamicFont" id=4]
+[ext_resource path="res://resource/images/animationPNG/unify2.png" type="Texture" id=5]
+[ext_resource path="res://resource/images/animationPNG/unify3.png" type="Texture" id=6]
+[ext_resource path="res://windows/ActorInfoList.tscn" type="PackedScene" id=7]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=8]
+[ext_resource path="res://resource/font/FandolSong-Bold/40.tres" type="DynamicFont" id=9]
+
+[sub_resource type="Animation" id=1]
+resource_name = "player_defeat"
+length = 1.4
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("PlayerDefeat:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2, 0.4, 0.6, 0.8, 1, 1.2 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2, 3, 4, 5, 6 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("PlayerDefeat:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("unify1:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("unify2:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("unify3:visible")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+
+[sub_resource type="Animation" id=6]
+resource_name = "thanks"
+length = 39.0
+step = 1.0
+tracks/0/type = "value"
+tracks/0/path = NodePath("thanks/vbox:rect_position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 1, 4, 5, 8, 9, 12, 13, 16, 17, 20, 21, 24, 25, 28, 29, 32, 33, 36, 37, 39 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ Vector2( 0, 192 ), Vector2( 0, 0 ), Vector2( 0, 0 ), Vector2( 0, -192 ), Vector2( 0, -192 ), Vector2( 0, -384 ), Vector2( 0, -384 ), Vector2( 0, -576 ), Vector2( 0, -576 ), Vector2( 0, -768 ), Vector2( 0, -768 ), Vector2( 0, -960 ), Vector2( 0, -960 ), Vector2( 0, -1152 ), Vector2( 0, -1152 ), Vector2( 0, -1344 ), Vector2( 0, -1344 ), Vector2( 0, -1536 ), Vector2( 0, -1536 ), Vector2( 0, -1728 ), Vector2( 0, -1728 ) ]
+}
+
+[sub_resource type="Animation" id=3]
+resource_name = "unify1"
+length = 12.3
+tracks/0/type = "value"
+tracks/0/path = NodePath("unify1:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2.00218, 2.20218, 2.40218, 2.6, 2.8, 3, 3.2, 3.4, 3.59782, 3.79782, 4, 4.2, 4.4, 4.59782, 4.79782, 5, 5.2, 5.4, 5.59782, 5.79782, 6, 6.2, 6.4, 6.59782, 6.79782, 7, 7.2, 7.4, 7.59782, 7.79782, 8.00218, 8.20218, 8.40218, 8.6, 8.79782, 9, 9.2, 9.4, 9.59782, 9.79565, 10, 10.2, 10.4, 10.5978, 10.7956 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("unify1:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 11.7 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ true, false ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("unify2:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 11.7 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ false, true ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("black:self_modulate")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0, 11.1, 11.6, 11.7, 12.3 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 0 ), Color( 1, 1, 1, 0 ), Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 0 ) ]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("lblmessage:percent_visible")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/keys = {
+"times": PoolRealArray( 0, 0.2, 4, 10.8, 11.6, 11.7 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ 0.0, 0.0, 1.0, 1.0, 1.0, 0.0 ]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("lblmessage:visible")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/keys = {
+"times": PoolRealArray( 0, 11.6 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ true, false ]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("unify3:visible")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("PlayerDefeat:visible")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+
+[sub_resource type="Animation" id=4]
+resource_name = "unify2"
+length = 15.2
+tracks/0/type = "value"
+tracks/0/path = NodePath("unify2:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("unify1:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("unify2:frame")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.40218, 2.60218, 2.8, 3, 3.2, 3.4, 3.59782, 3.79782, 4, 4.2, 4.39782, 4.59782, 4.8, 5, 5.19782, 5.39782, 5.6, 5.8, 5.99782, 6.19782, 6.4, 6.6, 6.79782, 6.99782, 7.2, 7.4, 7.59782, 7.79782, 8, 8.2, 8.39782, 8.59782, 8.8, 9, 9.19782, 9.39782, 9.6, 9.8, 9.99782, 10.1978, 10.4, 10.6, 10.7978, 10.9978, 11.2, 11.4, 11.5978, 11.7978, 12, 12.2, 12.3978, 12.5978, 12.8, 13, 13.1978, 13.3978, 13.6, 13.8, 13.9978, 14.1978, 14.4, 14.6, 14.7978, 14.9978 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3 ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("lblmessage:percent_visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0, 0.2, 3 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ 0.0, 0.0, 1.0 ]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("lblmessage:visible")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("black:self_modulate")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/keys = {
+"times": PoolRealArray( 0, 14.7, 15.1 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 0 ), Color( 1, 1, 1, 0 ), Color( 1, 1, 1, 1 ) ]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("unify3:visible")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("PlayerDefeat:visible")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+
+[sub_resource type="Animation" id=5]
+resource_name = "unify3"
+length = 10.0
+tracks/0/type = "value"
+tracks/0/path = NodePath("unify3:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("unify2:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("unify1:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("black:self_modulate")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0, 0.6 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 0 ) ]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("lblmessage:percent_visible")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/keys = {
+"times": PoolRealArray( 0, 0.6, 5 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ 0.0, 0.0, 1.0 ]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("lblmessage2:visible")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/keys = {
+"times": PoolRealArray( 0, 7.3 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ false, true ]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("lblmessage:visible")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/keys = {
+"times": PoolRealArray( 0, 7.2 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ true, false ]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("PlayerDefeat:visible")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+
+[node name="over_animation" type="Control"]
+margin_left = 212.0
+margin_right = 812.0
+margin_bottom = 600.0
+mouse_filter = 2
+script = ExtResource( 3 )
+
+[node name="bottom_scene_color" type="ColorRect" parent="."]
+margin_top = 410.0
+margin_right = 600.0
+margin_bottom = 600.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="top_scene_color" type="ColorRect" parent="."]
+margin_right = 600.0
+margin_bottom = 410.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="PlayerDefeat" type="Sprite" parent="."]
+visible = false
+position = Vector2( 0, 30 )
+scale = Vector2( 1.17061, 1.17061 )
+texture = ExtResource( 1 )
+centered = false
+hframes = 2
+vframes = 4
+
+[node name="unify1" type="Sprite" parent="."]
+position = Vector2( 0, 42 )
+scale = Vector2( 1.17061, 1.17061 )
+texture = ExtResource( 2 )
+centered = false
+hframes = 2
+vframes = 3
+frame = 4
+
+[node name="unify2" type="Sprite" parent="."]
+visible = false
+position = Vector2( 0, 42 )
+scale = Vector2( 1.17061, 1.17061 )
+texture = ExtResource( 5 )
+centered = false
+hframes = 2
+vframes = 2
+
+[node name="unify3" type="Sprite" parent="."]
+position = Vector2( 5, 65 )
+scale = Vector2( 1.17061, 1.17061 )
+texture = ExtResource( 6 )
+centered = false
+vframes = 3
+
+[node name="lblmessage" type="RichTextLabel" parent="."]
+margin_left = 115.0
+margin_top = 424.0
+margin_right = 505.0
+margin_bottom = 563.0
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 4 )
+visible_characters = 0
+percent_visible = 0.0
+text = "200年 1月刘备
+终于实现一统中原的梦想
+等级3  统一度100"
+
+[node name="lblmessage2" type="Label" parent="."]
+visible = false
+margin_left = 120.0
+margin_top = 438.0
+margin_right = 480.0
+margin_bottom = 563.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 8 )
+
+[node name="actor_info_list" parent="." instance=ExtResource( 7 )]
+visible = false
+margin_left = 0.0
+margin_right = 600.0
+
+[node name="thanks" type="Control" parent="."]
+margin_top = 410.0
+margin_right = 600.0
+margin_bottom = 600.0
+rect_clip_content = true
+
+[node name="vbox" type="VBoxContainer" parent="thanks"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -300.0
+margin_top = -480.0
+margin_right = 300.0
+margin_bottom = 1248.0
+custom_constants/separation = 192
+
+[node name="0" type="Control" parent="thanks/vbox"]
+margin_right = 600.0
+
+[node name="Label" type="Label" parent="thanks/vbox/0"]
+margin_left = 60.0
+margin_top = 51.0
+margin_right = 543.0
+margin_bottom = 166.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 9 )
+text = "制作者"
+align = 1
+autowrap = true
+
+[node name="1" type="Control" parent="thanks/vbox"]
+margin_top = 192.0
+margin_right = 600.0
+margin_bottom = 192.0
+
+[node name="Label" type="Label" parent="thanks/vbox/1"]
+margin_left = 78.0
+margin_top = 52.0
+margin_right = 531.0
+margin_bottom = 163.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 8 )
+text = "幽科南、凤婶、姜饼人、黑铁、老白、落月、一乐、小蹲、聪聪、慕容天子"
+align = 1
+autowrap = true
+
+[node name="2" type="Control" parent="thanks/vbox"]
+margin_top = 384.0
+margin_right = 600.0
+margin_bottom = 384.0
+
+[node name="Label" type="Label" parent="thanks/vbox/2"]
+margin_left = 75.0
+margin_top = 17.0
+margin_right = 512.0
+margin_bottom = 189.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 8 )
+text = "技术支持
+渣渣皮        粉墨
+qxqy19      小召
+ 子龙兄         SG  "
+align = 1
+autowrap = true
+
+[node name="3" type="Control" parent="thanks/vbox"]
+margin_top = 576.0
+margin_right = 600.0
+margin_bottom = 576.0
+
+[node name="Label" type="Label" parent="thanks/vbox/3"]
+margin_left = 60.0
+margin_top = 9.0
+margin_right = 525.0
+margin_bottom = 153.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 8 )
+text = "鸣谢
+zhlake    偷我一亩瓜    谈魈疯生
+繁华一刀     bofndc     黑天使翼
+骉哥       邓果斯基       魏延较忙"
+align = 1
+autowrap = true
+
+[node name="4" type="Control" parent="thanks/vbox"]
+margin_top = 768.0
+margin_right = 600.0
+margin_bottom = 768.0
+
+[node name="Label" type="Label" parent="thanks/vbox/4"]
+margin_left = 60.0
+margin_top = 26.0
+margin_right = 522.0
+margin_bottom = 153.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 8 )
+text = "对白参考（一体版）
+宣云     张晓波    蓝一冬"
+align = 1
+autowrap = true
+
+[node name="5" type="Control" parent="thanks/vbox"]
+margin_top = 960.0
+margin_right = 600.0
+margin_bottom = 960.0
+
+[node name="Label" type="Label" parent="thanks/vbox/5"]
+margin_left = 81.0
+margin_top = 47.0
+margin_right = 513.0
+margin_bottom = 153.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 8 )
+text = "感谢我们所有的朋友"
+align = 1
+autowrap = true
+
+[node name="6" type="Control" parent="thanks/vbox"]
+margin_top = 1152.0
+margin_right = 600.0
+margin_bottom = 1152.0
+
+[node name="Label" type="Label" parent="thanks/vbox/6"]
+margin_left = 60.0
+margin_top = 54.0
+margin_right = 543.0
+margin_bottom = 153.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 8 )
+text = "后会有期"
+align = 1
+autowrap = true
+
+[node name="7" type="Control" parent="thanks/vbox"]
+margin_top = 1344.0
+margin_right = 600.0
+margin_bottom = 1344.0
+
+[node name="Label" type="Label" parent="thanks/vbox/7"]
+margin_left = 60.0
+margin_top = 28.0
+margin_right = 543.0
+margin_bottom = 153.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 8 )
+text = "致敬经典-FC霸王的大陆
+ （by NAMCOT）"
+align = 1
+autowrap = true
+
+[node name="8" type="Control" parent="thanks/vbox"]
+margin_top = 1536.0
+margin_right = 600.0
+margin_bottom = 1536.0
+
+[node name="Label" type="Label" parent="thanks/vbox/8"]
+margin_left = 60.0
+margin_top = 20.0
+margin_right = 543.0
+margin_bottom = 153.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 8 )
+text = "霸王的大陆吧 制作"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="9" type="Control" parent="thanks/vbox"]
+margin_top = 1728.0
+margin_right = 600.0
+margin_bottom = 1728.0
+
+[node name="Label" type="Label" parent="thanks/vbox/9"]
+margin_left = 60.0
+margin_top = 20.0
+margin_right = 543.0
+margin_bottom = 153.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 8 )
+text = "献给所有热爱
+霸王大陆的朋友"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+autoplay = "unify1"
+reset_on_save = false
+anims/player_defeat = SubResource( 1 )
+anims/thanks = SubResource( 6 )
+anims/unify1 = SubResource( 3 )
+anims/unify2 = SubResource( 4 )
+anims/unify3 = SubResource( 5 )
+
+[node name="black" type="ColorRect" parent="."]
+self_modulate = Color( 1, 1, 1, 0 )
+margin_right = 600.0
+margin_bottom = 600.0
+color = Color( 0, 0, 0, 1 )
+
+[connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_AnimationPlayer_animation_finished"]

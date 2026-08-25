@@ -1,0 +1,120 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://resource/images/vassalIcon/warRect/rectTop_1.png" type="Texture" id=1]
+[ext_resource path="res://resource/images/vassalIcon/warRect/rectBottom_1.png" type="Texture" id=2]
+[ext_resource path="res://windows/children/war_actor_rect.gd" type="Script" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/30_outline.tres" type="DynamicFont" id=4]
+[ext_resource path="res://resource/images/picture/link_chain.png" type="Texture" id=5]
+[ext_resource path="res://resource/font/FandolSong-Bold/25_outline.tres" type="DynamicFont" id=6]
+[ext_resource path="res://resource/images/vassalIcon/warRect/unknown.png" type="Texture" id=7]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="StyleBoxFlat" id=2]
+bg_color = Color( 0, 0, 0, 0.721569 )
+
+[node name="War_Actor_Rect" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -984.0
+margin_bottom = -560.0
+rect_min_size = Vector2( 40, 40 )
+script = ExtResource( 3 )
+
+[node name="Control" type="Control" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="Top" type="Sprite" parent="Control"]
+position = Vector2( 20, 9 )
+scale = Vector2( 1.25, 1.25 )
+texture = ExtResource( 1 )
+hframes = 5
+vframes = 31
+frame = 36
+
+[node name="Bottom" type="Sprite" parent="Control"]
+position = Vector2( 20, 29 )
+scale = Vector2( 2.5, 2.5 )
+texture = ExtResource( 2 )
+hframes = 4
+
+[node name="unknown" type="Sprite" parent="Control"]
+scale = Vector2( 2.5, 2.5 )
+z_as_relative = false
+texture = ExtResource( 7 )
+centered = false
+hframes = 10
+
+[node name="war_can_choose" type="ColorRect" parent="Control"]
+self_modulate = Color( 0, 0.298039, 1, 0.627451 )
+use_parent_material = true
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="lblActorName" type="Label" parent="Control"]
+visible = false
+use_parent_material = true
+margin_left = -13.0
+margin_top = -1.0
+margin_right = 94.0
+margin_bottom = 71.0
+grow_horizontal = 2
+grow_vertical = 0
+rect_scale = Vector2( 0.6, 0.6 )
+custom_colors/font_color = Color( 0.0313726, 1, 0, 1 )
+custom_colors/font_color_shadow = Color( 0, 0.0823529, 1, 1 )
+custom_constants/line_spacing = -15
+custom_fonts/font = ExtResource( 4 )
+text = "诸葛"
+align = 1
+valign = 2
+
+[node name="stop" type="Label" parent="Control"]
+visible = false
+self_modulate = Color( 1, 1, 1, 0.607843 )
+margin_top = -1.0
+margin_right = 50.0
+margin_bottom = 86.0
+rect_scale = Vector2( 0.8, 0.5 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_constants/line_spacing = -7
+custom_fonts/font = ExtResource( 4 )
+custom_styles/normal = SubResource( 1 )
+text = "03
+止"
+align = 1
+valign = 1
+
+[node name="lblAP" type="Label" parent="Control"]
+use_parent_material = true
+margin_top = 20.0
+margin_right = 66.0
+margin_bottom = 53.0
+grow_horizontal = 2
+grow_vertical = 0
+rect_scale = Vector2( 0.65, 0.65 )
+custom_constants/line_spacing = -15
+custom_fonts/font = ExtResource( 6 )
+custom_styles/normal = SubResource( 2 )
+text = "机:99"
+align = 1
+valign = 2
+
+[node name="link_chain" type="Control" parent="Control"]
+visible = false
+modulate = Color( 1, 1, 1, 0.87451 )
+margin_right = 40.0
+margin_bottom = 40.0
+rect_clip_content = true
+
+[node name="0" type="TextureRect" parent="Control/link_chain"]
+self_modulate = Color( 0, 1, 0.811765, 1 )
+margin_left = 1.0
+margin_top = 45.0
+margin_right = 51.0
+margin_bottom = 83.0
+rect_rotation = -90.0
+texture = ExtResource( 5 )
+expand = true

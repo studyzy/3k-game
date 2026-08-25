@@ -1,0 +1,149 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/35.tres" type="DynamicFont" id=1]
+[ext_resource path="res://windows/children/actor_row.gd" type="Script" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/32.tres" type="DynamicFont" id=3]
+[ext_resource path="res://resource/images/picture/selected.png" type="Texture" id=4]
+
+[sub_resource type="Image" id=3]
+data = {
+"data": PoolByteArray( 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176 ),
+"format": "RGB8",
+"height": 10,
+"mipmaps": false,
+"width": 32
+}
+
+[sub_resource type="ImageTexture" id=2]
+image = SubResource( 3 )
+size = Vector2( 32, 10 )
+
+[node name="actor" type="Control"]
+margin_right = 599.0
+margin_bottom = 64.0
+script = ExtResource( 2 )
+actorId = 38
+
+[node name="delete_line" type="Label" parent="."]
+visible = false
+margin_left = 25.0
+margin_top = 11.0
+margin_right = 168.0
+margin_bottom = 58.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "———"
+max_lines_visible = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="name" type="Label" parent="."]
+margin_left = 25.0
+margin_top = 11.0
+margin_right = 168.0
+margin_bottom = 58.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "结束啊"
+max_lines_visible = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="prop1" type="Label" parent="."]
+margin_left = 165.0
+margin_top = 9.0
+margin_right = 208.0
+margin_bottom = 56.0
+grow_horizontal = 0
+grow_vertical = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+align = 2
+max_lines_visible = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="prop2" type="Label" parent="."]
+margin_left = 225.0
+margin_top = 9.0
+margin_right = 268.0
+margin_bottom = 56.0
+grow_vertical = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+align = 2
+max_lines_visible = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="prop3" type="Label" parent="."]
+margin_left = 285.0
+margin_top = 9.0
+margin_right = 328.0
+margin_bottom = 56.0
+grow_vertical = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+align = 2
+max_lines_visible = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Loy100" type="Sprite" parent="."]
+visible = false
+position = Vector2( 366, 32 )
+scale = Vector2( 1.156, 1.7 )
+texture = SubResource( 2 )
+
+[node name="prop4" type="Label" parent="."]
+margin_left = 345.0
+margin_top = 9.0
+margin_right = 388.0
+margin_bottom = 56.0
+grow_vertical = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+align = 2
+max_lines_visible = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="prop5" type="Label" parent="."]
+margin_left = 405.0
+margin_top = 9.0
+margin_right = 448.0
+margin_bottom = 56.0
+grow_vertical = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+align = 2
+max_lines_visible = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="prop6" type="Label" parent="."]
+margin_left = 476.0
+margin_top = 9.0
+margin_right = 563.0
+margin_bottom = 56.0
+grow_vertical = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+align = 2
+max_lines_visible = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Selected" type="Sprite" parent="."]
+visible = false
+position = Vector2( 14, 32 )
+scale = Vector2( 0.714286, 0.714286 )
+texture = ExtResource( 4 )

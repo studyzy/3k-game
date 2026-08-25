@@ -1,0 +1,34 @@
+extends "res://script/effects_base.gd"
+
+# 初始化局部变量，应在 _init() 中调用
+func init_vars():
+	ske = SkillHelper.read_skill_effectinfo()
+	if ske != null:
+		actorId = ske.skill_actorId
+		triggerId = ske.trigger_Id
+		actor = ActorHelper.actor(actorId)
+		me = ske.get_war_actor()
+		if me != null:
+			enemy = me.get_battle_enemy_war_actor()
+			if enemy != null:
+				enemyActor = ActorHelper.actor(enemy.actorId)
+	wf = DataManager.get_current_war_fight()
+	bf = DataManager.get_current_battle_fight()
+	return
+
+# 信息发动后的结果确认
+func wait_for_skill_result_confirmation(nextFlow:String="player_ready"):
+	if Global.is_action_pressed_AX():
+		if not SceneManager.dialog_msg_complete(true):
+			return
+		LoadControl.set_view_model(-1)
+		if nextFlow == "":
+			LoadControl.end_script()
+		else:
+			FlowManager.add_flow(nextFlow)
+	return
+
+# 默认的 2990 view model，确认对话并结束被动技
+func on_view_model_2990()->void:
+	wait_for_skill_result_confirmation("")
+	return

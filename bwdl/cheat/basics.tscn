@@ -1,0 +1,273 @@
+[gd_scene load_steps=18 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://cheat/actorlist.tscn" type="PackedScene" id=2]
+[ext_resource path="res://cheat/vstatelist.tscn" type="PackedScene" id=3]
+[ext_resource path="res://cheat/citylist.tscn" type="PackedScene" id=4]
+[ext_resource path="res://cheat/city.tscn" type="PackedScene" id=5]
+[ext_resource path="res://cheat/actor.tscn" type="PackedScene" id=6]
+[ext_resource path="res://cheat/basics.gd" type="Script" id=7]
+[ext_resource path="res://cheat/vstate.tscn" type="PackedScene" id=8]
+[ext_resource path="res://cheat/edit.gd" type="Script" id=9]
+
+[sub_resource type="Theme" id=7]
+default_font = ExtResource( 1 )
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 1, 1, 1, 1 )
+
+[sub_resource type="StyleBoxFlat" id=2]
+bg_color = Color( 0.294118, 0.27451, 0.27451, 1 )
+
+[sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 1, 1, 1, 1 )
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 0.294118, 0.27451, 0.27451, 1 )
+
+[sub_resource type="StyleBoxFlat" id=5]
+bg_color = Color( 1, 1, 1, 1 )
+
+[sub_resource type="StyleBoxFlat" id=6]
+bg_color = Color( 0.294118, 0.27451, 0.27451, 1 )
+
+[sub_resource type="StyleBoxFlat" id=8]
+bg_color = Color( 0.145098, 0.145098, 0.164706, 1 )
+
+[node name="基础数据" type="HBoxContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -232.0
+margin_bottom = -180.0
+rect_min_size = Vector2( 792, 420 )
+script = ExtResource( 7 )
+
+[node name="notice" type="ConfirmationDialog" parent="."]
+margin_right = 500.0
+margin_bottom = 200.0
+rect_min_size = Vector2( 500, 200 )
+theme = SubResource( 7 )
+popup_exclusive = true
+window_title = ""
+dialog_text = "内存中的数据修改已生效。
+请注意：
+需要存档才会保存到存档文件中。"
+
+[node name="menu" type="VBoxContainer" parent="."]
+margin_right = 120.0
+margin_bottom = 420.0
+rect_min_size = Vector2( 120, 416 )
+size_flags_horizontal = 2
+
+[node name="全局" type="Button" parent="menu"]
+margin_right = 120.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 120, 50 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/disabled = SubResource( 1 )
+custom_styles/normal = SubResource( 2 )
+text = "全局"
+
+[node name="武将" type="Button" parent="menu"]
+margin_top = 54.0
+margin_right = 120.0
+margin_bottom = 104.0
+rect_min_size = Vector2( 120, 50 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/disabled = SubResource( 1 )
+custom_styles/normal = SubResource( 2 )
+text = "武将"
+
+[node name="城市" type="Button" parent="menu"]
+margin_top = 108.0
+margin_right = 120.0
+margin_bottom = 158.0
+rect_min_size = Vector2( 120, 50 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/disabled = SubResource( 3 )
+custom_styles/normal = SubResource( 4 )
+text = "城市"
+
+[node name="势力" type="Button" parent="menu"]
+margin_top = 162.0
+margin_right = 120.0
+margin_bottom = 212.0
+rect_min_size = Vector2( 120, 50 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/disabled = SubResource( 5 )
+custom_styles/normal = SubResource( 6 )
+text = "势力"
+
+[node name="right" type="Panel" parent="."]
+margin_left = 128.0
+margin_right = 792.0
+margin_bottom = 420.0
+rect_min_size = Vector2( 664, 420 )
+
+[node name="notice" type="Label" parent="right"]
+visible = false
+margin_left = 100.0
+margin_top = 32.0
+margin_right = 600.0
+margin_bottom = 64.0
+custom_fonts/font = ExtResource( 1 )
+text = "尚未加载存档数据！"
+
+[node name="actorlist" parent="right" instance=ExtResource( 2 )]
+margin_left = 32.0
+margin_top = 10.0
+margin_right = -32.0
+margin_bottom = -10.0
+rect_min_size = Vector2( 600, 400 )
+
+[node name="actor" parent="right" instance=ExtResource( 6 )]
+visible = false
+margin_left = 32.0
+margin_top = 10.0
+margin_right = -32.0
+margin_bottom = -10.0
+rect_min_size = Vector2( 600, 400 )
+
+[node name="citylist" parent="right" instance=ExtResource( 4 )]
+visible = false
+margin_left = 32.0
+margin_top = 10.0
+margin_right = -32.0
+margin_bottom = -10.0
+
+[node name="city" parent="right" instance=ExtResource( 5 )]
+visible = false
+margin_left = 32.0
+margin_top = 10.0
+margin_right = -32.0
+margin_bottom = -10.0
+
+[node name="vstatelist" parent="right" instance=ExtResource( 3 )]
+visible = false
+margin_left = 32.0
+margin_top = 10.0
+margin_right = -32.0
+margin_bottom = -10.0
+
+[node name="vstate" parent="right" instance=ExtResource( 8 )]
+visible = false
+margin_left = 32.0
+margin_top = 10.0
+margin_right = -32.0
+margin_bottom = -10.0
+
+[node name="general" type="Panel" parent="right"]
+margin_left = 32.0
+margin_top = 10.0
+margin_right = 632.0
+margin_bottom = 410.0
+rect_min_size = Vector2( 600, 400 )
+
+[node name="year" type="Label" parent="right/general"]
+margin_left = 60.0
+margin_top = 40.0
+margin_right = 160.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 100, 40 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 8 )
+text = "年："
+valign = 1
+
+[node name="年" type="TextEdit" parent="right/general"]
+margin_left = 160.0
+margin_top = 40.0
+margin_right = 240.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 1 )
+script = ExtResource( 9 )
+__meta__ = {
+"_editor_description_": "1,5,99999,1"
+}
+
+[node name="month" type="Label" parent="right/general"]
+margin_left = 60.0
+margin_top = 100.0
+margin_right = 160.0
+margin_bottom = 140.0
+rect_min_size = Vector2( 100, 40 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 8 )
+text = "月："
+valign = 1
+
+[node name="月" type="TextEdit" parent="right/general"]
+margin_left = 160.0
+margin_top = 100.0
+margin_right = 240.0
+margin_bottom = 140.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 1 )
+script = ExtResource( 9 )
+__meta__ = {
+"_editor_description_": "1,2,12,1"
+}
+
+[node name="orderbook" type="Label" parent="right/general"]
+margin_left = 60.0
+margin_top = 160.0
+margin_right = 160.0
+margin_bottom = 200.0
+rect_min_size = Vector2( 100, 40 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 8 )
+text = "命令书："
+valign = 1
+
+[node name="命令书" type="TextEdit" parent="right/general"]
+margin_left = 160.0
+margin_top = 160.0
+margin_right = 280.0
+margin_bottom = 200.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 1 )
+script = ExtResource( 9 )
+__meta__ = {
+"_editor_description_": "1,5,99999,1"
+}
+
+[node name="save" type="Button" parent="right/general"]
+margin_left = 40.0
+margin_top = 270.0
+margin_right = 160.0
+margin_bottom = 310.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "保存"
+
+[node name="reset" type="Button" parent="right/general"]
+margin_left = 200.0
+margin_top = 270.0
+margin_right = 320.0
+margin_bottom = 310.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "重置"
+
+[connection signal="confirmed" from="notice" to="." method="notice_confirmed"]
+[connection signal="pressed" from="menu/全局" to="." method="switch_mode" binds= [ "全局" ]]
+[connection signal="pressed" from="menu/武将" to="." method="switch_mode" binds= [ "武将" ]]
+[connection signal="pressed" from="menu/城市" to="." method="switch_mode" binds= [ "城市" ]]
+[connection signal="pressed" from="menu/势力" to="." method="switch_mode" binds= [ "势力" ]]
+[connection signal="hide" from="right/actor" to="." method="back_to_list"]
+[connection signal="saved" from="right/actor" to="." method="saved"]
+[connection signal="hide" from="right/city" to="." method="back_to_list"]
+[connection signal="saved" from="right/city" to="." method="saved"]
+[connection signal="hide" from="right/vstate" to="." method="back_to_list"]
+[connection signal="saved" from="right/vstate" to="." method="saved"]
+[connection signal="pressed" from="right/general/save" to="." method="save_general"]
+[connection signal="pressed" from="right/general/reset" to="." method="show_general"]

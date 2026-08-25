@@ -1,12 +1,20 @@
-# Godot 4 缓存（自动生成的导入资源与类缓存）
+# Godot 3.5 缓存（自动生成的导入资源与编辑器缓存）
+.import/
 .godot/
-*.tmp
 
-# 导出
+# 导出产物
 export/
 *.exe
-*.pck
 *.zip
+*.aab
+*.apk
+*.Apk
+
+# 本地 Godot 编辑器（体积大，请自行下载对应版本 Godot 3.5.3）
+Godot_3.5.3.app/
+
+# 原始 APK（反编译输入源，体积大，不入库）
+霸王的大陆GD安卓版 2540.Apk
 
 # 系统文件
 .DS_Store
@@ -15,18 +23,8 @@ Thumbs.db
 
 # IDE
 .idea/
-*.code-workspace
 .vscode/
+*.code-workspace
 
-# Godot 误把阵型 CSV 当翻译生成的产物
-*.translation
-
-# 测试报告（gdUnit4 生成）
-reports/
-bin
-
-# AI 协作工作记忆（不入库）
-.workbuddy/
-
-# 本地生成的 SQLite 数据库（seed 工具/服务运行产物，不入库）
-*.db
+# 临时文件
+*.tmp

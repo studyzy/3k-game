@@ -1,0 +1,85 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://resource/images/picture/window3.png" type="Texture" id=2]
+[ext_resource path="res://scene/scene_set/scene_set.gd" type="Script" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/30_outline.tres" type="DynamicFont" id=4]
+[ext_resource path="res://windows/light_select_scrollable.tscn" type="PackedScene" id=5]
+
+[node name="Control" type="Control"]
+margin_left = 192.0
+margin_right = 832.0
+margin_bottom = 600.0
+script = ExtResource( 3 )
+
+[node name="Background" type="ColorRect" parent="."]
+margin_right = 640.0
+margin_bottom = 600.0
+rect_pivot_offset = Vector2( 189.465, 56.1982 )
+color = Color( 0.360784, 0.580392, 0.988235, 1 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="windows" type="Control" parent="."]
+margin_right = 640.0
+margin_bottom = 600.0
+
+[node name="bottom" type="NinePatchRect" parent="windows"]
+margin_left = 20.0
+margin_top = 380.0
+margin_right = 620.0
+margin_bottom = 580.0
+texture = ExtResource( 2 )
+region_rect = Rect2( -2.717, -3.033, 94.275, 91.951 )
+patch_margin_left = 29
+patch_margin_top = 23
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="top" type="NinePatchRect" parent="windows"]
+margin_left = 20.0
+margin_top = 20.0
+margin_right = 620.0
+margin_bottom = 380.0
+texture = ExtResource( 2 )
+region_rect = Rect2( -2.717, -3.033, 94.275, 91.951 )
+patch_margin_left = 29
+patch_margin_top = 23
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="lsc" parent="." instance=ExtResource( 5 )]
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 195.0
+margin_top = 84.0
+margin_right = 544.0
+margin_bottom = 309.0
+h_separation = 250
+v_separation = 45
+items = [ "人物大限(有)", "出仕时间(正常)", "自动复活(无)", "技能系统(无)" ]
+font_size = 30
+
+[node name="Label" type="Label" parent="."]
+margin_left = 7.0
+margin_top = 116.0
+margin_right = 206.0
+margin_bottom = 263.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "游戏
+模式
+选择"
+align = 1
+autowrap = true
+
+[node name="txtDescription" type="RichTextLabel" parent="."]
+margin_left = 44.0
+margin_top = 400.0
+margin_right = 596.0
+margin_bottom = 570.0
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 1 )
+bbcode_enabled = true

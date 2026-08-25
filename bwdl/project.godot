@@ -1,0 +1,400 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+_global_script_classes=[ {
+"base": "Node",
+"class": "Actor_Helper",
+"language": "GDScript",
+"path": "res://script/Actor_Helper.gd"
+}, {
+"base": "Resource",
+"class": "BattleFight",
+"language": "GDScript",
+"path": "res://script/objects/clBattleFight.gd"
+}, {
+"base": "Resource",
+"class": "Battle_Instant_Action",
+"language": "GDScript",
+"path": "res://script/battle/Battle_Instant_Action.gd"
+}, {
+"base": "",
+"class": "Battle_Unit",
+"language": "GDScript",
+"path": "res://script/Battle_Unit.gd"
+}, {
+"base": "Resource",
+"class": "BuffInfo",
+"language": "GDScript",
+"path": "res://script/objects/clBuff.gd"
+}, {
+"base": "Resource",
+"class": "CustomEquip",
+"language": "GDScript",
+"path": "res://script/objects/clCustomEquip.gd"
+}, {
+"base": "Resource",
+"class": "DevelopCommand",
+"language": "GDScript",
+"path": "res://script/affair/clDevelopCommand.gd"
+}, {
+"base": "Resource",
+"class": "DictionaryInfo",
+"language": "GDScript",
+"path": "res://script/objects/clDictionary.gd"
+}, {
+"base": "Resource",
+"class": "DieWangInfo",
+"language": "GDScript",
+"path": "res://script/objects/clDieWang.gd"
+}, {
+"base": "Resource",
+"class": "Env",
+"language": "GDScript",
+"path": "res://script/objects/clEnv.gd"
+}, {
+"base": "Resource",
+"class": "ObjMethod",
+"language": "GDScript",
+"path": "res://script/ObjMethod.gd"
+}, {
+"base": "Resource",
+"class": "Player",
+"language": "GDScript",
+"path": "res://script/Player.gd"
+}, {
+"base": "Resource",
+"class": "PolicyCommand",
+"language": "GDScript",
+"path": "res://script/affair/clPolicyCommand.gd"
+}, {
+"base": "Resource",
+"class": "SKill_For_Battle",
+"language": "GDScript",
+"path": "res://script/skill_system/SKill_For_Battle.gd"
+}, {
+"base": "Resource",
+"class": "SaveDataIndex",
+"language": "GDScript",
+"path": "res://script/objects/clSaveDataIndex.gd"
+}, {
+"base": "Resource",
+"class": "SearchCommand",
+"language": "GDScript",
+"path": "res://script/affair/clSearchCommand.gd"
+}, {
+"base": "",
+"class": "SkillEffectInfo",
+"language": "GDScript",
+"path": "res://script/skill_system/clSkillEffectInfo.gd"
+}, {
+"base": "Resource",
+"class": "SkillRangeBuff",
+"language": "GDScript",
+"path": "res://script/skill_system/SkillRangeBuff.gd"
+}, {
+"base": "Resource",
+"class": "SkillTriggerInfo",
+"language": "GDScript",
+"path": "res://script/skill_system/clSkillTriggerInfo.gd"
+}, {
+"base": "Resource",
+"class": "SoloFight",
+"language": "GDScript",
+"path": "res://script/objects/clSoloFight.gd"
+}, {
+"base": "Resource",
+"class": "StratagemExecution",
+"language": "GDScript",
+"path": "res://script/war/clStratagemExecution.gd"
+}, {
+"base": "Resource",
+"class": "StratagemInfo",
+"language": "GDScript",
+"path": "res://script/objects/clStratagem.gd"
+}, {
+"base": "Resource",
+"class": "StringBuilder",
+"language": "GDScript",
+"path": "res://script/StringBuilder.gd"
+}, {
+"base": "Resource",
+"class": "WarFight",
+"language": "GDScript",
+"path": "res://script/objects/clWarFight.gd"
+}, {
+"base": "War_Character",
+"class": "War_Actor",
+"language": "GDScript",
+"path": "res://script/War_Actor.gd"
+}, {
+"base": "",
+"class": "War_Character",
+"language": "GDScript",
+"path": "res://script/War_Character.gd"
+}, {
+"base": "War_Character",
+"class": "War_Neutralor",
+"language": "GDScript",
+"path": "res://script/War_Neutralor.gd"
+}, {
+"base": "Resource",
+"class": "War_Vstate",
+"language": "GDScript",
+"path": "res://script/War_Vstate.gd"
+}, {
+"base": "Resource",
+"class": "clCity",
+"language": "GDScript",
+"path": "res://script/objects/clCity.gd"
+}, {
+"base": "Resource",
+"class": "clEquip",
+"language": "GDScript",
+"path": "res://script/objects/clEquip.gd"
+}, {
+"base": "Resource",
+"class": "clVState",
+"language": "GDScript",
+"path": "res://script/objects/clVState.gd"
+} ]
+_global_script_class_icons={
+"Actor_Helper": "",
+"BattleFight": "",
+"Battle_Instant_Action": "",
+"Battle_Unit": "",
+"BuffInfo": "",
+"CustomEquip": "",
+"DevelopCommand": "",
+"DictionaryInfo": "",
+"DieWangInfo": "",
+"Env": "",
+"ObjMethod": "",
+"Player": "",
+"PolicyCommand": "",
+"SKill_For_Battle": "",
+"SaveDataIndex": "",
+"SearchCommand": "",
+"SkillEffectInfo": "",
+"SkillRangeBuff": "",
+"SkillTriggerInfo": "",
+"SoloFight": "",
+"StratagemExecution": "",
+"StratagemInfo": "",
+"StringBuilder": "",
+"WarFight": "",
+"War_Actor": "",
+"War_Character": "",
+"War_Neutralor": "",
+"War_Vstate": "",
+"clCity": "",
+"clEquip": "",
+"clVState": ""
+}
+
+[application]
+
+config/name="Sgz Bwddl"
+run/main_scene="res://scene/Main.tscn"
+run/low_processor_mode=true
+run/delta_sync_after_draw=true
+run/delta_smoothing=false
+boot_splash/show_image=false
+boot_splash/image="res://start_img.png"
+boot_splash/fullsize=false
+boot_splash/use_filter=false
+boot_splash/bg_color=Color( 0.141176, 0.141176, 0.141176, 1 )
+config/icon="res://icon.png"
+config/windows_native_icon="res://icon.ico"
+
+[autoload]
+
+SkillInfo="*res://info/skill_info.gd"
+clAes="*res://script/objects/clAES.gd"
+AutoLoad="*res://script/AutoLoad.gd"
+Global="*res://script/global.gd"
+StaticManager="*res://script/Static_Manager.gd"
+DataManager="*res://script/Data_Manager.gd"
+SkillHelper="*res://script/skill_system/Skill_Helper.gd"
+LoadControl="*res://script/Load_Control.gd"
+SoundManager="*res://scene/manager/Sound_Manager.tscn"
+SceneManager="*res://scene/manager/Scene_Manager.tscn"
+ActorHelper="*res://script/Actor_Helper.gd"
+FlowManager="*res://script/Flow_Manager.gd"
+ItemHelper="*res://script/ItemHelper.gd"
+EndlessGame="*res://script/clEndlessGame.gd"
+OrderHistory="*res://script/objects/OrderHistory.gd"
+
+[debug]
+
+settings/fps/force_fps=60
+gdscript/warnings/enable=false
+gdscript/warnings/return_value_discarded=false
+shapes/collision/draw_2d_outlines=false
+
+[display]
+
+window/size/test_width=256
+window/size/test_height=150
+window/dpi/allow_hidpi=true
+window/vsync/use_vsync=false
+window/stretch/mode="2d"
+window/stretch/aspect="keep"
+
+[global]
+
+android=false
+export=false
+locale=false
+font=false
+
+[gui]
+
+common/drop_mouse_on_gui_input_disabled=true
+theme/custom_font="res://resource/font/FandolSong-Bold/18.tres"
+
+[importer_defaults]
+
+texture={
+"flags/filter": false,
+"flags/mipmaps": true
+}
+
+[input]
+
+ui_left={
+"deadzone": 0.5,
+"events": [  ]
+}
+ui_right={
+"deadzone": 0.5,
+"events": [  ]
+}
+ui_up={
+"deadzone": 0.5,
+"events": [  ]
+}
+ui_down={
+"deadzone": 0.5,
+"events": [  ]
+}
+ui_page_up={
+"deadzone": 0.5,
+"events": [  ]
+}
+ui_page_down={
+"deadzone": 0.5,
+"events": [  ]
+}
+ui_home={
+"deadzone": 0.5,
+"events": [  ]
+}
+ui_end={
+"deadzone": 0.5,
+"events": [  ]
+}
+ANALOG_UP={
+"deadzone": 0.5,
+"events": [  ]
+}
+ANALOG_DOWN={
+"deadzone": 0.5,
+"events": [  ]
+}
+ANALOG_LEFT={
+"deadzone": 0.5,
+"events": [  ]
+}
+ANALOG_RIGHT={
+"deadzone": 0.5,
+"events": [  ]
+}
+EMU_START={
+"deadzone": 0.5,
+"events": [  ]
+}
+EMU_SELECT={
+"deadzone": 0.5,
+"events": [  ]
+}
+EMU_A={
+"deadzone": 0.5,
+"events": [  ]
+}
+EMU_B={
+"deadzone": 0.5,
+"events": [  ]
+}
+EMU_SPEED_DOWN={
+"deadzone": 0.5,
+"events": [  ]
+}
+EMU_SPEED_UP={
+"deadzone": 0.5,
+"events": [  ]
+}
+EMU_X={
+"deadzone": 0.5,
+"events": [  ]
+}
+EMU_Y={
+"deadzone": 0.5,
+"events": [  ]
+}
+EMU_MENU={
+"deadzone": 0.5,
+"events": [  ]
+}
+EMU_LAYOUT={
+"deadzone": 0.5,
+"events": [  ]
+}
+
+[input_devices]
+
+buffering/agile_event_flushing=true
+pointing/emulate_touch_from_mouse=true
+
+[network]
+
+limits/debugger_stdout/max_chars_per_second=40960
+limits/debugger_stdout/max_messages_per_frame=200
+limits/debugger_stdout/max_errors_per_second=1000
+limits/debugger_stdout/max_warnings_per_second=1000
+
+[physics]
+
+common/physics_jitter_fix=0.0
+common/enable_pause_aware_picking=true
+3d/active_soft_world=false
+3d/godot_physics/use_bvh=false
+2d/use_bvh=false
+common/enable_object_picking=false
+
+[rendering]
+
+quality/driver/driver_name="GLES2"
+threads/thread_model=2
+vram_compression/import_etc=true
+vram_compression/import_etc2=false
+vram_compression/import_pvrtc=true
+misc/lossless_compression/force_png=true
+quality/shadows/filter_mode=0
+quality/reflections/texture_array_reflections=false
+quality/reflections/high_quality_ggx=false
+quality/shading/force_vertex_shading.mobile=false
+quality/shading/force_lambert_over_burley.mobile=false
+quality/shading/force_blinn_over_ggx.mobile=false
+quality/depth_prepass/enable=false
+2d/options/use_software_skinning=false
+quality/spatial_partitioning/use_bvh=false
+quality/lightmapping/use_bicubic_sampling=false
+quality/depth/hdr=false
+environment/default_environment="res://default_env.tres"

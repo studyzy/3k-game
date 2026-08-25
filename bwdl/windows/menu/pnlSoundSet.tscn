@@ -1,0 +1,232 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/28.tres" type="DynamicFont" id=3]
+[ext_resource path="res://windows/menu/pnlSoundSet.gd" type="Script" id=5]
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 0.360784, 0.580392, 0.988235, 1 )
+
+[sub_resource type="StyleBoxFlat" id=5]
+bg_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="StyleBoxFlat" id=6]
+
+[sub_resource type="StyleBoxFlat" id=7]
+
+[sub_resource type="StyleBoxFlat" id=8]
+
+[sub_resource type="StyleBoxFlat" id=9]
+bg_color = Color( 0.282353, 0.243137, 0.243137, 1 )
+
+[node name="pnlSound" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+rect_min_size = Vector2( 1024, 600 )
+custom_styles/panel = SubResource( 4 )
+script = ExtResource( 5 )
+
+[node name="gc" type="GridContainer" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0
+columns = 2
+
+[node name="sound" type="Control" parent="gc"]
+margin_right = 512.0
+margin_bottom = 400.0
+rect_min_size = Vector2( 512, 400 )
+
+[node name="lblMusic" type="Label" parent="gc/sound"]
+margin_left = 100.0
+margin_top = 110.0
+margin_right = 180.0
+margin_bottom = 150.0
+rect_min_size = Vector2( 80, 40 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "音乐"
+align = 1
+
+[node name="hsMusicVolume" type="HSlider" parent="gc/sound"]
+margin_left = 190.0
+margin_top = 110.0
+margin_right = 430.0
+margin_bottom = 150.0
+rect_min_size = Vector2( 240, 40 )
+max_value = 1.0
+step = 0.001
+ticks_on_borders = true
+
+[node name="lblMusicPctg" type="Label" parent="gc/sound"]
+margin_left = 440.0
+margin_top = 115.0
+margin_right = 530.0
+margin_bottom = 155.0
+rect_min_size = Vector2( 90, 40 )
+rect_scale = Vector2( 0.8, 0.8 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "100%"
+
+[node name="lblSE" type="Label" parent="gc/sound"]
+margin_left = 100.0
+margin_top = 160.0
+margin_right = 180.0
+margin_bottom = 200.0
+rect_min_size = Vector2( 80, 40 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "音效"
+align = 1
+
+[node name="hsSEVolume" type="HSlider" parent="gc/sound"]
+margin_left = 190.0
+margin_top = 160.0
+margin_right = 430.0
+margin_bottom = 200.0
+rect_min_size = Vector2( 240, 40 )
+max_value = 1.0
+step = 0.001
+ticks_on_borders = true
+
+[node name="lblSEPctg" type="Label" parent="gc/sound"]
+margin_left = 440.0
+margin_top = 165.0
+margin_right = 530.0
+margin_bottom = 205.0
+rect_min_size = Vector2( 90, 40 )
+rect_scale = Vector2( 0.8, 0.8 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "100%"
+
+[node name="chkSoundSpeed" type="CheckBox" parent="gc/sound"]
+margin_left = 100.0
+margin_top = 220.0
+margin_right = 375.0
+margin_bottom = 280.0
+rect_min_size = Vector2( 0, 60 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover_pressed = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 0, 0, 0, 1 )
+custom_colors/font_color_pressed = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "变速时保持声音不变"
+
+[node name="chkSoundEffect" type="CheckBox" parent="gc/sound"]
+margin_left = 100.0
+margin_top = 280.0
+margin_right = 375.0
+margin_bottom = 340.0
+rect_min_size = Vector2( 0, 60 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover_pressed = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 0, 0, 0, 1 )
+custom_colors/font_color_pressed = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "关闭音效"
+
+[node name="view" type="Control" parent="gc"]
+margin_left = 516.0
+margin_right = 1028.0
+margin_bottom = 400.0
+rect_min_size = Vector2( 512, 400 )
+
+[node name="btnSwitchLayout" type="Button" parent="gc/view"]
+margin_left = 96.0
+margin_top = 100.0
+margin_right = 276.0
+margin_bottom = 150.0
+rect_min_size = Vector2( 0, 50 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 0.984314, 0, 1 )
+custom_colors/font_color_pressed = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+custom_styles/hover = SubResource( 5 )
+custom_styles/pressed = SubResource( 6 )
+custom_styles/focus = SubResource( 7 )
+custom_styles/disabled = SubResource( 8 )
+custom_styles/normal = SubResource( 9 )
+text = "横竖屏切换"
+
+[node name="chkExpandLandscape" type="CheckBox" parent="gc/view"]
+margin_left = 84.0
+margin_top = 160.0
+margin_right = 359.0
+margin_bottom = 220.0
+rect_min_size = Vector2( 0, 60 )
+rect_pivot_offset = Vector2( 83, 34 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover_pressed = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 0, 0, 0, 1 )
+custom_colors/font_color_pressed = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "横屏时自动拉宽"
+
+[node name="chkOriginalSprite" type="CheckBox" parent="gc/view"]
+margin_left = 84.0
+margin_top = 220.0
+margin_right = 359.0
+margin_bottom = 280.0
+rect_min_size = Vector2( 0, 60 )
+rect_pivot_offset = Vector2( 83, 34 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover_pressed = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 0, 0, 0, 1 )
+custom_colors/font_color_pressed = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "传统小战场兵模"
+
+[node name="chkExtraAvatars" type="CheckBox" parent="gc/view"]
+margin_left = 84.0
+margin_top = 280.0
+margin_right = 359.0
+margin_bottom = 340.0
+rect_min_size = Vector2( 0, 60 )
+rect_pivot_offset = Vector2( 83, 34 )
+custom_colors/font_color_disabled = Color( 0, 0, 0, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover_pressed = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 0, 0, 0, 1 )
+custom_colors/font_color_pressed = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "优先自定义头像"
+
+[node name="btnBack" type="Button" parent="."]
+margin_left = 432.0
+margin_top = 470.0
+margin_right = 592.0
+margin_bottom = 530.0
+rect_min_size = Vector2( 160, 60 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 0.984314, 0, 1 )
+custom_colors/font_color_pressed = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+custom_styles/hover = SubResource( 5 )
+custom_styles/pressed = SubResource( 6 )
+custom_styles/focus = SubResource( 7 )
+custom_styles/disabled = SubResource( 8 )
+custom_styles/normal = SubResource( 9 )
+text = "返回"
+
+[connection signal="drag_ended" from="gc/sound/hsMusicVolume" to="." method="_on_hsMusicVolume_drag_ended"]
+[connection signal="value_changed" from="gc/sound/hsMusicVolume" to="." method="_on_hsMusicVolume_value_changed"]
+[connection signal="drag_ended" from="gc/sound/hsSEVolume" to="." method="_on_hsSEVolume_drag_ended"]
+[connection signal="value_changed" from="gc/sound/hsSEVolume" to="." method="_on_hsSEVolume_value_changed"]
+[connection signal="toggled" from="gc/sound/chkSoundSpeed" to="." method="_on_ChkSoundSpeed_toggled"]
+[connection signal="toggled" from="gc/sound/chkSoundEffect" to="." method="_on_ChkSoundEffect_toggled"]
+[connection signal="pressed" from="gc/view/btnSwitchLayout" to="." method="_on_btnSwitchLayout_pressed"]
+[connection signal="toggled" from="gc/view/chkExpandLandscape" to="." method="_on_ChkLandscapeExtend_toggled"]
+[connection signal="toggled" from="gc/view/chkOriginalSprite" to="." method="_on_ChkOriginalSprite_toggled"]
+[connection signal="toggled" from="gc/view/chkExtraAvatars" to="." method="_on_ChkExtraAvatars_toggled"]
+[connection signal="pressed" from="btnBack" to="." method="_on_btnBack_pressed"]

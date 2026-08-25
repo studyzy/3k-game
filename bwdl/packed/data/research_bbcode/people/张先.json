@@ -1,0 +1,136 @@
+[b][font=res://resource/font/FandolSong-Bold/30.tres]张先[/font][/b]
+
+
+[color=#000000]基本信息：[/color] 生卒年不可考（游戏设定175-198年，仅供参考），字号无载，籍贯无载，《三国演义》虚构人物，[color=#0066FF][url={"research": "张绣", "cat": "people"}]张绣[/url][/color]麾下武将
+
+
+[b][font=res://resource/font/FandolSong-Bold/28.tres]生平考证[/font][/b]
+
+
+张先为《三国演义》虚构人物，正史无载（《三国志》、《后汉书》及裴注均无此人）。
+
+演义中，张先出场于第十七回（毛本）/ 嘉靖本卷五对应节次。时[color=#0066FF][url={"research": "曹操", "cat": "people"}]曹操[/url][/color]第二次征讨张绣，张绣"一面与[color=#0066FF][url={"research": "雷叙", "cat": "people"}]雷叙[/url][/color]、张先二将领兵出城迎敌"。张绣出阵骂操，操大怒命[color=#0066FF][url={"research": "许褚", "cat": "people"}]许褚[/url][/color]迎战，"绣令张先接战。只三合，许褚斩张先于马下，绣军大败"。此后张先不再出现，属一次性配角。
+
+[color=#000000]事件背景：[/color] 建安三年（198年）夏四月，曹操出兵征讨张绣，张绣以张先、雷叙迎战，被许褚三合斩杀，退守[color=#0066FF][url={"research": "南阳", "cat": "geography"}]南阳[/url][/color]城。
+
+
+[b][font=res://resource/font/FandolSong-Bold/28.tres]性格与形象[/font][/b]
+
+
+正史无此人，演义中也无任何性格刻画，仅作为"被斩于三合内"的箔垫将领出场，功能上用以展示许褚的武勇。
+
+
+[b][font=res://resource/font/FandolSong-Bold/28.tres]关键关系[/font][/b]
+
+
+[indent]•  [color=#000000]张绣[/color]：主君，张先在其麾下任将[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  [color=#000000]雷叙[/color]：同级，并列出征（三国志14游戏数据显示两人互相亲爱）[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  [color=#000000]许褚[/color]：死于其手，三合被斩[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+
+
+[b][font=res://resource/font/FandolSong-Bold/28.tres]史实 vs 演义[/font][/b]
+
+
+[indent]•  正史无张先此人[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  《三国志·张绣传》及裴注均无任何名为张先的部将记载[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  张绣与曹操的多次交战（建安三年宛城之战等）正史有载，但迎战出城的具体将领均无名字[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  张先属于演义为丰富战争场面、铺垫许褚神勇而设置的典型"路人将领"[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+
+
+[b][font=res://resource/font/FandolSong-Bold/28.tres]演义版本对比（嘉靖本 vs 毛本 vs 周曰校本 vs 志传系）[/font][/b]
+
+
+详见 `ref-yanyi-version-diff.md`。核心发现：
+
+[color=#000000]嘉靖本与毛本几乎无实质差异[/color]，仅繁简字形略有差异：
+
+[indent]•  嘉靖本："雷[color=#000000]敍[/color]"（繁体），毛本："雷[color=#000000]叙[/color]"（简体），为同一字[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  嘉靖本："許褚[color=#000000]斬[/color]張先於馬下"，毛本："许褚[color=#000000]斩[/color]张先于马下"，繁简同字[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+
+
+[color=#000000]周曰校本（万历十九年，1591年）有独立异文：[/color]
+
+[indent]•  多"[color=#000000]令[color=#0066FF][url={"research": "贾诩", "cat": "people"}]贾诩[/url][/color]守城[/color]"一句（嘉靖本/毛本均无）[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  "假仁[color=#000000]诈[/color]义"（嘉靖本/毛本作"假仁义"）[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  "许褚[color=#000000]杀[/color]张先"（嘉靖本/毛本作"斩"）[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  "绣令张先[color=#000000]出迎[/color]"（嘉靖本/毛本作"接战"）[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+
+
+[color=#000000]志传系（叶逢春本/三国英雄志传等）：[/color]
+
+[indent]•  确有张先出场，用字"张先"与各演义系统一致[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  斩杀用字为"斩"[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  文本极度简化，有独特的"令贾诩守南陆"（与周曰校本"令贾诩守城"性质相近）[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  叶逢春本（西班牙藏实物）原刻逐字待核（低优先级）[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+
+
+[b][font=res://resource/font/FandolSong-Bold/28.tres]历代评价与艺术形象[/font][/b]
+
+
+[b][font=res://resource/font/FandolSong-Bold/26.tres]历代评价[/font][/b]
+
+
+无任何历代文人对张先的专项评价。作为演义虚构的一次性配角，张先仅在各版本三国演义文本中留名，在诗词、史论、评书等后世文化传播中无独立的评价传统。
+
+
+[b][font=res://resource/font/FandolSong-Bold/26.tres]游戏形象[/font][/b]
+
+
+[color=#000000]光荣三国志14[/color]（2020年）：
+
+[indent]•  五维：统率56 / 武力67 / 知力38 / 政治21 / 魅力30[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  主义：我道[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  政策：城壁拡張 Lv2[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  个性：猪突[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  阵形：鋒矢[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  亲爱关系：雷叙（互相亲爱）[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  生年175年，登场194年，卒198年（享年24岁）[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  游戏内列传：「張繍の武将。演義：宛を取り戻した張繍のもとに曹操軍が再来した際、張繍に従い雷叙と共に南陽城外に出陣して曹操軍を迎撃したが、許褚と戦ってわずか三合で斬り捨てられた。正史：記述なし。」[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+
+
+[color=#000000]光荣三国志8R[/color]（三国志8 Remake，2024年）：
+
+[indent]•  五维：统率58 / 武力68 / 知力32 / 政治26 / 魅力30[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  战法：骑兵・連撃●、突撃●[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  特技：话术●、骑将●、膂力●、果敢●[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+
+
+[color=#000000]三国志11[/color]：未查到收录记录（低优先级待核）
+
+[color=#000000]三国杀[/color]：无独立收录（虚构小人物，未入选）
+
+[color=#000000]真三国无双[/color]：无独立角色
+
+
+[b][font=res://resource/font/FandolSong-Bold/26.tres]影视形象[/font][/b]
+
+
+演义相关影视作品（1994年央视版、2010年新三国等）第十七回场景均有张绣迎战曹操的段落，张先作为一次性配角偶有出场，扮演者不可考（低优先级）。

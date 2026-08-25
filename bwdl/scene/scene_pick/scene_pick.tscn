@@ -1,0 +1,38 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=1]
+[ext_resource path="res://resource/images/picture/window4.png" type="Texture" id=2]
+[ext_resource path="res://windows/light_select.tscn" type="PackedScene" id=3]
+[ext_resource path="res://scene/scene_pick/scene_pick.gd" type="Script" id=4]
+
+[node name="Control" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 4 )
+
+[node name="Window4" type="TextureRect" parent="."]
+margin_left = 209.0
+margin_top = 3.0
+margin_right = 809.0
+margin_bottom = 603.0
+texture = ExtResource( 2 )
+expand = true
+
+[node name="lsc" parent="Window4" instance=ExtResource( 3 )]
+margin_left = 62.0
+margin_top = -239.0
+margin_right = -49.0
+margin_bottom = 82.0
+columns = 3
+h_separation = 180
+items = [ "选项1", "选项2", "选项3", "选项4", "选项5" ]
+
+[node name="lblpage" type="Label" parent="Window4"]
+margin_left = 205.0
+margin_top = 25.0
+margin_right = 347.0
+margin_bottom = 64.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "1/10"
+align = 1

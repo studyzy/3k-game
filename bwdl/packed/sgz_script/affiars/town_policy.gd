@@ -1,0 +1,1298 @@
+extends "affairs_base.gd"
+
+#每页多少个势力
+const PAGE_SIZE = 6
+
+#策略
+func _init() -> void:
+	LoadControl.view_model_name = "内政-玩家-步骤";
+
+	FlowManager.bind_import_flow("enter_town_policy_menu",self,"enter_town_policy_menu");
+
+	FlowManager.bind_signal_method("alliance_list", self)
+	FlowManager.bind_signal_method("alliance_menu", self)
+	FlowManager.bind_signal_method("alliance_2", self)
+
+	FlowManager.bind_signal_method("alliance_join_3", self)
+	FlowManager.bind_signal_method("alliance_join_4", self)
+	FlowManager.bind_signal_method("alliance_join_5", self)
+	FlowManager.bind_signal_method("alliance_join_6", self)
+	FlowManager.bind_signal_method("alliance_join_7", self)
+	FlowManager.bind_signal_method("alliance_join_success_1", self)
+	FlowManager.bind_signal_method("alliance_join_success_2", self)
+
+	FlowManager.bind_signal_method("alliance_break_3", self)
+	FlowManager.bind_signal_method("alliance_break_4", self)
+	FlowManager.bind_signal_method("alliance_break_5", self)
+	FlowManager.bind_signal_method("alliance_break_6", self)
+
+	FlowManager.bind_signal_method("alliance_opt_3", self)
+	FlowManager.bind_signal_method("alliance_opt_4", self)
+	FlowManager.bind_signal_method("alliance_opt_5", self)
+	FlowManager.bind_signal_method("alliance_opt_6", self)
+	FlowManager.bind_signal_method("alliance_opt_7", self)
+	FlowManager.bind_signal_method("alliance_opt_8", self)
+
+	FlowManager.bind_signal_method("wedge_start", self)
+	FlowManager.bind_signal_method("wedge_2", self)
+	FlowManager.bind_signal_method("wedge_3", self)
+	FlowManager.bind_signal_method("wedge_4", self)
+	FlowManager.bind_signal_method("wedge_5", self)
+	FlowManager.bind_signal_method("wedge_6", self)
+	FlowManager.bind_signal_method("wedge_7", self)
+
+	FlowManager.bind_signal_method("canvass_start", self)
+	FlowManager.bind_signal_method("canvass_2", self)
+	FlowManager.bind_signal_method("canvass_3", self)
+	FlowManager.bind_signal_method("canvass_4", self)
+	FlowManager.bind_signal_method("canvass_5", self)
+	FlowManager.bind_signal_method("canvass_6", self)
+	FlowManager.bind_signal_method("canvass_7", self)
+	
+	FlowManager.bind_signal_method("incite_start", self)
+	FlowManager.bind_signal_method("incite_2", self)
+	FlowManager.bind_signal_method("incite_3", self)
+	FlowManager.bind_signal_method("incite_4", self)
+	FlowManager.bind_signal_method("incite_5", self)
+	FlowManager.bind_signal_method("incite_6", self)
+	FlowManager.bind_signal_method("incite_7", self)
+
+	FlowManager.bind_import_flow("rescue_start", self)
+	FlowManager.bind_import_flow("rescue_select", self)
+	FlowManager.bind_import_flow("rescue_selected", self)
+	FlowManager.bind_import_flow("rescue_prepare", self)
+	FlowManager.bind_import_flow("rescue_gold", self)
+	FlowManager.bind_import_flow("rescue_confirmed", self)
+	FlowManager.bind_import_flow("rescue_execute", self)
+	FlowManager.bind_import_flow("rescue_result", self)
+	FlowManager.bind_import_flow("rescue_people_confirm", self)
+
+	FlowManager.clear_pre_history.append("wedge_2")
+	FlowManager.clear_pre_history.append("wedge_3")
+	FlowManager.clear_pre_history.append("wedge_4")
+
+	FlowManager.clear_pre_history.append("incite_2")
+	FlowManager.clear_pre_history.append("incite_3")
+	FlowManager.clear_pre_history.append("incite_4")
+
+	FlowManager.clear_pre_history.append("canvass_2")
+	FlowManager.clear_pre_history.append("canvass_3")
+	FlowManager.clear_pre_history.append("canvass_4")
+
+	return
+
+#按键操控
+func _input_key(delta: float):
+	var scene_affiars:Control = SceneManager.current_scene();
+	var bottom = SceneManager.lsc_menu;
+	var top = SceneManager.lsc_menu_top;
+	var view_model = LoadControl.get_view_model();
+	match view_model:
+		150:
+			var flows = [
+				"alliance_menu",
+				"wedge_start",
+				"canvass_start",
+				"incite_start",
+				"rescue_start",
+			]
+			if not wait_for_options(flows, "enter_town_menu"):
+				return
+		111: #同盟列表
+			if Input.is_action_just_pressed("EMU_SELECT"):
+				LoadControl.set_view_model(-1)
+				DataManager.unset_env("内政.外交模式")
+				FlowManager.add_flow("alliance_menu")
+				return
+			if Input.is_action_just_pressed("ANALOG_UP"):
+				top.lsc.move_up()
+			if Input.is_action_just_pressed("ANALOG_DOWN"):
+				top.lsc.move_down()
+			if Input.is_action_just_pressed("ANALOG_LEFT"):
+				top.lsc.move_left();
+			if Input.is_action_just_pressed("ANALOG_RIGHT"):
+				top.lsc.move_right();
+			if Global.is_action_pressed_BY():
+				if not SceneManager.dialog_msg_complete(false):
+					return
+				FlowManager.add_flow("enter_town_policy_menu")
+			if Global.is_action_pressed_AX():
+				if not SceneManager.dialog_msg_complete(true):
+					return
+				var index = top.lsc.cursor_index;
+				var item_value_array = DataManager.get_env_array("列表值")
+				var choose_vstateId = int(item_value_array[index])
+				if choose_vstateId == -1:
+					var page = DataManager.get_env_int("列表页码")
+					var text = str(top.lsc.items[index])
+					match text:
+						"上一页":
+							page -= 1
+						"下一页":
+							page += 1
+					DataManager.set_env("列表页码", page)
+					FlowManager.add_flow("alliance_list")
+					return
+				DataManager.set_env("目标势力", choose_vstateId)
+				FlowManager.add_flow("alliance_2")
+		112: # 已有盟约，选择动作
+			wait_for_yesno("alliance_opt_3", "alliance_break_3", false, "alliance_menu")
+		1121: # 尚无盟约，选择动作
+			wait_for_yesno("alliance_opt_3", "alliance_join_3", false, "alliance_menu")
+		113: #武将列表
+			if not wait_for_choose_actor("enter_town_policy_menu"):
+				return
+			DataManager.player_choose_actor = SceneManager.actorlist.get_select_actor();
+			if SkillHelper.auto_trigger_skill(DataManager.player_choose_actor, 10008, ""):
+				return
+			FlowManager.add_flow("alliance_join_4")
+		114: #命令书
+			wait_for_yesno("alliance_join_5", "enter_town_menu")
+		116: #提示成功率
+			wait_for_confirmation("alliance_join_7")
+		118: #提示金额
+			wait_for_yesno("alliance_join_success_2", "city_enter_menu")
+		119:
+			wait_for_confirmation()
+		121: #地图选势力
+			if Input.is_action_just_pressed("EMU_SELECT"):
+				LoadControl.set_view_model(-1)
+				DataManager.unset_env("内政.外交模式")
+				FlowManager.add_flow("alliance_list")
+				return
+			var currentVstateId = int(DataManager.vstates_sort[DataManager.vstate_no])
+			var targetCityIds = DataManager.get_env_int_array("同盟对象")
+			var msg = "请选择同盟对象"
+			DataManager.show_orderbook = false
+			SceneManager.show_unconfirm_dialog(msg)
+			SceneManager.dialog_msg_complete(true)
+			var cityId = wait_for_choose_city(delta, "enter_town_policy_menu", targetCityIds)
+			if cityId < 0:
+				DataManager.twinkle_citys = []
+				var currentCityId = SceneManager.current_scene().get_curosr_point_city()
+				if currentCityId < 0:
+					return
+				var currentCity = clCity.city(currentCityId)
+				var targetVstateId = currentCity.get_vstate_id()
+				if targetVstateId in [-1, currentVstateId]:
+					return
+				var targetVS = clVState.vstate(targetVstateId)
+				var months = DataManager.get_alliance_months(currentVstateId, targetVstateId)
+				var twinkleCityIds = []
+				for city in clCity.all_cities([targetVstateId]):
+					twinkleCityIds.append(city.ID)
+				DataManager.twinkle_citys = twinkleCityIds
+				msg = "当前与{0}势力\n有{1}个月盟约"
+				if months <= 0:
+					msg = "当前与{0}势力\n尚无盟约"
+				var memo = targetVS.get_relation_index_memo(currentVstateId)
+				msg += "，关系：{2}"
+				msg += "\n「选择」键进入列表模式"
+				msg = msg.format([
+					targetVS.get_lord_name(), months, memo,
+				])
+				DataManager.show_orderbook = false
+				SceneManager.show_unconfirm_dialog(msg)
+				SceneManager.dialog_msg_complete(true)
+				return
+			# 判断归属
+			var targetCity = clCity.city(cityId)
+			var targetVstateId = targetCity.get_vstate_id()
+			if targetVstateId in [-1, currentVstateId]:
+				return
+			DataManager.set_env("目标势力", targetVstateId)
+			FlowManager.add_flow("alliance_2")
+		133: #撕毁盟约
+			wait_for_yesno("alliance_break_4", "enter_town_policy_menu")
+		134: #命令书
+			wait_for_yesno("alliance_break_5", "enter_town_menu")
+		136:
+			wait_for_confirmation()
+		143: #武将列表
+			if not wait_for_choose_actor("enter_town_policy_menu"):
+				return
+			DataManager.player_choose_actor = SceneManager.actorlist.get_select_actor();
+			if SkillHelper.auto_trigger_skill(DataManager.player_choose_actor, 10008, ""):
+				return
+			FlowManager.add_flow("alliance_opt_4")
+		144: # 输入金米
+			if not wait_for_number_input("alliance_menu", true):
+				return
+			#确认数量
+			var conNumberInput = SceneManager.input_numbers.get_current_input_node()
+			var number:int = conNumberInput.get_number()
+			var goods = DataManager.get_env_int_array("内政.亲善资源")
+			goods[SceneManager.input_numbers.input_index] = number
+			DataManager.set_env("内政.亲善资源", goods)
+			if SceneManager.input_numbers.next_input_index():
+				var input = SceneManager.input_numbers.get_current_input_node()
+				input.set_number(0, true)
+				return
+			if goods[0] == 0 and goods[1] == 0:
+				return
+			LoadControl.set_view_model(-1)
+			FlowManager.add_flow("alliance_opt_5")
+		145: #命令书
+			wait_for_yesno("alliance_opt_6", "enter_town_menu")
+		146:
+			wait_for_confirmation("alliance_opt_8")
+		147:
+			wait_for_confirmation()
+		151: #离间:选城
+			var cityId = wait_for_choose_city(delta, "enter_town_policy_menu", clCity.all_city_ids())
+			if cityId < 0:
+				return
+			var vstateId = DataManager.vstates_sort[DataManager.vstate_no];
+			var city = clCity.city(cityId)
+			if city.get_vstate_id() in [-1, vstateId]:
+				SceneManager.show_unconfirm_dialog("无法离间该城")
+				return
+			DataManager.set_env("目标城", cityId)
+			FlowManager.add_flow("wedge_2")
+		152: #离间目标选择：武将列表
+			if not wait_for_choose_actor("wedge_start"):
+				return
+			var targetId = SceneManager.actorlist.get_select_actor()
+			if targetId < 0:
+				return
+			var target = ActorHelper.actor(targetId)
+			if target.get_loyalty() == 100:
+				SceneManager.actorlist.speak("不可离间君主")
+				return;
+			DataManager.set_env("目标武将", targetId)
+			FlowManager.add_flow("wedge_3")
+		153: #武将列表
+			if not wait_for_choose_actor("enter_town_policy_menu"):
+				return
+			DataManager.player_choose_actor = SceneManager.actorlist.get_select_actor();
+			if SkillHelper.auto_trigger_skill(DataManager.player_choose_actor, 10008, ""):
+				return
+			FlowManager.add_flow("wedge_4")
+		154: #命令书
+			wait_for_yesno("wedge_5", "enter_town_menu")
+		157:
+			wait_for_confirmation("wedge_7")
+		281: #挑唆:选城
+			var cityId = wait_for_choose_city(delta, "enter_town_policy_menu", clCity.all_city_ids())
+			if cityId < 0:
+				return
+			var vstateId = DataManager.vstates_sort[DataManager.vstate_no];
+			var city = clCity.city(cityId)
+			if city.get_vstate_id() in [-1, vstateId]:
+				SceneManager.show_unconfirm_dialog("无法挑唆该城")
+				return
+			DataManager.set_env("目标城", cityId)
+			FlowManager.add_flow("incite_2")
+		282: #挑唆目标选择：武将列表
+			if not wait_for_choose_actor("incite_start"):
+				return
+			var targetId = SceneManager.actorlist.get_select_actor()
+			if targetId < 0:
+				return
+			var target = ActorHelper.actor(targetId)
+			if target.get_loyalty() == 100:
+				SceneManager.actorlist.speak("不可挑唆君主")
+				return
+			var targetCityId = DataManager.get_env_int("目标城")
+			var targetCity = clCity.city(targetCityId)
+			if target.actorId != targetCity.get_actor_ids()[0]:
+				SceneManager.actorlist.speak("只能挑唆太守")
+				return;
+			DataManager.set_env("目标武将", target.actorId)
+			FlowManager.add_flow("incite_3")
+		283: #武将列表
+			if not wait_for_choose_actor("enter_town_policy_menu"):
+				return
+			DataManager.player_choose_actor = SceneManager.actorlist.get_select_actor();
+			if SkillHelper.auto_trigger_skill(DataManager.player_choose_actor, 10008, ""):
+				return
+			FlowManager.add_flow("incite_4")
+		284: #命令书
+			wait_for_yesno("incite_5", "enter_town_menu")
+		287:
+			wait_for_confirmation("incite_7")
+		161: #招揽:选城
+			var cityId = wait_for_choose_city(delta, "enter_town_policy_menu", clCity.all_city_ids())
+			if cityId < 0:
+				return
+			var vstateId = DataManager.vstates_sort[DataManager.vstate_no];
+			var city = clCity.city(cityId)
+			if city.get_vstate_id() in [-1, vstateId]:
+				SceneManager.show_unconfirm_dialog("无法离间该城")
+				return
+			DataManager.set_env("目标城", cityId)
+			FlowManager.add_flow("canvass_2")
+		162: #招揽目标选择：武将列表
+			if not wait_for_choose_actor("canvass_start"):
+				return
+			var targetId = SceneManager.actorlist.get_select_actor()
+			if targetId < 0:
+				return
+			var target = ActorHelper.actor(targetId)
+			if target.get_loyalty() == 100:
+				SceneManager.actorlist.speak("不可招揽君主")
+				return;
+			DataManager.set_env("目标武将", target.actorId)
+			FlowManager.add_flow("canvass_3")
+		163: #武将列表
+			if not wait_for_choose_actor("enter_town_policy_menu"):
+				return
+			DataManager.player_choose_actor = SceneManager.actorlist.get_select_actor()
+			if SkillHelper.auto_trigger_skill(DataManager.player_choose_actor, 10008, ""):
+				return;
+			FlowManager.add_flow("canvass_4")
+		164: #命令书
+			wait_for_yesno("canvass_5", "enter_town_menu")
+		167:
+			wait_for_confirmation("canvass_7")
+		170: # 俘虏选择
+			var option = wait_for_choose_item("enter_town_policy_menu")
+			if option < 0:
+				return
+			LoadControl.set_view_model(-1)
+			var item = SceneManager.lsc_menu_top.lsc.items[option]
+			if item == "下一页":
+				var page = DataManager.get_env_int("列表页码")
+				DataManager.set_env("列表页码", page + 1)
+				FlowManager.add_flow("rescue_select")
+				return
+			var selected = DataManager.get_env_array("列表值")[option]
+			DataManager.set_env("目标项", selected)
+			FlowManager.add_flow("rescue_selected")
+		171: #武将列表
+			if not wait_for_choose_actor("enter_town_policy_menu"):
+				return
+			DataManager.player_choose_actor = SceneManager.actorlist.get_select_actor()
+			if SkillHelper.auto_trigger_skill(DataManager.player_choose_actor, 10008, ""):
+				return
+			DataManager.set_env("列表页码", 0)
+			FlowManager.add_flow("rescue_prepare")
+		172: #携带金
+			if not wait_for_number_input("enter_town_policy_menu", true):
+				return
+			#确认数量
+			var conNumberInput = SceneManager.input_numbers.get_current_input_node()
+			var gold:int = conNumberInput.get_number()
+			if gold <= 0:
+				return
+			LoadControl.set_view_model(-1)
+			DataManager.set_env("内政.交涉金", gold)
+			FlowManager.add_flow("rescue_gold")
+		174: # 命令书确认
+			wait_for_yesno("rescue_confirmed", "enter_town_menu")
+		175: # 换俘提示
+			wait_for_confirmation("rescue_people_confirm")
+		176: # 换俘确认
+			wait_for_yesno("rescue_result", "enter_town_menu")
+		179: # 提示交涉成功率和结果
+			wait_for_confirmation("rescue_result")
+		199:
+			wait_for_confirmation()
+	return
+
+#--------(150)策略选项----------
+func enter_town_policy_menu():
+	var scene_affiars:Control = SceneManager.current_scene()
+	scene_affiars.cursor.hide()
+	DataManager.twinkle_citys = [DataManager.player_choose_city]
+	SceneManager.hide_all_tool()
+
+	DataManager.set_env("列表页码", 0)
+	var commands = ["同盟", "离间", "招揽", "策反"]
+	if DataManager.game_set["监狱系统"] != "无":
+		commands.append("交涉")
+	SceneManager.bind_bottom_menu("使用何种策略？", commands, 2)
+	LoadControl.set_view_model(150)
+	return
+
+#----------------------同盟------------------------
+func alliance_menu():
+	if DataManager.get_env_str("内政.外交模式") == "alliance_list":
+		FlowManager.add_flow("alliance_list")
+		return
+	DataManager.set_env("内政.外交模式", "alliance_menu")
+	var currentVstateId = int(DataManager.vstates_sort[DataManager.vstate_no])
+	var currentVstate = clVState.vstate(currentVstateId)
+	var targetCityIds = []
+	for vs in clVState.all_vstates():
+		if vs.id == currentVstateId:
+			continue
+		if not vs.is_alive():
+			continue
+		var capital = clCity.get_capital_city(vs.id)
+		if capital == null:
+			continue
+		targetCityIds.append(capital.ID)
+	DataManager.set_env("同盟对象", targetCityIds)
+	SceneManager.hide_all_tool()
+	DataManager.twinkle_citys = []
+	SceneManager.current_scene().cursor.show()
+	SceneManager.current_scene().set_city_cursor_position(targetCityIds[0])
+	LoadControl.set_view_model(121)
+	return
+
+#同盟：展示同盟界面(111)
+func alliance_list():
+	if DataManager.get_env_str("内政.外交模式") == "alliance_menu":
+		FlowManager.add_flow("alliance_menu")
+		return
+	DataManager.set_env("内政.外交模式", "alliance_list")
+	var currentVstateId = int(DataManager.vstates_sort[DataManager.vstate_no])
+	var currentVstate = clVState.vstate(currentVstateId)
+	SceneManager.current_scene().cursor.hide();
+	DataManager.twinkle_citys = [DataManager.player_choose_city];
+	SceneManager.hide_all_tool();
+
+	var vstates = []
+	for vs in clVState.all_vstates():
+		if vs.id == currentVstateId:
+			continue
+		if not vs.is_alive():
+			continue
+		vstates.append(vs)
+
+	var maxPage = int((vstates.size() - 1) / PAGE_SIZE)
+	var page = DataManager.get_env_int("列表页码")
+	if page < 0:
+		page = maxPage
+	if page > maxPage:
+		page = 0
+	DataManager.set_env("列表页码", page)
+	var from = page * PAGE_SIZE
+	var to = min(vstates.size(), from + PAGE_SIZE) - 1
+	vstates = vstates.slice(from, to)
+
+	var items = []
+	var values = []
+	for vs in vstates:
+		var name = ActorHelper.actor(vs.get_lord_id()).get_name()
+		name = DataManager._pad(name, 6, true, true)
+		var month = clVState.get_alliance_month(vs.id, currentVstateId)
+		var monthMemo = "------"
+		if month > 0:
+			monthMemo = str(month) + " 月"
+		var memo = vs.get_relation_index_memo(currentVstateId)
+		var color = "black"
+		if memo in ["亲密", "友好"]:
+			color = "blue"
+		if memo in ["敌视", "死敌"]:
+			color = "red"
+		var item = "{0}　{1}　[color={2}]{3}[/color]".format([
+			name, monthMemo, color, memo
+		])
+		items.append(item)
+		values.append(vs.id)
+	for i in range(items.size(), PAGE_SIZE):
+		items.append("")
+		values.append("")
+	if maxPage > 0:
+		items.append("下一页")
+		values.append(-1)
+
+	SceneManager.show_unconfirm_dialog("处理与哪家势力的关系？\n「选择」键进入地图模式", currentVstate.get_lord_id());
+	SceneManager.bind_top_menu(items, values, 1, Vector2.ZERO, Vector2(260, 42), true)
+	if maxPage > 0:
+		SceneManager.lsc_menu_top.lsc.set_pager(page, maxPage)
+	LoadControl.set_view_model(111)
+	return
+
+#判断同盟状态，是同盟还是撕毁
+func alliance_2():
+	DataManager.show_orderbook = true
+	var currentVstateId = int(DataManager.vstates_sort[DataManager.vstate_no])
+	var targetVstateId = DataManager.get_env_int("目标势力")
+	var targetVS = clVState.vstate(targetVstateId)
+	var idx = targetVS.get_relation_index(currentVstateId)
+	var memo = targetVS.get_relation_index_memo(currentVstateId)
+	var month = clVState.get_alliance_month(targetVstateId, currentVstateId)
+	if month <= 0:
+		if idx < 50:
+			FlowManager.add_flow("alliance_opt_3")
+		else:
+			var msg = "与{0}军尚无盟约\n当前关系：{1}\n主公意下如何？".format([
+				targetVS.get_lord_name(), memo, month,
+			])
+			var options = ["亲善", "同盟"]
+			SceneManager.show_yn_dialog(msg, -1, 2, options)
+			DataManager.twinkle_citys = clCity.all_city_ids([targetVstateId])
+			DataManager.twinkle_citys.append(DataManager.player_choose_city)
+			LoadControl.set_view_model(1121)
+			return
+	else:
+		var msg = "与{0}军的盟约尚有{2}个月\n当前关系：{1}\n主公意下如何？".format([
+			targetVS.get_lord_name(), memo, month,
+		])
+		var options = ["亲善", "解盟"]
+		SceneManager.show_yn_dialog(msg, -1, 2, options)
+		DataManager.twinkle_citys = clCity.all_city_ids([targetVstateId])
+		DataManager.twinkle_citys.append(DataManager.player_choose_city)
+		LoadControl.set_view_model(112)
+	return
+
+#同盟
+func alliance_join_3():
+	var city = clCity.city(DataManager.player_choose_city)
+	var targetVstateId = DataManager.get_env_int("目标势力")
+	var msg = "何人前往说服{0}？".format([
+		clVState.vstate(targetVstateId).get_lord_name()
+	])
+	SceneManager.show_actorlist_develop(city.get_actor_ids(), false, msg)
+	LoadControl.set_view_model(113)
+	return
+
+#同盟：命令书
+func alliance_join_4():
+	SceneManager.show_yn_dialog("消耗1枚命令书可否")
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(114)
+	return
+
+#同盟：命令书消耗动画
+func alliance_join_5():
+	var city = clCity.city(DataManager.player_choose_city)
+	OrderHistory.record_order(city.get_vstate_id(), "同盟", DataManager.player_choose_actor)
+	SceneManager.dialog_use_orderbook_animation("alliance_join_6")
+	return
+
+#动画
+func alliance_join_6():
+	var cmd = DataManager.new_policy_command("同盟", DataManager.player_choose_actor)
+	var targetVstateId = DataManager.get_env_int("目标势力")
+	var capital = clCity.get_capital_city(targetVstateId)
+	cmd.set_target(capital.get_lord_id(), capital.ID)
+	cmd.prepare()
+
+	var msg = "同盟成功率：{0}%".format([cmd.rate])
+	if cmd.rate != cmd.basicRate:
+		var signChar = "+"
+		if cmd.rate < cmd.basicRate:
+			signChar = "-"
+		msg = "同盟成功率：{0}({1}{2})%".format([cmd.basicRate, signChar, cmd.rate - cmd.basicRate])
+	SceneManager.play_affiars_animation(
+		"Town_Ally", "", false, msg,
+		cmd.actionId)
+	LoadControl.set_view_model(116)
+	return
+
+#计算求盟结果
+func alliance_join_7():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "同盟":
+		FlowManager.add_flow("city_enter_menu")
+		return
+
+	cmd.execute()
+	if cmd.result > 0:
+		FlowManager.add_flow("alliance_join_success_1")
+		return
+
+	var d = cmd.pop_result_dialog()
+	if d == null:
+		DataManager.twinkle_citys = []
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("city_enter_menu")
+		return
+	DataManager.twinkle_citys = [d.cityId]
+	SceneManager.show_confirm_dialog(d.msg, d.actorId, d.mood)
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(116)
+	return
+
+#成功:告知玩家所需花费
+func alliance_join_success_1():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "同盟":
+		FlowManager.add_flow("city_enter_menu")
+		return
+
+	var resources = []
+	if cmd.costGold > 0:
+		resources.append("{0}两金".format([cmd.costGold]))
+	if cmd.costRice > 0:
+		resources.append("{0}石米".format([cmd.costRice]))
+	var msg = "{0}大人\n{1}索要{2}\n是否给予？".format([
+		cmd.city().get_lord_name(),
+		cmd.target_vstate().get_lord_name(),
+		"、".join(resources),
+	])
+	SceneManager.show_cityInfo(true)
+	SceneManager.show_yn_dialog(msg, cmd.actionId)
+	LoadControl.set_view_model(118)
+	return
+
+#成功:显示结果
+func alliance_join_success_2():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "同盟":
+		FlowManager.add_flow("city_enter_menu")
+		return
+
+	if cmd.city().get_gold() < cmd.costGold:
+		LoadControl._affiars_error("现如今城内并无足够金\n请下达其他命令")
+		return
+	if cmd.city().get_rice() < cmd.costRice:
+		LoadControl._affiars_error("现如今城内并无足够米\n请下达其他命令")
+		return
+
+	cmd.city().add_gold(-cmd.costGold)
+	cmd.city().add_rice(-cmd.costRice)
+	var allyMonths = Global.get_random(5, 12)
+	clVState.set_alliance(cmd.vstate().id, cmd.target_vstate().id, allyMonths)
+
+	var msg = "可喜可贺！\n成功与{0}结盟{1}月".format([
+		cmd.target_vstate().get_lord_name(), allyMonths
+	])
+	SceneManager.show_confirm_dialog(msg, cmd.actionId)
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(119)
+	return
+
+#撕毁
+func alliance_break_3():
+	var targetVstateId = DataManager.get_env_int("目标势力")
+	var targetVstate = clVState.vstate(targetVstateId)
+	var msg = "撕毁与{0}的盟约\n确定吗？".format([
+		targetVstate.get_lord_name()
+	])
+	SceneManager.show_yn_dialog(msg)
+	LoadControl.set_view_model(133)
+	return
+	
+#撕毁盟约：命令书
+func alliance_break_4():
+	LoadControl.set_view_model(134);
+	SceneManager.show_yn_dialog("消耗1枚命令书可否");
+	SceneManager.show_cityInfo(true);
+
+#撕毁盟约：命令书消耗动画
+func alliance_break_5():
+	var city = clCity.city(DataManager.player_choose_city)
+	OrderHistory.record_order(city.get_vstate_id(), "毁盟", DataManager.player_choose_actor)
+	SceneManager.dialog_use_orderbook_animation("alliance_break_6");
+
+func alliance_break_6():
+	var currentVstateId = int(DataManager.vstates_sort[DataManager.vstate_no])
+	var reporter = DataManager.get_max_property_actorId("政", currentVstateId)
+	var targetVstateId = DataManager.get_env_int("目标势力")
+	var targetVstate = clVState.vstate(targetVstateId)
+	var msg = "已解除与{0}的盟约".format([targetVstate.get_lord_name()])
+	SceneManager.show_confirm_dialog(msg, reporter)
+	SceneManager.show_cityInfo(true)
+	if FlowManager.controlNo == AutoLoad.playerNo:
+		clVState.set_alliance(currentVstateId, targetVstateId, 0)
+	LoadControl.set_view_model(136)
+	return
+
+# 亲善
+func alliance_opt_3():
+	var city = clCity.city(DataManager.player_choose_city)
+	var targetVstateId = DataManager.get_env_int("目标势力")
+	var msg = "遣使亲善{0}，何人前往？".format([
+		clVState.vstate(targetVstateId).get_lord_name()
+	])
+	SceneManager.show_actorlist_develop(city.get_actor_ids(), false, msg)
+	LoadControl.set_view_model(143)
+	return
+
+# 亲善：备礼
+func alliance_opt_4():
+	var cmd = DataManager.new_policy_command("亲善", DataManager.player_choose_actor)
+	var targetVstateId = DataManager.get_env_int("目标势力")
+	var capital = clCity.get_capital_city(targetVstateId)
+	cmd.set_target(capital.get_lord_id(), capital.ID)
+	cmd.prepare()
+
+	var msg = "为表诚意，礼不可免"
+	DataManager.set_env("内政.亲善资源", [0, 0])
+	var limits = [1000, 1000]
+	var city = clCity.city(DataManager.player_choose_city)
+	limits[0] = min(limits[0], int(city.get_gold() / 100) * 100)
+	limits[1] = min(limits[1], int(city.get_rice() / 100) * 100)
+	SceneManager.show_input_numbers(msg, ["金", "米"], limits, [2, 2], [4, 4])
+	LoadControl.set_view_model(144)
+	return
+
+# 亲善：命令书
+func alliance_opt_5():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "亲善":
+		FlowManager.add_flow("city_enter_menu")
+		return
+
+	var goods = DataManager.get_env_int_array("内政.亲善资源")
+	cmd.costGold = goods[0]
+	cmd.costRice = goods[1]
+	var msg = "令{0}前往与{1}交涉\n消耗1枚命令书可否".format([
+		cmd.actioner().get_name(),
+		cmd.target_vstate().get_lord_name(),
+	])
+	SceneManager.show_yn_dialog(msg)
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(145)
+	return
+
+# 亲善：命令书消耗动画
+func alliance_opt_6():
+	var city = clCity.city(DataManager.player_choose_city)
+	OrderHistory.record_order(city.get_vstate_id(), "亲善", DataManager.player_choose_actor)
+	SceneManager.dialog_use_orderbook_animation("alliance_opt_7")
+	return
+
+# 亲善：动画
+func alliance_opt_7():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "亲善":
+		FlowManager.add_flow("city_enter_menu")
+		return
+
+	var msg = "必不辱使命"
+	SceneManager.play_affiars_animation(
+		"Town_Ally", "", false, msg,
+		cmd.actionId)
+	LoadControl.set_view_model(146)
+	return
+
+# 亲善结果
+func alliance_opt_8():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "亲善":
+		FlowManager.add_flow("city_enter_menu")
+		return
+
+	cmd.execute()
+
+	var d = cmd.pop_result_dialog()
+	if d == null:
+		DataManager.twinkle_citys = []
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("city_enter_menu")
+		return
+	DataManager.twinkle_citys = [d.cityId]
+	SceneManager.show_confirm_dialog(d.msg, d.actorId, d.mood)
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(147)
+	return
+
+#----------------------离间------------------------
+#离间:选城(151)
+func wedge_start():
+	SceneManager.clear_bottom()
+	DataManager.twinkle_citys.clear()
+	SceneManager.current_scene().cursor.show()
+	# 同月间连续策略，指向同一目标城市
+	var cityId = DataManager.get_env_int("内政.MONTHLY.离间目标")
+	if cityId < 0:
+		cityId = DataManager.player_choose_city
+	SceneManager.current_scene().set_city_cursor_position(cityId)
+	SceneManager.show_unconfirm_dialog("离间哪座城池的武将？")
+	LoadControl.set_view_model(151)
+	return
+
+#离间:目标城武将列表
+func wedge_2():
+	SceneManager.current_scene().cursor.hide()
+	var targetCityId = DataManager.get_env_int("目标城")
+	var cmd = DataManager.new_policy_command("离间", -1)
+	cmd.set_target(-1, targetCityId)
+	DataManager.twinkle_citys = [cmd.cityId, cmd.targetCityId]
+	var msg = "此处为{0}，离间何人？".format([cmd.target_city().get_name()])
+	SceneManager.show_actorlist_army(cmd.target_city().get_actor_ids(), false, msg, false)
+	LoadControl.set_view_model(152)
+	return
+
+#离间:己方武将列表
+func wedge_3():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "离间":
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("wedge_start")
+		return
+	var targetActorId = DataManager.get_env_int("目标武将")
+	cmd.set_target(targetActorId, cmd.targetCityId)
+	SceneManager.current_scene().cursor.hide()
+	DataManager.twinkle_citys = [cmd.cityId, cmd.targetCityId]
+	SceneManager.show_actorlist_develop(cmd.city().get_actor_ids(), false, "派遣何人？请指定")
+	LoadControl.set_view_model(153)
+	return
+
+#命令书
+func wedge_4():
+	#命令书确认
+	DataManager.show_orderbook = true
+	SceneManager.show_yn_dialog("消耗1枚命令书可否")
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(154)
+	return
+
+#命令书消耗动画
+func wedge_5():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "离间":
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("wedge_start")
+		return
+	OrderHistory.record_order(cmd.city().get_vstate_id(), "离间", cmd.actioner().actorId)
+	SceneManager.dialog_use_orderbook_animation("wedge_6")
+	return
+
+#动画
+func wedge_6():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "离间":
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("wedge_start")
+		return
+	cmd.set_actioner(DataManager.player_choose_actor)
+	cmd.prepare()
+	var msg = "已派出细作尝试离间\n（成功率：{0}%".format([cmd.rate])
+	SceneManager.play_affiars_animation(
+		"Town_Alienate", "", false, msg,
+		cmd.actioner().actorId)
+	LoadControl.set_view_model(157)
+	return
+
+#确认结果
+func wedge_7():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "离间":
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("wedge_start")
+		return
+
+	cmd.execute()
+	var d = cmd.pop_result_dialog()
+	if d == null:
+		DataManager.twinkle_citys = []
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("city_enter_menu")
+		return
+	# 记录离间目标城市
+	DataManager.set_env("内政.MONTHLY.离间目标", cmd.targetCityId)
+	DataManager.twinkle_citys = [d.cityId]
+	SceneManager.show_confirm_dialog(d.msg, d.actorId, d.mood)
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(157)
+	return
+
+#----------------------招揽------------------------
+#招揽:选城(161)
+func canvass_start():
+	SceneManager.clear_bottom()
+	DataManager.twinkle_citys.clear()
+	SceneManager.current_scene().cursor.show()
+	# 同月间连续策略，指向同一目标城市
+	var cityId = DataManager.get_env_int("内政.MONTHLY.离间目标")
+	if cityId < 0:
+		cityId = DataManager.player_choose_city
+	SceneManager.current_scene().set_city_cursor_position(cityId)
+	SceneManager.show_unconfirm_dialog("招揽哪座城池的武将？")
+	LoadControl.set_view_model(161)
+	return
+
+#招揽:目标城武将列表
+func canvass_2():
+	SceneManager.current_scene().cursor.hide()
+	var targetCityId = DataManager.get_env_int("目标城")
+	var cmd = DataManager.new_policy_command("招揽", -1)
+	cmd.set_target(-1, targetCityId)
+	DataManager.twinkle_citys = [cmd.cityId, cmd.targetCityId]
+	var msg = "此处为{0}，招揽何人？".format([cmd.target_city().get_name()])
+	SceneManager.show_actorlist_army(cmd.target_city().get_actor_ids(), false, msg, false)
+	LoadControl.set_view_model(162)
+	return
+
+#招揽:己方武将列表
+func canvass_3():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "招揽":
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("canvass_start")
+		return
+	var targetActorId = DataManager.get_env_int("目标武将")
+	cmd.set_target(targetActorId, cmd.targetCityId)
+	SceneManager.current_scene().cursor.hide()
+	DataManager.twinkle_citys = [cmd.cityId, cmd.targetCityId]
+	SceneManager.show_actorlist_develop(cmd.city().get_actor_ids(), false, "派遣何人？请指定")
+	LoadControl.set_view_model(163)
+	return
+
+#命令书
+func canvass_4():
+	#命令书确认
+	DataManager.show_orderbook = true
+	SceneManager.show_yn_dialog("消耗1枚命令书可否")
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(164)
+	return
+
+#命令书消耗动画
+func canvass_5():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "招揽":
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("canvass_start")
+		return
+	OrderHistory.record_order(cmd.city().get_vstate_id(), "招揽", cmd.actioner().actorId)
+	SceneManager.dialog_use_orderbook_animation("canvass_6")
+	return
+
+#动画
+func canvass_6():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "招揽":
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("canvass_start")
+		return
+	cmd.set_actioner(DataManager.player_choose_actor)
+	cmd.prepare()
+	var msg = "已派出信使尝试招揽\n（成功率：{0}%".format([cmd.rate])
+	SceneManager.play_affiars_animation(
+		"Town_Canvass", "", false, msg,
+		cmd.actioner().actorId)
+	LoadControl.set_view_model(167)
+	return
+
+#确认结果
+func canvass_7():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "招揽":
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("canvass_start")
+		return
+
+	cmd.execute()
+	var d = cmd.pop_result_dialog()
+	if d == null:
+		DataManager.twinkle_citys = []
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("city_enter_menu")
+		return
+	if cmd.result == 0:
+		# 招揽未成功，记录为离间目标城市
+		DataManager.set_env("内政.MONTHLY.离间目标", cmd.targetCityId)
+	else:
+		# 招揽成功，更新目标
+		DataManager.unset_env("内政.MONTHLY.离间目标")
+	DataManager.twinkle_citys = [d.cityId]
+	SceneManager.show_confirm_dialog(d.msg, d.actorId, d.mood)
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(167)
+	return
+
+#----------------------挑唆------------------------
+#策反:选城(281)
+func incite_start():
+	SceneManager.clear_bottom()
+	DataManager.twinkle_citys.clear()
+	SceneManager.current_scene().cursor.show()
+	var cityId = DataManager.player_choose_city
+	var cmd = DataManager.get_current_policy_command()
+	if cmd != null && cmd.type in ["离间", "策反"]:
+		cityId = cmd.targetCityId
+	SceneManager.current_scene().set_city_cursor_position(cityId)
+	SceneManager.show_unconfirm_dialog("策反哪座城池的太守？")
+	LoadControl.set_view_model(281)
+	return
+
+#策反:目标城武将列表
+func incite_2():
+	SceneManager.current_scene().cursor.hide()
+	var targetCityId = DataManager.get_env_int("目标城")
+	var cmd = DataManager.new_policy_command("策反", -1)
+	cmd.set_target(-1, targetCityId)
+	DataManager.twinkle_citys = [cmd.cityId, cmd.targetCityId]
+	var msg = "此处为{0}，策反何人？".format([cmd.target_city().get_name()])
+	SceneManager.show_actorlist_army(cmd.target_city().get_actor_ids(), false, msg, false)
+	LoadControl.set_view_model(282)
+	return
+
+#策反:己方武将列表
+func incite_3():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "策反":
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("incite_start")
+		return
+	var targetActorId = DataManager.get_env_int("目标武将")
+	cmd.set_target(targetActorId, cmd.targetCityId)
+	SceneManager.current_scene().cursor.hide()
+	DataManager.twinkle_citys = [cmd.cityId, cmd.targetCityId]
+	SceneManager.show_actorlist_develop(cmd.city().get_actor_ids(), false, "派遣何人？请指定")
+	LoadControl.set_view_model(283)
+	return
+
+#命令书
+func incite_4():
+	#命令书确认
+	DataManager.show_orderbook = true
+	SceneManager.show_yn_dialog("消耗1枚命令书可否")
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(284)
+	return
+
+#命令书消耗动画
+func incite_5():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "策反":
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("incite_start")
+		return
+	OrderHistory.record_order(cmd.city().get_vstate_id(), "策反", cmd.actioner().actorId)
+	SceneManager.dialog_use_orderbook_animation("incite_6")
+	return
+
+#动画
+func incite_6():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "策反":
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("incite_start")
+		return
+
+	cmd.set_actioner(DataManager.player_choose_actor)
+	cmd.prepare()
+
+	var signChar = "+"
+	var msg = "已派出信使尝试策反\n（成功率："
+	if cmd.rate == cmd.basicRate:
+		msg += "{0}%"
+	else:
+		if cmd.rate < cmd.basicRate:
+			signChar = "-"
+		msg += "{1}({2}{3})%"
+	msg = msg.format([
+		cmd.rate, cmd.basicRate, signChar, cmd.rate - cmd.basicRate
+	])
+
+	SceneManager.play_affiars_animation(
+		"Town_Canvass", "", false, msg,
+		cmd.actioner().actorId)
+	LoadControl.set_view_model(287)
+	return
+
+#确认结果
+func incite_7():
+	SceneManager.cleanup_animations()
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "策反":
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("incite_start")
+		return
+
+	cmd.execute()
+	var d = cmd.pop_result_dialog()
+	if d == null:
+		DataManager.twinkle_citys = []
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("city_enter_menu")
+		return
+	DataManager.twinkle_citys = [d.cityId]
+	SceneManager.show_confirm_dialog(d.msg, d.actorId, d.mood)
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(287)
+	return
+
+# ---- 俘虏请求相关 ----
+func rescue_start() -> void:
+	var vstateId = DataManager.vstates_sort[DataManager.vstate_no]
+	var vs = clVState.vstate(vstateId)
+
+	var captured = []
+	for actor in ActorHelper.all_captured_actors():
+		if actor.get_prev_vstate_id() != vstateId:
+			continue
+		captured.append(actor)
+	if captured.empty():
+		var msg = "我军无人被俘"
+		SceneManager.show_confirm_dialog(msg, vs.get_lord_id(), 1)
+		LoadControl.set_view_model(199)
+		return
+
+	DataManager.set_env("列表页码", 0)
+	FlowManager.add_flow("rescue_select")
+	return
+
+func rescue_select() -> void:
+	var vstateId = DataManager.vstates_sort[DataManager.vstate_no]
+	var vs = clVState.vstate(vstateId)
+	var cities = clCity.all_cities()
+	var items = []
+	var values = []
+	for actor in ActorHelper.all_captured_actors():
+		if actor.get_prev_vstate_id() != vstateId:
+			continue
+
+		for city in cities:
+			if city.get_vstate_id() < 0:
+				continue
+			if actor.actorId in city.get_ceil_actor_ids():
+				var item = "{0} （被[color=red]{1}[/color]囚禁于[color=blue]{2}[/color]）".format([
+					actor.get_name(), city.get_lord_name(), city.get_full_name(),
+				])
+				items.append(item)
+				values.append([actor.actorId, city.ID])
+				break
+	SceneManager.show_unconfirm_dialog("可通过交涉救回被俘武将\n选择何人？")
+	SceneManager.bind_top_menu_paging(items, values, 1, true)
+	LoadControl.set_view_model(170)
+	return
+
+func rescue_selected() -> void:
+	var selected = DataManager.get_env_int_array("目标项")
+	if selected.size() != 2:
+		FlowManager.add_flow("enter_town_policy_menu")
+		return
+	var targetActorId = selected[0]
+	var targetCityId = selected[1]
+	var city = clCity.city(DataManager.player_choose_city)
+	var msg = "何人前往{0}交涉？".format([
+		clCity.city(targetCityId).get_full_name(),
+	])
+	SceneManager.show_actorlist_develop(city.get_actor_ids(), false, msg)
+	LoadControl.set_view_model(171)
+	return
+
+func rescue_prepare() -> void:
+	var selected = DataManager.get_env_int_array("目标项")
+	if selected.size() != 2:
+		FlowManager.add_flow("enter_town_policy_menu")
+		return
+
+	var cmd = DataManager.new_policy_command("交涉", DataManager.player_choose_actor)
+	var targetActorId = selected[0]
+	var targetCityId = selected[1]
+	cmd.set_target(targetActorId, targetCityId)
+
+	# 检查我方是不是有对方需要的俘虏
+	var captured = []
+	for city in clCity.all_cities([cmd.vstate().id]):
+		for capturedId in city.get_ceil_actor_ids():
+			var capturedActor = ActorHelper.actor(capturedId)
+			if capturedActor.get_prev_vstate_id() == cmd.target_vstate().id:
+				captured.append(capturedActor)
+
+	if captured.empty():
+		# 没有俘虏，花钱赎人
+		var msg = "携带多少金？"
+		var gold = min(1000, int(cmd.city().get_gold() / 100) * 100)
+		SceneManager.show_input_numbers(msg, ["金"], [gold], [2, 2], [4, 4])
+		LoadControl.set_view_model(172)
+		return
+
+	# 这里 trick 一下，复用金米，米 == 99999 表示是人换人
+	cmd.costGold = 0
+	cmd.costRice = 99999
+
+	var what = "我军俘虏"
+	if captured.size() == 1:
+		what = "所俘" + captured[0].get_name()
+		cmd.costRice = captured[0].actorId
+	var msg = "尝试与{0}军交涉\n以{1}换回{2}\n消耗一枚命令书，可否？".format([
+		cmd.target_vstate().get_lord_name(), what, cmd.target_actor().get_name(),
+	])
+	SceneManager.show_yn_dialog(msg, cmd.actioner().actorId)
+	LoadControl.set_view_model(174)
+	return
+
+# 花钱赎人
+func rescue_gold() -> void:
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "交涉":
+		FlowManager.add_flow("enter_town_policy_menu")
+		return
+
+	cmd.costGold = DataManager.get_env_int("内政.交涉金")
+	# 米 < 0 表示是用金
+	cmd.costRice = -1
+
+	var msg = "出使与{0}交涉\n以{1}金讨还{2}的{3}\n消耗一枚命令书，可否？".format([
+		cmd.target_vstate().get_lord_name(),
+		cmd.costGold, cmd.target_city().get_full_name(),
+		cmd.target_actor().get_name(),
+	])
+	SceneManager.show_yn_dialog(msg, cmd.actioner().actorId)
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(174)
+	return
+
+# 交涉：命令书消耗动画
+func rescue_confirmed() -> void:
+	var city = clCity.city(DataManager.player_choose_city)
+	OrderHistory.record_order(city.get_vstate_id(), "交涉", DataManager.player_choose_actor)
+	SceneManager.dialog_use_orderbook_animation("rescue_execute")
+	return
+
+# 交涉：执行
+func rescue_execute():
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "交涉":
+		FlowManager.add_flow("enter_town_policy_menu")
+		return
+
+	cmd.prepare()
+
+	var msg = "换俘交涉中 ……"
+	var nextViewModel = 175
+	if cmd.costRice < 0:
+		nextViewModel = 179
+		msg = "交涉成功率：{0}%".format([cmd.rate])
+		if cmd.rate != cmd.basicRate:
+			var signChar = "+"
+			if cmd.rate < cmd.basicRate:
+				signChar = "-"
+			msg = "交涉成功率：{0}({1}{2})%".format([cmd.basicRate, signChar, cmd.rate - cmd.basicRate])
+	SceneManager.play_affiars_animation(
+		"Town_Ally", "", false, msg,
+		cmd.actionId)
+	LoadControl.set_view_model(nextViewModel)
+	return
+
+func rescue_people_confirm() -> void:
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "交涉":
+		FlowManager.add_flow("enter_town_policy_menu")
+		return
+
+	if cmd.costGold < 0 or cmd.costRice < 0:
+		FlowManager.add_flow("enter_town_policy_menu")
+		return
+
+	if cmd.costRice != 99999:
+		# 只有一名俘虏的情况，指定换俘
+		FlowManager.add_flow("rescue_result")
+		return
+
+	# 对方要求人换人，需要再次确认
+	var capturedId = cmd.costGold
+	var capturedCityId = cmd.costRice
+	var city = clCity.city(capturedCityId)
+	var capturedActor = ActorHelper.actor(capturedId)
+	var msg = "{0}同意释放{1}\n但要求我军释放{2}\n可否？".format([
+		cmd.target_vstate().get_lord_name(),
+		cmd.target_actor().get_name(),
+		capturedActor.get_name(),
+	])
+	SceneManager.show_yn_dialog(msg, cmd.actionId)
+	LoadControl.set_view_model(176)
+	return
+
+# 交涉结果
+func rescue_result() -> void:
+	var cmd = DataManager.get_current_policy_command()
+	if cmd == null or cmd.type != "交涉":
+		FlowManager.add_flow("city_enter_menu")
+		return
+
+	cmd.execute()
+
+	var d = cmd.pop_result_dialog()
+	if d == null:
+		DataManager.twinkle_citys = []
+		LoadControl.set_view_model(-1)
+		FlowManager.add_flow("city_enter_menu")
+		return
+	DataManager.twinkle_citys = [d.cityId]
+	SceneManager.show_confirm_dialog(d.msg, d.actorId, d.mood)
+	SceneManager.show_cityInfo(true)
+	LoadControl.set_view_model(179)
+	return

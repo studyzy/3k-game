@@ -1,0 +1,537 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://windows/menu/pnlKeySet.gd" type="Script" id=2]
+[ext_resource path="res://resource/images/picture/button.png" type="Texture" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/28.tres" type="DynamicFont" id=4]
+
+[sub_resource type="StyleBoxFlat" id=2]
+bg_color = Color( 0.360784, 0.580392, 0.988235, 1 )
+
+[sub_resource type="StyleBoxFlat" id=6]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 0.462745, 0.462745, 0.439216, 1 )
+
+[sub_resource type="StyleBoxFlat" id=7]
+
+[sub_resource type="StyleBoxTexture" id=5]
+texture = ExtResource( 3 )
+region_rect = Rect2( 0, 0, 162, 47 )
+
+[node name="pnlControl" type="Panel"]
+rect_min_size = Vector2( 1024, 600 )
+rect_pivot_offset = Vector2( 423, -93 )
+custom_styles/panel = SubResource( 2 )
+script = ExtResource( 2 )
+
+[node name="directions" type="Control" parent="."]
+margin_left = 60.0
+margin_top = 120.0
+margin_right = 360.0
+margin_bottom = 160.0
+rect_min_size = Vector2( 300, 210 )
+
+[node name="txtUp" type="LineEdit" parent="directions"]
+margin_left = 105.0
+margin_top = 11.0
+margin_right = 189.0
+margin_bottom = 72.0
+grow_horizontal = 2
+focus_mode = 1
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 6 )
+custom_styles/normal = SubResource( 1 )
+text = "W"
+align = 1
+editable = false
+context_menu_enabled = false
+virtual_keyboard_enabled = false
+shortcut_keys_enabled = false
+middle_mouse_paste_enabled = false
+selecting_enabled = false
+deselect_on_focus_loss_enabled = false
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="txtDown" type="LineEdit" parent="directions"]
+margin_left = 105.0
+margin_top = 134.0
+margin_right = 192.0
+margin_bottom = 199.0
+grow_horizontal = 2
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 3 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "S"
+placeholder_alpha = 1.0
+
+[node name="txtLeft" type="LineEdit" parent="directions"]
+margin_left = 21.0
+margin_top = 74.0
+margin_right = 105.0
+margin_bottom = 136.0
+grow_horizontal = 2
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 3 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "A"
+placeholder_alpha = 1.0
+
+[node name="txtRight" type="LineEdit" parent="directions"]
+margin_left = 190.0
+margin_top = 72.0
+margin_right = 274.0
+margin_bottom = 137.0
+grow_horizontal = 2
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 3 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "D"
+placeholder_alpha = 1.0
+
+[node name="actions" type="Control" parent="."]
+margin_left = 720.0
+margin_top = 110.0
+margin_right = 760.0
+margin_bottom = 150.0
+rect_min_size = Vector2( 280, 220 )
+
+[node name="lblTitle_A" type="Label" parent="actions"]
+margin_left = 30.0
+margin_top = 113.0
+margin_right = 123.0
+margin_bottom = 145.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "A"
+align = 1
+
+[node name="txtA" type="LineEdit" parent="actions"]
+margin_left = 17.0
+margin_top = 143.0
+margin_right = 129.0
+margin_bottom = 205.0
+grow_horizontal = 2
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 3 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "J"
+placeholder_alpha = 1.0
+
+[node name="lblTitle_B" type="Label" parent="actions"]
+margin_left = 172.0
+margin_top = 113.0
+margin_right = 265.0
+margin_bottom = 145.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "B"
+align = 1
+
+[node name="txtB" type="LineEdit" parent="actions"]
+margin_left = 156.0
+margin_top = 143.0
+margin_right = 266.0
+margin_bottom = 204.0
+grow_horizontal = 2
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 3 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "K"
+placeholder_alpha = 1.0
+
+[node name="lblTitle_X" type="Label" parent="actions"]
+margin_left = 27.0
+margin_top = 7.0
+margin_right = 120.0
+margin_bottom = 39.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "X"
+align = 1
+
+[node name="txtX" type="LineEdit" parent="actions"]
+margin_left = 14.0
+margin_top = 39.0
+margin_right = 129.0
+margin_bottom = 97.0
+grow_horizontal = 2
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 3 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "U"
+placeholder_alpha = 1.0
+
+[node name="lblTitle_Y" type="Label" parent="actions"]
+margin_left = 167.0
+margin_top = 7.0
+margin_right = 260.0
+margin_bottom = 39.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "Y"
+align = 1
+
+[node name="txtY" type="LineEdit" parent="actions"]
+margin_left = 156.0
+margin_top = 39.0
+margin_right = 267.0
+margin_bottom = 98.0
+grow_horizontal = 2
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 3 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "I"
+placeholder_alpha = 1.0
+
+[node name="specials" type="Control" parent="."]
+margin_left = 340.0
+margin_top = 300.0
+margin_right = 380.0
+margin_bottom = 340.0
+rect_min_size = Vector2( 340, 120 )
+
+[node name="lblTitle_Select" type="Label" parent="specials"]
+margin_left = 33.0
+margin_top = 3.0
+margin_right = 122.0
+margin_bottom = 35.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "选择"
+align = 1
+
+[node name="txtSelect" type="LineEdit" parent="specials"]
+margin_left = 9.0
+margin_top = 36.0
+margin_right = 140.0
+margin_bottom = 98.0
+grow_horizontal = 2
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 3 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "'"
+placeholder_alpha = 1.0
+
+[node name="lblTitle_Start" type="Label" parent="specials"]
+margin_left = 218.0
+margin_top = 4.0
+margin_right = 307.0
+margin_bottom = 36.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "开始"
+align = 1
+
+[node name="txtStart" type="LineEdit" parent="specials"]
+margin_left = 194.0
+margin_top = 36.0
+margin_right = 327.0
+margin_bottom = 98.0
+grow_horizontal = 2
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 3 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "Enter"
+placeholder_alpha = 1.0
+
+[node name="conMenu" type="Control" parent="."]
+margin_left = 60.0
+margin_top = 50.0
+margin_right = 260.0
+margin_bottom = 90.0
+rect_min_size = Vector2( 200, 40 )
+
+[node name="lblTitle" type="Label" parent="conMenu"]
+margin_right = 90.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 90, 40 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "菜单"
+align = 1
+
+[node name="txtValue" type="LineEdit" parent="conMenu"]
+margin_left = 90.0
+margin_right = 190.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 100, 40 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 7 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "ESC"
+
+[node name="conLayout" type="Control" parent="."]
+margin_left = 280.0
+margin_top = 50.0
+margin_right = 480.0
+margin_bottom = 90.0
+rect_min_size = Vector2( 200, 40 )
+
+[node name="lblTitle" type="Label" parent="conLayout"]
+margin_right = 89.0
+margin_bottom = 32.0
+rect_min_size = Vector2( 90, 40 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "布局"
+align = 1
+
+[node name="txtValue" type="LineEdit" parent="conLayout"]
+margin_left = 90.0
+margin_right = 190.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 100, 40 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 7 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "ESC"
+
+[node name="conSpeedUp" type="Control" parent="."]
+margin_left = 580.0
+margin_top = 50.0
+margin_right = 780.0
+margin_bottom = 90.0
+rect_min_size = Vector2( 200, 40 )
+
+[node name="lblTitle" type="Label" parent="conSpeedUp"]
+margin_right = 89.0
+margin_bottom = 32.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "加速"
+align = 1
+
+[node name="txtValue" type="LineEdit" parent="conSpeedUp"]
+margin_left = 90.0
+margin_right = 187.0
+margin_bottom = 41.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 7 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "小键盘+"
+
+[node name="conSpeedDown" type="Control" parent="."]
+margin_left = 800.0
+margin_top = 50.0
+margin_right = 1000.0
+margin_bottom = 90.0
+rect_min_size = Vector2( 200, 40 )
+
+[node name="lblTitle" type="Label" parent="conSpeedDown"]
+margin_right = 89.0
+margin_bottom = 32.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "减速"
+align = 1
+
+[node name="txtValue" type="LineEdit" parent="conSpeedDown"]
+margin_left = 90.0
+margin_right = 187.0
+margin_bottom = 40.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/focus = SubResource( 7 )
+custom_styles/normal = SubResource( 1 )
+align = 1
+editable = false
+virtual_keyboard_enabled = false
+placeholder_text = "小键盘-"
+
+[node name="settings" type="Control" parent="."]
+margin_left = 100.0
+margin_top = 450.0
+margin_right = 980.0
+margin_bottom = 510.0
+rect_min_size = Vector2( 880, 60 )
+
+[node name="lblSettingGroup" type="Label" parent="settings"]
+margin_left = 20.0
+margin_right = 145.0
+margin_bottom = 32.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "按键设定组"
+align = 1
+
+[node name="btnGroup" type="Button" parent="settings"]
+margin_left = 160.0
+margin_right = 237.0
+margin_bottom = 43.0
+custom_colors/font_color_disabled = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "#1"
+
+[node name="lblTitle_HideKey" type="Label" parent="settings"]
+margin_left = 320.0
+margin_right = 445.0
+margin_bottom = 32.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "虚拟键显示"
+align = 1
+
+[node name="btnHideKey" type="Button" parent="settings"]
+margin_left = 460.0
+margin_right = 537.0
+margin_bottom = 38.0
+custom_fonts/font = ExtResource( 1 )
+text = "显示"
+
+[node name="lblCursorSpeed" type="Label" parent="settings"]
+margin_left = 600.0
+margin_right = 725.0
+margin_bottom = 32.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "光标速度"
+align = 1
+
+[node name="btnCursorSpeed" type="Button" parent="settings"]
+margin_left = 740.0
+margin_right = 836.0
+margin_bottom = 43.0
+custom_colors/font_color_disabled = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "默认"
+
+[node name="system" type="Control" parent="."]
+margin_left = 160.0
+margin_top = 520.0
+margin_right = 960.0
+margin_bottom = 560.0
+rect_min_size = Vector2( 800, 80 )
+
+[node name="btnEditVkey" type="Button" parent="system"]
+margin_left = 20.0
+margin_top = 10.0
+margin_right = 189.0
+margin_bottom = 63.0
+custom_fonts/font = ExtResource( 1 )
+custom_styles/hover = SubResource( 5 )
+custom_styles/pressed = SubResource( 5 )
+custom_styles/focus = SubResource( 5 )
+custom_styles/disabled = SubResource( 5 )
+custom_styles/normal = SubResource( 5 )
+text = "位置调整"
+
+[node name="btnSaveKey" type="Button" parent="system"]
+margin_left = 240.0
+margin_top = 10.0
+margin_right = 375.0
+margin_bottom = 62.0
+rect_pivot_offset = Vector2( 317, 0 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/hover = SubResource( 5 )
+custom_styles/pressed = SubResource( 5 )
+custom_styles/focus = SubResource( 5 )
+custom_styles/disabled = SubResource( 5 )
+custom_styles/normal = SubResource( 5 )
+text = "保存"
+
+[node name="btnBack" type="Button" parent="system"]
+margin_left = 430.0
+margin_top = 10.0
+margin_right = 572.0
+margin_bottom = 65.0
+rect_min_size = Vector2( 0, 55 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 0.984314, 0, 1 )
+custom_colors/font_color_pressed = Color( 1, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+custom_styles/hover = SubResource( 5 )
+custom_styles/pressed = SubResource( 5 )
+custom_styles/focus = SubResource( 5 )
+custom_styles/disabled = SubResource( 5 )
+custom_styles/normal = SubResource( 5 )
+text = "返回"
+
+[node name="btnClearKey" type="Button" parent="system"]
+margin_left = 630.0
+margin_top = 10.0
+margin_right = 765.0
+margin_bottom = 62.0
+rect_pivot_offset = Vector2( 317, 0 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/hover = SubResource( 5 )
+custom_styles/pressed = SubResource( 5 )
+custom_styles/focus = SubResource( 5 )
+custom_styles/disabled = SubResource( 5 )
+custom_styles/normal = SubResource( 5 )
+text = "全部清除"
+
+[connection signal="gui_input" from="directions/txtUp" to="." method="_on_txtUp_gui_input"]
+[connection signal="gui_input" from="directions/txtDown" to="." method="_on_txtDown_gui_input"]
+[connection signal="gui_input" from="directions/txtLeft" to="." method="_on_txtLeft_gui_input"]
+[connection signal="gui_input" from="directions/txtRight" to="." method="_on_txtRight_gui_input"]
+[connection signal="gui_input" from="actions/txtA" to="." method="_on_txtA_gui_input"]
+[connection signal="gui_input" from="actions/txtB" to="." method="_on_txtB_gui_input"]
+[connection signal="gui_input" from="actions/txtX" to="." method="_on_txtX_gui_input"]
+[connection signal="gui_input" from="actions/txtY" to="." method="_on_txtY_gui_input"]
+[connection signal="gui_input" from="specials/txtSelect" to="." method="_on_txtSelect_gui_input"]
+[connection signal="gui_input" from="specials/txtStart" to="." method="_on_txtStart_gui_input"]
+[connection signal="gui_input" from="conMenu/txtValue" to="." method="_on_txtMenuValue_gui_input"]
+[connection signal="gui_input" from="conLayout/txtValue" to="." method="_on_txtLayoutValue_gui_input"]
+[connection signal="gui_input" from="conSpeedUp/txtValue" to="." method="_on_txtSpeedUpValue_gui_input"]
+[connection signal="gui_input" from="conSpeedDown/txtValue" to="." method="_on_txtSpeedDownValue_gui_input"]
+[connection signal="pressed" from="settings/btnGroup" to="." method="_on_btnGroup_pressed"]
+[connection signal="pressed" from="settings/btnHideKey" to="." method="_on_btnHideKey_pressed"]
+[connection signal="pressed" from="settings/btnCursorSpeed" to="." method="_on_btnCursorSpeed_pressed"]
+[connection signal="pressed" from="system/btnEditVkey" to="." method="_on_btnEditVkey_pressed"]
+[connection signal="pressed" from="system/btnSaveKey" to="." method="_on_btnSaveKey_pressed"]
+[connection signal="pressed" from="system/btnBack" to="." method="_on_btnBack_pressed"]
+[connection signal="pressed" from="system/btnClearKey" to="." method="_on_btnClearKey_pressed"]

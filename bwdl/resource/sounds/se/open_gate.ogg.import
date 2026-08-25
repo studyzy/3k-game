@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/open_gate.ogg-13ea4213fbcb725bd95b5ef5a711ebd3.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/se/open_gate.ogg"
+dest_files=[ "res://.import/open_gate.ogg-13ea4213fbcb725bd95b5ef5a711ebd3.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

@@ -1,0 +1,113 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/35.tres" type="DynamicFont" id=2]
+[ext_resource path="res://windows/skill_description.gd" type="Script" id=3]
+[ext_resource path="res://resource/images/skill/skillname.png" type="Texture" id=4]
+[ext_resource path="res://resource/images/skill/skilldescription.png" type="Texture" id=5]
+
+[sub_resource type="StyleBoxEmpty" id=1]
+
+[sub_resource type="StyleBoxFlat" id=2]
+
+[node name="SkillDescription" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -444.0
+margin_bottom = -478.0
+rect_min_size = Vector2( 580, 122 )
+custom_styles/panel = SubResource( 1 )
+script = ExtResource( 3 )
+
+[node name="Skilldescription" type="NinePatchRect" parent="."]
+margin_left = 88.0
+margin_top = 10.0
+margin_right = 578.0
+margin_bottom = 109.0
+rect_min_size = Vector2( 490, 99 )
+texture = ExtResource( 5 )
+patch_margin_left = 18
+patch_margin_top = 18
+patch_margin_right = 16
+patch_margin_bottom = 14
+
+[node name="icon" type="Sprite" parent="Skilldescription"]
+visible = false
+centered = false
+offset = Vector2( 20, 10 )
+
+[node name="Description" type="RichTextLabel" parent="."]
+margin_left = 110.0
+margin_top = 14.0
+margin_right = 620.0
+margin_bottom = 113.0
+rect_scale = Vector2( 0.9, 0.9 )
+rect_clip_content = false
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/bold_font = ExtResource( 2 )
+custom_fonts/normal_font = ExtResource( 1 )
+bbcode_enabled = true
+bbcode_text = "技能描述"
+text = "技能描述"
+fit_content_height = true
+scroll_active = false
+
+[node name="extInfo" type="NinePatchRect" parent="."]
+margin_left = 128.0
+margin_top = 115.0
+margin_right = 578.0
+margin_bottom = 214.0
+rect_min_size = Vector2( 450, 99 )
+texture = ExtResource( 5 )
+patch_margin_left = 18
+patch_margin_top = 18
+patch_margin_right = 16
+patch_margin_bottom = 14
+
+[node name="extContent" type="RichTextLabel" parent="."]
+visible = false
+margin_left = 150.0
+margin_top = 118.0
+margin_right = 620.0
+margin_bottom = 217.0
+rect_scale = Vector2( 0.9, 0.9 )
+rect_clip_content = false
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 1 )
+bbcode_enabled = true
+bbcode_text = "技能描述"
+text = "技能描述"
+fit_content_height = true
+scroll_active = false
+
+[node name="NameBg" type="Sprite" parent="."]
+self_modulate = Color( 0.054902, 1, 0, 1 )
+position = Vector2( 55, 38 )
+scale = Vector2( 0.84, 0.84 )
+texture = ExtResource( 4 )
+
+[node name="Name" type="Label" parent="."]
+margin_left = 3.0
+margin_top = 20.0
+margin_right = 101.0
+margin_bottom = 59.0
+rect_scale = Vector2( 0.9, 0.9 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "技能"
+align = 1
+valign = 1
+
+[node name="CloseButton" type="Button" parent="."]
+margin_left = 95.0
+margin_top = 119.0
+margin_right = 129.0
+margin_bottom = 151.0
+custom_colors/font_color = Color( 1, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 2 )
+text = "X"
+
+[connection signal="meta_clicked" from="Description" to="." method="_on_Description_meta_clicked"]
+[connection signal="meta_clicked" from="extContent" to="." method="_on_Description_meta_clicked"]
+[connection signal="pressed" from="CloseButton" to="." method="_on_CloseButton_pressed"]

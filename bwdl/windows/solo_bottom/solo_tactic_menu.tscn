@@ -1,0 +1,177 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://windows/solo_bottom/solo_tactic_menu.gd" type="Script" id=1]
+[ext_resource path="res://windows/children/actor_face.tscn" type="PackedScene" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=3]
+[ext_resource path="res://windows/light_select.tscn" type="PackedScene" id=5]
+
+[sub_resource type="Image" id=3]
+data = {
+"data": PoolByteArray( 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176 ),
+"format": "RGB8",
+"height": 10,
+"mipmaps": false,
+"width": 32
+}
+
+[sub_resource type="ImageTexture" id=2]
+image = SubResource( 3 )
+size = Vector2( 32, 10 )
+
+[node name="solo_tactic_menu" type="Control"]
+margin_top = 410.0
+margin_right = 600.0
+margin_bottom = 600.0
+script = ExtResource( 1 )
+
+[node name="bottom_scene" type="ColorRect" parent="."]
+margin_right = 600.0
+margin_bottom = 190.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="conActor" type="Control" parent="."]
+margin_right = 160.0
+margin_bottom = 190.0
+
+[node name="lblName" type="Label" parent="conActor"]
+margin_left = 15.0
+margin_top = 142.0
+margin_right = 145.0
+margin_bottom = 184.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "关羽暗啊"
+align = 1
+
+[node name="nprFace" parent="conActor" instance=ExtResource( 2 )]
+margin_left = 34.0
+margin_top = 26.0
+margin_right = -34.0
+margin_bottom = -52.0
+
+[node name="lsc" parent="." instance=ExtResource( 5 )]
+margin_left = 337.0
+margin_top = -38.0
+margin_right = -45.0
+margin_bottom = 88.0
+columns = 2
+h_separation = 140
+v_separation = 41
+items = [ "说服", "恫吓" ]
+font_size = 30
+cursor_offset = Vector2( -5, 6 )
+
+[node name="actorinfo" type="VBoxContainer" parent="."]
+margin_left = 163.0
+margin_top = -8.0
+margin_right = 302.0
+margin_bottom = 183.0
+custom_constants/separation = 42
+
+[node name="hp" type="Control" parent="actorinfo"]
+margin_right = 139.0
+
+[node name="Title" type="Label" parent="actorinfo/hp"]
+margin_left = 12.0
+margin_top = 14.0
+margin_right = 51.0
+margin_bottom = 61.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "体"
+valign = 2
+
+[node name="Value" type="Label" parent="actorinfo/hp"]
+margin_left = 46.0
+margin_top = 14.0
+margin_right = 108.0
+margin_bottom = 63.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "97"
+align = 2
+valign = 2
+
+[node name="int" type="Control" parent="actorinfo"]
+margin_top = 42.0
+margin_right = 139.0
+margin_bottom = 42.0
+
+[node name="Title" type="Label" parent="actorinfo/int"]
+margin_left = 12.0
+margin_top = 14.0
+margin_right = 51.0
+margin_bottom = 61.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "知"
+valign = 2
+
+[node name="Value" type="Label" parent="actorinfo/int"]
+margin_left = 46.0
+margin_top = 14.0
+margin_right = 108.0
+margin_bottom = 63.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "84"
+align = 2
+valign = 2
+
+[node name="str" type="Control" parent="actorinfo"]
+margin_top = 84.0
+margin_right = 139.0
+margin_bottom = 84.0
+
+[node name="Title" type="Label" parent="actorinfo/str"]
+margin_left = 12.0
+margin_top = 14.0
+margin_right = 51.0
+margin_bottom = 61.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "武"
+valign = 2
+
+[node name="Value" type="Label" parent="actorinfo/str"]
+margin_left = 46.0
+margin_top = 13.0
+margin_right = 108.0
+margin_bottom = 62.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "97"
+align = 2
+valign = 2
+
+[node name="loy" type="Control" parent="actorinfo"]
+margin_top = 126.0
+margin_right = 139.0
+margin_bottom = 126.0
+
+[node name="Title" type="Label" parent="actorinfo/loy"]
+margin_left = 12.0
+margin_top = 14.0
+margin_right = 51.0
+margin_bottom = 61.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "忠"
+valign = 2
+
+[node name="Value" type="Label" parent="actorinfo/loy"]
+margin_left = 47.0
+margin_top = 14.0
+margin_right = 109.0
+margin_bottom = 63.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "99"
+align = 2
+valign = 2
+
+[node name="Loy100" type="Sprite" parent="actorinfo/loy"]
+visible = false
+position = Vector2( 89, 42 )
+scale = Vector2( 1.1875, 1.7 )
+texture = SubResource( 2 )

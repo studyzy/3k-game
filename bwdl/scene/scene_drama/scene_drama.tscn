@@ -1,0 +1,89 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://resource/images/picture/window3.png" type="Texture" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/30_outline.tres" type="DynamicFont" id=3]
+[ext_resource path="res://windows/light_select.tscn" type="PackedScene" id=4]
+[ext_resource path="res://scene/scene_drama/scene_drama.gd" type="Script" id=5]
+
+[node name="Control" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 192.0
+margin_right = -192.0
+script = ExtResource( 5 )
+
+[node name="Background" type="ColorRect" parent="."]
+margin_right = 640.0
+margin_bottom = 600.0
+rect_pivot_offset = Vector2( 189.465, 56.1982 )
+color = Color( 0.360784, 0.580392, 0.988235, 1 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="windows" type="Control" parent="."]
+margin_right = 640.0
+margin_bottom = 600.0
+
+[node name="bottom" type="NinePatchRect" parent="windows"]
+margin_left = 20.0
+margin_top = 380.0
+margin_right = 620.0
+margin_bottom = 580.0
+texture = ExtResource( 2 )
+region_rect = Rect2( -2.717, -3.033, 94.275, 91.951 )
+patch_margin_left = 29
+patch_margin_top = 23
+patch_margin_right = 20
+patch_margin_bottom = 20
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="top" type="NinePatchRect" parent="windows"]
+margin_left = 20.0
+margin_top = 20.0
+margin_right = 620.0
+margin_bottom = 380.0
+texture = ExtResource( 2 )
+region_rect = Rect2( -2.717, -3.033, 94.275, 91.951 )
+patch_margin_left = 29
+patch_margin_top = 23
+patch_margin_right = 20
+patch_margin_bottom = 20
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="top_title" type="RichTextLabel" parent="windows"]
+margin_left = 50.0
+margin_top = 30.0
+margin_right = 590.0
+margin_bottom = 72.0
+custom_colors/default_color = Color( 1, 0.913725, 0, 1 )
+custom_fonts/normal_font = ExtResource( 3 )
+bbcode_enabled = true
+bbcode_text = "[center]时期选择[/center]"
+text = "时期选择"
+scroll_active = false
+
+[node name="bottom_text" type="RichTextLabel" parent="windows"]
+margin_left = 44.0
+margin_top = 400.0
+margin_right = 596.0
+margin_bottom = 570.0
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 1 )
+text = "剧本描述"
+
+[node name="lsc" parent="." instance=ExtResource( 4 )]
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 180.0
+margin_top = 90.0
+margin_right = 400.0
+margin_bottom = 350.0
+v_separation = 60
+items = [ "黄巾之乱", "董卓弄权", "官渡之战", "赤壁之战", "三国鼎立" ]

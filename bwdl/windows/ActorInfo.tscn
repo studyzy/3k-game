@@ -1,0 +1,775 @@
+[gd_scene load_steps=17 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25_outline.tres" type="DynamicFont" id=1]
+[ext_resource path="res://resource/images/picture/lightChooose2.png" type="Texture" id=2]
+[ext_resource path="res://resource/images/equipment/disabled.png" type="Texture" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=4]
+[ext_resource path="res://resource/images/equipment/weapon.png" type="Texture" id=5]
+[ext_resource path="res://resource/images/equipment/suit.png" type="Texture" id=6]
+[ext_resource path="res://windows/ActorInfo.gd" type="Script" id=7]
+[ext_resource path="res://resource/font/FandolSong-Bold/27.tres" type="DynamicFont" id=8]
+[ext_resource path="res://resource/images/equipment/book.png" type="Texture" id=9]
+[ext_resource path="res://resource/images/equipment/horse.png" type="Texture" id=10]
+[ext_resource path="res://windows/children/actor_face.tscn" type="PackedScene" id=11]
+[ext_resource path="res://resource/images/picture/exp.png" type="Texture" id=12]
+[ext_resource path="res://resource/images/picture/star.png" type="Texture" id=13]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=14]
+
+[sub_resource type="Image" id=3]
+data = {
+"data": PoolByteArray( 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176, 252, 188, 176 ),
+"format": "RGB8",
+"height": 10,
+"mipmaps": false,
+"width": 32
+}
+
+[sub_resource type="ImageTexture" id=2]
+image = SubResource( 3 )
+size = Vector2( 32, 10 )
+
+[node name="actorDetailInfo" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 212.0
+margin_top = 410.0
+margin_right = -212.0
+script = ExtResource( 7 )
+
+[node name="bottom_scene" type="ColorRect" parent="."]
+margin_right = 600.0
+margin_bottom = 190.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="middle-up" type="Control" parent="."]
+margin_left = 145.0
+margin_top = -5.0
+margin_right = 306.0
+margin_bottom = 143.0
+
+[node name="lblTypes" type="Label" parent="middle-up"]
+margin_left = 9.0
+margin_top = 19.0
+margin_right = 144.0
+margin_bottom = 64.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 8 )
+text = "云长"
+align = 1
+valign = 2
+
+[node name="EXP" type="Control" parent="middle-up"]
+margin_left = -3.0
+margin_top = 66.0
+margin_right = 158.0
+margin_bottom = 114.0
+
+[node name="Exp" type="Sprite" parent="middle-up/EXP"]
+position = Vector2( 26, 28 )
+scale = Vector2( 3.25, 3.25 )
+texture = ExtResource( 12 )
+
+[node name="Value" type="Label" parent="middle-up/EXP"]
+margin_left = 76.0
+margin_top = 5.0
+margin_right = 158.0
+margin_bottom = 44.0
+grow_horizontal = 0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "00999"
+align = 2
+valign = 2
+max_lines_visible = 1
+
+[node name="lblArmyType" type="Label" parent="middle-up"]
+margin_left = -16.0
+margin_top = 108.0
+margin_right = 29.0
+margin_bottom = 152.0
+rect_scale = Vector2( 1.3, 0.8 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "山"
+align = 1
+valign = 2
+
+[node name="lblSodiers" type="Label" parent="middle-up"]
+margin_left = 73.0
+margin_top = 108.0
+margin_right = 155.0
+margin_bottom = 148.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "700"
+align = 2
+valign = 2
+
+[node name="Level" type="Control" parent="middle-up"]
+margin_top = 58.0
+margin_right = 150.0
+margin_bottom = 78.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="middle-up/Level"]
+margin_left = -6.0
+margin_top = -2.0
+margin_right = 141.0
+margin_bottom = 40.0
+custom_constants/separation = 21
+
+[node name="1" type="Control" parent="middle-up/Level/HBoxContainer"]
+margin_bottom = 42.0
+
+[node name="Star" type="Sprite" parent="middle-up/Level/HBoxContainer/1"]
+position = Vector2( 13.5, 13.5 )
+scale = Vector2( 3, 3 )
+texture = ExtResource( 13 )
+
+[node name="2" type="Control" parent="middle-up/Level/HBoxContainer"]
+margin_left = 21.0
+margin_right = 21.0
+margin_bottom = 42.0
+
+[node name="Star" type="Sprite" parent="middle-up/Level/HBoxContainer/2"]
+position = Vector2( 13.5, 13.5 )
+scale = Vector2( 3, 3 )
+texture = ExtResource( 13 )
+
+[node name="3" type="Control" parent="middle-up/Level/HBoxContainer"]
+margin_left = 42.0
+margin_right = 42.0
+margin_bottom = 42.0
+
+[node name="Star" type="Sprite" parent="middle-up/Level/HBoxContainer/3"]
+position = Vector2( 13.5, 13.5 )
+scale = Vector2( 3, 3 )
+texture = ExtResource( 13 )
+
+[node name="4" type="Control" parent="middle-up/Level/HBoxContainer"]
+margin_left = 63.0
+margin_right = 63.0
+margin_bottom = 42.0
+
+[node name="Star" type="Sprite" parent="middle-up/Level/HBoxContainer/4"]
+position = Vector2( 13.5, 13.5 )
+scale = Vector2( 3, 3 )
+texture = ExtResource( 13 )
+
+[node name="5" type="Control" parent="middle-up/Level/HBoxContainer"]
+margin_left = 84.0
+margin_right = 84.0
+margin_bottom = 42.0
+
+[node name="Star" type="Sprite" parent="middle-up/Level/HBoxContainer/5"]
+position = Vector2( 13.5, 13.5 )
+scale = Vector2( 3, 3 )
+texture = ExtResource( 13 )
+
+[node name="6" type="Control" parent="middle-up/Level/HBoxContainer"]
+margin_left = 105.0
+margin_right = 105.0
+margin_bottom = 42.0
+
+[node name="Star" type="Sprite" parent="middle-up/Level/HBoxContainer/6"]
+position = Vector2( 13.5, 13.5 )
+scale = Vector2( 3, 3 )
+texture = ExtResource( 13 )
+
+[node name="7" type="Control" parent="middle-up/Level/HBoxContainer"]
+margin_left = 126.0
+margin_right = 126.0
+margin_bottom = 42.0
+
+[node name="Star" type="Sprite" parent="middle-up/Level/HBoxContainer/7"]
+position = Vector2( 13.5, 13.5 )
+scale = Vector2( 3, 3 )
+texture = ExtResource( 13 )
+
+[node name="8" type="Control" parent="middle-up/Level/HBoxContainer"]
+margin_left = 147.0
+margin_right = 147.0
+margin_bottom = 42.0
+
+[node name="Star" type="Sprite" parent="middle-up/Level/HBoxContainer/8"]
+position = Vector2( 13.5, 13.5 )
+scale = Vector2( 3, 3 )
+texture = ExtResource( 13 )
+
+[node name="right-up" type="Control" parent="."]
+margin_left = 315.0
+margin_top = 9.0
+margin_right = 600.0
+margin_bottom = 139.0
+
+[node name="gv" type="GridContainer" parent="right-up"]
+margin_top = 12.0
+margin_right = 273.0
+margin_bottom = 146.0
+custom_constants/vseparation = 40
+custom_constants/hseparation = 90
+columns = 3
+
+[node name="HP" type="Control" parent="right-up/gv"]
+
+[node name="Title" type="Label" parent="right-up/gv/HP"]
+margin_left = 4.0
+margin_right = 36.0
+margin_bottom = 42.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "体"
+valign = 2
+max_lines_visible = 1
+
+[node name="damage" type="Sprite" parent="right-up/gv/HP"]
+self_modulate = Color( 1, 0, 0, 1 )
+position = Vector2( 82.8125, 28.645 )
+scale = Vector2( 0.196429, 0.196477 )
+texture = ExtResource( 2 )
+flip_v = true
+
+[node name="Value" type="Label" parent="right-up/gv/HP"]
+margin_left = 18.0
+margin_top = 4.0
+margin_right = 77.0
+margin_bottom = 43.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "198"
+align = 2
+valign = 2
+max_lines_visible = 1
+
+[node name="MOR" type="Control" parent="right-up/gv"]
+margin_left = 90.0
+margin_right = 90.0
+
+[node name="Title" type="Label" parent="right-up/gv/MOR"]
+margin_left = 4.0
+margin_right = 36.0
+margin_bottom = 42.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "德"
+valign = 2
+max_lines_visible = 1
+
+[node name="Value" type="Label" parent="right-up/gv/MOR"]
+margin_left = 18.0
+margin_top = 4.0
+margin_right = 77.0
+margin_bottom = 43.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "198"
+align = 2
+valign = 2
+max_lines_visible = 1
+
+[node name="damage" type="Sprite" parent="right-up/gv/MOR"]
+visible = false
+self_modulate = Color( 1, 0, 0, 1 )
+position = Vector2( 82.8125, 28.645 )
+scale = Vector2( 0.196429, 0.196477 )
+texture = ExtResource( 2 )
+flip_v = true
+
+[node name="COU" type="Control" parent="right-up/gv"]
+margin_left = 180.0
+margin_right = 180.0
+
+[node name="Title" type="Label" parent="right-up/gv/COU"]
+margin_left = 4.0
+margin_right = 36.0
+margin_bottom = 42.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "胆"
+valign = 2
+max_lines_visible = 1
+
+[node name="Value" type="Label" parent="right-up/gv/COU"]
+margin_left = 18.0
+margin_top = 4.0
+margin_right = 77.0
+margin_bottom = 43.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "184
+"
+align = 2
+valign = 2
+max_lines_visible = 1
+
+[node name="damage" type="Sprite" parent="right-up/gv/COU"]
+visible = false
+self_modulate = Color( 1, 0, 0, 1 )
+position = Vector2( 82.8125, 28.645 )
+scale = Vector2( 0.196429, 0.196477 )
+texture = ExtResource( 2 )
+flip_v = true
+
+[node name="INT" type="Control" parent="right-up/gv"]
+margin_top = 40.0
+margin_bottom = 40.0
+
+[node name="Title" type="Label" parent="right-up/gv/INT"]
+margin_left = 4.0
+margin_right = 36.0
+margin_bottom = 42.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "知"
+valign = 2
+max_lines_visible = 1
+
+[node name="Value" type="Label" parent="right-up/gv/INT"]
+margin_left = 18.0
+margin_top = 4.0
+margin_right = 77.0
+margin_bottom = 43.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "184
+"
+align = 2
+valign = 2
+max_lines_visible = 1
+
+[node name="damage" type="Sprite" parent="right-up/gv/INT"]
+visible = false
+self_modulate = Color( 1, 0, 0, 1 )
+position = Vector2( 82.8125, 28.645 )
+scale = Vector2( 0.196429, 0.196477 )
+texture = ExtResource( 2 )
+flip_v = true
+
+[node name="POL" type="Control" parent="right-up/gv"]
+margin_left = 90.0
+margin_top = 40.0
+margin_right = 90.0
+margin_bottom = 40.0
+
+[node name="Title" type="Label" parent="right-up/gv/POL"]
+margin_left = 4.0
+margin_right = 36.0
+margin_bottom = 42.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "政"
+valign = 2
+max_lines_visible = 1
+
+[node name="Value" type="Label" parent="right-up/gv/POL"]
+margin_left = 18.0
+margin_top = 4.0
+margin_right = 77.0
+margin_bottom = 43.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "184
+"
+align = 2
+valign = 2
+max_lines_visible = 1
+
+[node name="damage" type="Sprite" parent="right-up/gv/POL"]
+visible = false
+self_modulate = Color( 1, 0, 0, 1 )
+position = Vector2( 82.8125, 28.645 )
+scale = Vector2( 0.196429, 0.196477 )
+texture = ExtResource( 2 )
+flip_v = true
+
+[node name="LOY" type="Control" parent="right-up/gv"]
+margin_left = 180.0
+margin_top = 40.0
+margin_right = 180.0
+margin_bottom = 40.0
+
+[node name="Title" type="Label" parent="right-up/gv/LOY"]
+margin_left = 4.0
+margin_right = 36.0
+margin_bottom = 42.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "忠"
+valign = 2
+max_lines_visible = 1
+
+[node name="Value" type="Label" parent="right-up/gv/LOY"]
+margin_left = 18.0
+margin_top = 4.0
+margin_right = 77.0
+margin_bottom = 43.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "198"
+align = 2
+valign = 2
+max_lines_visible = 1
+
+[node name="Loy100" type="Sprite" parent="right-up/gv/LOY"]
+position = Vector2( 60.002, 26.3116 )
+scale = Vector2( 1.06238, 1.56232 )
+texture = SubResource( 2 )
+
+[node name="damage" type="Sprite" parent="right-up/gv/LOY"]
+visible = false
+self_modulate = Color( 1, 0, 0, 1 )
+position = Vector2( 82.8125, 28.645 )
+scale = Vector2( 0.196429, 0.196477 )
+texture = ExtResource( 2 )
+flip_v = true
+
+[node name="STR" type="Control" parent="right-up/gv"]
+margin_top = 80.0
+margin_bottom = 80.0
+
+[node name="Title" type="Label" parent="right-up/gv/STR"]
+margin_left = 4.0
+margin_right = 36.0
+margin_bottom = 42.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "武"
+valign = 2
+max_lines_visible = 1
+
+[node name="Value" type="Label" parent="right-up/gv/STR"]
+margin_left = 18.0
+margin_top = 4.0
+margin_right = 77.0
+margin_bottom = 43.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "198"
+align = 2
+valign = 2
+max_lines_visible = 1
+
+[node name="damage" type="Sprite" parent="right-up/gv/STR"]
+visible = false
+self_modulate = Color( 1, 0, 0, 1 )
+position = Vector2( 82.8125, 28.645 )
+scale = Vector2( 0.196429, 0.196477 )
+texture = ExtResource( 2 )
+flip_v = true
+
+[node name="COM" type="Control" parent="right-up/gv"]
+margin_left = 90.0
+margin_top = 80.0
+margin_right = 90.0
+margin_bottom = 80.0
+
+[node name="Title" type="Label" parent="right-up/gv/COM"]
+margin_left = 4.0
+margin_right = 36.0
+margin_bottom = 42.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "统"
+valign = 2
+max_lines_visible = 1
+
+[node name="Value" type="Label" parent="right-up/gv/COM"]
+margin_left = 18.0
+margin_top = 4.0
+margin_right = 77.0
+margin_bottom = 43.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "198"
+align = 2
+valign = 2
+max_lines_visible = 1
+
+[node name="damage" type="Sprite" parent="right-up/gv/COM"]
+visible = false
+self_modulate = Color( 1, 0, 0, 1 )
+position = Vector2( 82.8125, 28.645 )
+scale = Vector2( 0.196429, 0.196477 )
+texture = ExtResource( 2 )
+flip_v = true
+
+[node name="AP" type="Control" parent="right-up/gv"]
+margin_left = 180.0
+margin_top = 80.0
+margin_right = 180.0
+margin_bottom = 80.0
+
+[node name="Title" type="Label" parent="right-up/gv/AP"]
+margin_left = 4.0
+margin_right = 36.0
+margin_bottom = 42.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "机"
+valign = 2
+max_lines_visible = 1
+
+[node name="Value" type="Label" parent="right-up/gv/AP"]
+margin_left = 18.0
+margin_top = 4.0
+margin_right = 77.0
+margin_bottom = 43.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 14 )
+text = "999"
+align = 2
+valign = 2
+max_lines_visible = 1
+
+[node name="POK" type="Control" parent="right-up/gv"]
+margin_top = 120.0
+margin_bottom = 120.0
+
+[node name="Point2" type="Label" parent="right-up/gv/POK"]
+margin_left = 22.0
+margin_top = 8.0
+margin_right = 81.0
+margin_bottom = 47.0
+rect_scale = Vector2( 0.9, 0.9 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "9"
+align = 2
+valign = 2
+max_lines_visible = 1
+
+[node name="Title" type="Label" parent="right-up/gv/POK"]
+margin_left = 6.0
+margin_top = 3.0
+margin_right = 38.0
+margin_bottom = 45.0
+rect_scale = Vector2( 0.9, 0.9 )
+custom_colors/font_color = Color( 0, 1, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "木"
+valign = 2
+max_lines_visible = 1
+
+[node name="left" type="Control" parent="."]
+margin_right = 140.0
+margin_bottom = 190.0
+
+[node name="lblName" type="Label" parent="left"]
+margin_left = 5.0
+margin_top = 142.0
+margin_right = 135.0
+margin_bottom = 184.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "关羽暗啊"
+align = 1
+
+[node name="nprFace" parent="left" instance=ExtResource( 11 )]
+margin_left = 24.0
+margin_top = 26.0
+margin_right = -24.0
+margin_bottom = -52.0
+
+[node name="faceButton" type="Button" parent="left"]
+margin_left = 24.0
+margin_top = 26.0
+margin_right = 116.0
+margin_bottom = 138.0
+flat = true
+
+[node name="bottom" type="Control" parent="."]
+margin_left = 133.0
+margin_top = 139.0
+margin_right = 628.0
+margin_bottom = 191.0
+
+[node name="weapon" type="Control" parent="bottom"]
+margin_left = 5.0
+margin_right = 5.0
+margin_bottom = 48.0
+
+[node name="img" type="Sprite" parent="bottom/weapon"]
+texture = ExtResource( 5 )
+centered = false
+offset = Vector2( 6, 12 )
+
+[node name="name" type="RichTextLabel" parent="bottom/weapon"]
+margin_left = 42.0
+margin_top = -4.0
+margin_right = 126.0
+margin_bottom = 63.0
+grow_horizontal = 0
+grow_vertical = 0
+rect_scale = Vector2( 0.85, 0.85 )
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+custom_constants/table_vseparation = 0
+custom_constants/line_separation = -7
+custom_fonts/normal_font = ExtResource( 1 )
+bbcode_enabled = true
+bbcode_text = "[color=yellow]
+偃月刀[/color]"
+text = "
+偃月刀"
+scroll_active = false
+
+[node name="disabled" type="TextureRect" parent="bottom/weapon"]
+visible = false
+margin_top = 5.0
+margin_right = 44.0
+margin_bottom = 49.0001
+rect_scale = Vector2( 0.9, 0.9 )
+texture = ExtResource( 3 )
+expand = true
+
+[node name="deleted" type="ColorRect" parent="bottom/weapon"]
+visible = false
+margin_left = 48.0
+margin_top = 30.0
+margin_right = 102.0
+margin_bottom = 34.0
+rect_min_size = Vector2( 54, 4 )
+color = Color( 0, 0, 0, 1 )
+
+[node name="suit" type="Control" parent="bottom"]
+margin_left = 120.0
+margin_right = 120.0
+margin_bottom = 48.0
+
+[node name="img" type="Sprite" parent="bottom/suit"]
+texture = ExtResource( 6 )
+centered = false
+offset = Vector2( 6, 12 )
+
+[node name="name" type="RichTextLabel" parent="bottom/suit"]
+margin_left = 42.0
+margin_top = -4.0
+margin_right = 126.0
+margin_bottom = 63.0
+grow_horizontal = 0
+grow_vertical = 0
+rect_scale = Vector2( 0.85, 0.85 )
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+custom_constants/table_vseparation = 0
+custom_constants/line_separation = -7
+custom_fonts/normal_font = ExtResource( 1 )
+bbcode_enabled = true
+bbcode_text = "
+甲胄"
+text = "
+甲胄"
+scroll_active = false
+
+[node name="disabled" type="TextureRect" parent="bottom/suit"]
+visible = false
+margin_top = 5.0
+margin_right = 44.0
+margin_bottom = 49.0001
+rect_scale = Vector2( 0.9, 0.9 )
+texture = ExtResource( 3 )
+expand = true
+
+[node name="deleted" type="ColorRect" parent="bottom/suit"]
+visible = false
+margin_left = 48.0
+margin_top = 30.0
+margin_right = 102.0
+margin_bottom = 34.0
+rect_min_size = Vector2( 54, 4 )
+color = Color( 0, 0, 0, 1 )
+
+[node name="jewelry" type="Control" parent="bottom"]
+margin_left = 235.0
+margin_right = 235.0
+margin_bottom = 48.0
+
+[node name="img" type="Sprite" parent="bottom/jewelry"]
+texture = ExtResource( 9 )
+centered = false
+offset = Vector2( 6, 12 )
+
+[node name="name" type="RichTextLabel" parent="bottom/jewelry"]
+margin_left = 42.0
+margin_top = -4.0
+margin_right = 126.0
+margin_bottom = 63.0
+grow_horizontal = 0
+grow_vertical = 0
+rect_scale = Vector2( 0.85, 0.85 )
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+custom_constants/table_vseparation = 0
+custom_constants/line_separation = -7
+custom_fonts/normal_font = ExtResource( 1 )
+bbcode_enabled = true
+bbcode_text = "
+兵书"
+text = "
+兵书"
+scroll_active = false
+
+[node name="disabled" type="TextureRect" parent="bottom/jewelry"]
+visible = false
+margin_top = 5.0
+margin_right = 44.0
+margin_bottom = 49.0001
+rect_scale = Vector2( 0.9, 0.9 )
+texture = ExtResource( 3 )
+expand = true
+
+[node name="deleted" type="ColorRect" parent="bottom/jewelry"]
+visible = false
+margin_left = 48.0
+margin_top = 30.0
+margin_right = 102.0
+margin_bottom = 34.0
+rect_min_size = Vector2( 54, 4 )
+color = Color( 0, 0, 0, 1 )
+
+[node name="steed" type="Control" parent="bottom"]
+margin_left = 350.0
+margin_right = 350.0
+margin_bottom = 48.0
+
+[node name="img" type="Sprite" parent="bottom/steed"]
+texture = ExtResource( 10 )
+centered = false
+offset = Vector2( 6, 12 )
+
+[node name="name" type="RichTextLabel" parent="bottom/steed"]
+margin_left = 42.0
+margin_top = -4.0
+margin_right = 126.0
+margin_bottom = 63.0
+grow_horizontal = 0
+grow_vertical = 0
+rect_scale = Vector2( 0.85, 0.85 )
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+custom_constants/table_vseparation = 0
+custom_constants/line_separation = -7
+custom_fonts/normal_font = ExtResource( 1 )
+bbcode_enabled = true
+bbcode_text = "
+赤兔"
+text = "
+赤兔"
+scroll_active = false
+
+[node name="disabled" type="TextureRect" parent="bottom/steed"]
+visible = false
+margin_top = 5.0
+margin_right = 44.0
+margin_bottom = 49.0001
+rect_scale = Vector2( 0.9, 0.9 )
+texture = ExtResource( 3 )
+expand = true
+
+[node name="deleted" type="ColorRect" parent="bottom/steed"]
+visible = false
+margin_left = 48.0
+margin_top = 30.0
+margin_right = 102.0
+margin_bottom = 34.0
+rect_min_size = Vector2( 54, 4 )
+color = Color( 0, 0, 0, 1 )
+
+[node name="Tween" type="Tween" parent="."]
+
+[connection signal="pressed" from="left/faceButton" to="." method="_on_faceButton_pressed"]

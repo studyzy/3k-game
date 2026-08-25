@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/solo_surrend.ogg-98f9eb456e56ac9a89d7c2a27994d301.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/bgm/solo_surrend.ogg"
+dest_files=[ "res://.import/solo_surrend.ogg-98f9eb456e56ac9a89d7c2a27994d301.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

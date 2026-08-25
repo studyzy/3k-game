@@ -1,0 +1,18 @@
+extends "effect_20000.gd"
+
+#据守
+#【据守】大战场，主将锁定技。若你为战争守方，你视为拥有<坚守>和<溃围>。
+
+func appended_skill_list()->PoolStringArray:
+	var ret = []
+	if DataManager.get_current_scene_id() < 20000:
+		return ret
+	var me = DataManager.get_war_actor(self.actorId)
+	if me == null or me.disabled:
+		return ret
+	if not me.is_defender():
+		return ret
+	if me.get_main_actor_id() == actorId or me.get_buff_label_turn(["主将授权"]) > 0:
+		ret.append("坚守")
+		ret.append("溃围")
+	return ret

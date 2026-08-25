@@ -1,0 +1,50 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://resource/images/picture/window2.png" type="Texture" id=1]
+[ext_resource path="res://windows/light_select.tscn" type="PackedScene" id=2]
+[ext_resource path="res://windows/war_stratagem.gd" type="Script" id=3]
+
+[node name="war_stratagem" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -424.0
+script = ExtResource( 3 )
+
+[node name="Window2" type="NinePatchRect" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -300.0
+margin_right = 300.0
+margin_bottom = 410.0
+texture = ExtResource( 1 )
+region_rect = Rect2( -11.8143, -3, 111.22, 97.5095 )
+patch_margin_left = 44
+patch_margin_top = 33
+patch_margin_right = 41
+patch_margin_bottom = 43
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="bottom_scene_color" type="ColorRect" parent="."]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -300.0
+margin_top = -190.0
+margin_right = 300.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="lsc" parent="." instance=ExtResource( 2 )]
+margin_left = 84.0
+margin_top = -274.0
+margin_right = -471.0
+margin_bottom = 70.0
+columns = 2
+h_separation = 280
+v_separation = 43
+items = [ "火计", "陷阱", "虚兵", "要击", "乱水", "火箭", "伪击转杀", "共杀", "笼络", "落石", "连环", "十面埋伏", "水攻", "连弩", "劫火", "奇门遁甲" ]

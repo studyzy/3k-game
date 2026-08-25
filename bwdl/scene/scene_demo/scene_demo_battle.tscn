@@ -1,0 +1,438 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://windows/light_select.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scene/scene_demo/scene_demo_battle.gd" type="Script" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/26.tres" type="DynamicFont" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/30_outline.tres" type="DynamicFont" id=4]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=6]
+[ext_resource path="res://resource/images/JoyControl/emu_start.png" type="Texture" id=7]
+
+[sub_resource type="StyleBoxEmpty" id=1]
+
+[node name="Control" type="Control"]
+margin_left = 192.0
+margin_right = 832.0
+margin_bottom = 600.0
+script = ExtResource( 2 )
+
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_right = 640.0
+margin_bottom = 600.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="title" type="Label" parent="."]
+margin_right = 640.0
+margin_bottom = 62.0
+custom_colors/font_color = Color( 1, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 4 )
+text = "白刃试炼"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlGo" type="Panel" parent="."]
+margin_left = 20.0
+margin_top = 60.0
+margin_right = 620.0
+margin_bottom = 100.0
+
+[node name="ColorRect" type="ColorRect" parent="pnlGo"]
+margin_right = 600.0
+margin_bottom = 60.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="lblSide" type="Label" parent="pnlGo"]
+margin_left = 40.0
+margin_top = 5.0
+margin_right = 100.0
+margin_bottom = 45.0
+rect_scale = Vector2( 0.8, 0.8 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "身份"
+align = 1
+valign = 1
+
+[node name="optSide" type="OptionButton" parent="pnlGo"]
+margin_left = 100.0
+margin_top = 5.0
+margin_right = 160.0
+margin_bottom = 35.0
+rect_scale = Vector2( 0.8, 0.8 )
+custom_colors/font_color_disabled = Color( 1, 1, 1, 1 )
+custom_colors/font_color_focus = Color( 1, 1, 1, 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 6 )
+
+[node name="lblTerrian" type="Label" parent="pnlGo"]
+margin_left = 200.0
+margin_top = 5.0
+margin_right = 260.0
+margin_bottom = 45.0
+rect_scale = Vector2( 0.8, 0.8 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "地形"
+align = 1
+valign = 1
+
+[node name="optTerrian" type="OptionButton" parent="pnlGo"]
+margin_left = 260.0
+margin_top = 5.0
+margin_right = 340.0
+margin_bottom = 35.0
+rect_scale = Vector2( 0.8, 0.8 )
+custom_colors/font_color_disabled = Color( 1, 1, 1, 1 )
+custom_colors/font_color_focus = Color( 1, 1, 1, 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color_hover = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 6 )
+
+[node name="btnemu_start" type="TouchScreenButton" parent="pnlGo" groups=["press_key", "show_key"]]
+position = Vector2( 371, -5 )
+scale = Vector2( 0.8, 0.8 )
+z_index = 1
+normal = ExtResource( 7 )
+
+[node name="start" type="Label" parent="pnlGo"]
+margin_left = 473.0
+margin_top = 5.0
+margin_right = 604.0
+margin_bottom = 45.0
+rect_scale = Vector2( 0.8, 0.8 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = " - 决定阵容"
+valign = 1
+
+[node name="hr" type="ColorRect" parent="."]
+margin_left = 30.0
+margin_top = 105.0
+margin_right = 610.0
+margin_bottom = 107.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="headers" type="GridContainer" parent="."]
+margin_left = 20.0
+margin_top = 110.0
+margin_right = 620.0
+margin_bottom = 155.0
+custom_constants/vseparation = 22
+custom_constants/hseparation = 10
+columns = 5
+
+[node name="pnlRow" type="Panel" parent="headers"]
+margin_right = 120.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 120, 45 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="name" type="Label" parent="headers/pnlRow"]
+margin_right = 120.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlActor" type="Panel" parent="headers"]
+margin_left = 130.0
+margin_right = 250.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 120, 45 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="name" type="Label" parent="headers/pnlActor"]
+margin_right = 120.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "出战"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlLeader" type="Panel" parent="headers"]
+margin_left = 260.0
+margin_right = 380.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 120, 45 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="name" type="Label" parent="headers/pnlLeader"]
+margin_right = 120.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "主将"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlTeammate" type="Panel" parent="headers"]
+margin_left = 390.0
+margin_right = 510.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 120, 45 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="name" type="Label" parent="headers/pnlTeammate"]
+margin_right = 120.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "观战"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="attack" type="GridContainer" parent="."]
+margin_left = 20.0
+margin_top = 150.0
+margin_right = 620.0
+margin_bottom = 195.0
+custom_constants/vseparation = 22
+custom_constants/hseparation = 10
+columns = 5
+
+[node name="pnlRow" type="Panel" parent="attack"]
+margin_right = 120.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 120, 45 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="name" type="Label" parent="attack/pnlRow"]
+margin_right = 120.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "攻方"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlActor" type="Panel" parent="attack"]
+margin_left = 130.0
+margin_right = 250.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 120, 45 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="attack/pnlActor"]
+visible = false
+margin_right = 120.0
+margin_bottom = 45.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="attack/pnlActor"]
+margin_right = 120.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "木鹿大王"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlLeader" type="Panel" parent="attack"]
+margin_left = 260.0
+margin_right = 380.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 120, 45 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="attack/pnlLeader"]
+visible = false
+margin_right = 120.0
+margin_bottom = 45.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="attack/pnlLeader"]
+margin_right = 120.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "金环三结"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlTeammate" type="Panel" parent="attack"]
+margin_left = 390.0
+margin_right = 510.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 120, 45 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="attack/pnlTeammate"]
+visible = false
+margin_right = 120.0
+margin_bottom = 45.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="attack/pnlTeammate"]
+margin_right = 120.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "耶律宏基"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="defend" type="GridContainer" parent="."]
+margin_left = 20.0
+margin_top = 195.0
+margin_right = 530.0
+margin_bottom = 240.0
+custom_constants/vseparation = 22
+custom_constants/hseparation = 10
+columns = 5
+
+[node name="pnlRow" type="Panel" parent="defend"]
+margin_right = 120.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 120, 45 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="name" type="Label" parent="defend/pnlRow"]
+margin_right = 120.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "守方"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlActor" type="Panel" parent="defend"]
+margin_left = 130.0
+margin_right = 250.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 120, 45 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="defend/pnlActor"]
+visible = false
+margin_right = 120.0
+margin_bottom = 45.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="defend/pnlActor"]
+margin_right = 120.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "木鹿大王"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlLeader" type="Panel" parent="defend"]
+margin_left = 260.0
+margin_right = 380.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 120, 45 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="defend/pnlLeader"]
+visible = false
+margin_right = 120.0
+margin_bottom = 45.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="defend/pnlLeader"]
+margin_right = 120.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "金环三结"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="pnlTeammate" type="Panel" parent="defend"]
+margin_left = 390.0
+margin_right = 510.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 120, 45 )
+rect_clip_content = true
+custom_styles/panel = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="defend/pnlTeammate"]
+visible = false
+margin_right = 120.0
+margin_bottom = 45.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="name" type="Label" parent="defend/pnlTeammate"]
+margin_right = 120.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_constants/line_spacing = -4
+custom_fonts/font = ExtResource( 3 )
+text = "耶律宏基"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="hr2" type="ColorRect" parent="."]
+margin_left = 30.0
+margin_top = 240.0
+margin_right = 610.0
+margin_bottom = 242.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="pick_area" type="Control" parent="."]
+margin_left = 20.0
+margin_top = 250.0
+margin_right = 620.0
+margin_bottom = 410.0
+
+[node name="lsc" parent="pick_area" instance=ExtResource( 1 )]
+margin_left = 20.0
+margin_top = -80.0
+margin_right = -20.0
+margin_bottom = 80.0
+columns = 4
+h_separation = 160
+items = [ "随机", "鲍信", "蔡瑁", "曹操", "曹洪", "曹仁", "陈登", "陈宫", "陈珪", "陈纪", "成宜", "程普", "←上页", "下页→" ]
+font_size = 25
+cursor_offset = Vector2( -5, 4 )
+
+[node name="lblpage" type="Label" parent="pick_area"]
+margin_left = 480.0
+margin_top = 120.0
+margin_right = 600.0
+margin_bottom = 160.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 6 )
+text = "1/10"
+align = 1

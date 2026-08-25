@@ -1,0 +1,250 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://resource/images/picture/window2.png" type="Texture" id=1]
+[ext_resource path="res://resource/font/FandolSong-Bold/28.tres" type="DynamicFont" id=2]
+[ext_resource path="res://resource/font/FandolSong-Bold/35.tres" type="DynamicFont" id=3]
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=4]
+[ext_resource path="res://windows/war_status.gd" type="Script" id=5]
+
+[node name="war_status" type="Control"]
+margin_right = 600.0
+margin_bottom = 600.0
+script = ExtResource( 5 )
+
+[node name="bottom_scene_color" type="ColorRect" parent="."]
+margin_top = 410.0
+margin_right = 600.0
+margin_bottom = 600.0
+color = Color( 0.988235, 0.737255, 0.690196, 1 )
+
+[node name="Window2" type="NinePatchRect" parent="."]
+margin_right = 600.0
+margin_bottom = 410.0
+texture = ExtResource( 1 )
+region_rect = Rect2( -11.8143, -3, 111.22, 97.5095 )
+patch_margin_left = 44
+patch_margin_top = 33
+patch_margin_right = 41
+patch_margin_bottom = 43
+
+[node name="Atk" type="Control" parent="Window2"]
+margin_left = 66.0
+margin_top = 31.0
+margin_right = 273.0
+margin_bottom = 338.0
+
+[node name="lord" type="Control" parent="Window2/Atk"]
+margin_top = 50.0
+margin_right = 40.0
+margin_bottom = 100.0
+
+[node name="lblName" type="Label" parent="Window2/Atk/lord"]
+margin_left = 9.0
+margin_top = 5.0
+margin_right = 185.0
+margin_bottom = 47.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "攻方：刘备"
+align = 1
+
+[node name="stats" type="Control" parent="Window2/Atk"]
+margin_left = -2.0
+margin_top = 107.0
+margin_right = 198.0
+margin_bottom = 307.0
+
+[node name="lblActors" type="Label" parent="Window2/Atk/stats"]
+margin_left = 16.0
+margin_right = 96.0
+margin_bottom = 40.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "武将"
+
+[node name="valActors" type="Label" parent="Window2/Atk/stats"]
+margin_left = 86.0
+margin_right = 191.0
+margin_bottom = 40.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "10"
+align = 2
+
+[node name="lblSoldiers" type="Label" parent="Window2/Atk/stats"]
+margin_left = 16.0
+margin_top = 45.0
+margin_right = 96.0
+margin_bottom = 85.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "士兵"
+
+[node name="valSoldiers" type="Label" parent="Window2/Atk/stats"]
+margin_left = 86.0
+margin_top = 45.0
+margin_right = 191.0
+margin_bottom = 85.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "10000"
+align = 2
+
+[node name="lblGold" type="Label" parent="Window2/Atk/stats"]
+margin_left = 16.0
+margin_top = 90.0
+margin_right = 96.0
+margin_bottom = 130.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "金"
+
+[node name="valGold" type="Label" parent="Window2/Atk/stats"]
+margin_left = 86.0
+margin_top = 90.0
+margin_right = 191.0
+margin_bottom = 130.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "1500"
+align = 2
+
+[node name="lblRice" type="Label" parent="Window2/Atk/stats"]
+margin_left = 16.0
+margin_top = 136.0
+margin_right = 96.0
+margin_bottom = 176.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "米"
+
+[node name="valRice" type="Label" parent="Window2/Atk/stats"]
+margin_left = 86.0
+margin_top = 135.0
+margin_right = 191.0
+margin_bottom = 175.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "1500"
+align = 2
+
+[node name="Def" type="Control" parent="Window2"]
+margin_left = 316.0
+margin_top = 31.0
+margin_right = 523.0
+margin_bottom = 338.0
+
+[node name="lord" type="Control" parent="Window2/Def"]
+margin_top = 50.0
+margin_right = 40.0
+margin_bottom = 100.0
+
+[node name="lblName" type="Label" parent="Window2/Def/lord"]
+margin_left = 9.0
+margin_top = 5.0
+margin_right = 185.0
+margin_bottom = 47.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "守方：袁绍"
+align = 1
+
+[node name="stats" type="Control" parent="Window2/Def"]
+margin_left = -2.0
+margin_top = 107.0
+margin_right = 198.0
+margin_bottom = 307.0
+
+[node name="lblActors" type="Label" parent="Window2/Def/stats"]
+margin_left = 16.0
+margin_right = 96.0
+margin_bottom = 40.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "武将"
+
+[node name="valActors" type="Label" parent="Window2/Def/stats"]
+margin_left = 86.0
+margin_right = 191.0
+margin_bottom = 40.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "10"
+align = 2
+
+[node name="lblSoldiers" type="Label" parent="Window2/Def/stats"]
+margin_left = 16.0
+margin_top = 45.0
+margin_right = 96.0
+margin_bottom = 85.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "士兵"
+
+[node name="valSoldiers" type="Label" parent="Window2/Def/stats"]
+margin_left = 86.0
+margin_top = 45.0
+margin_right = 191.0
+margin_bottom = 85.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "8000"
+align = 2
+
+[node name="lblGold" type="Label" parent="Window2/Def/stats"]
+margin_left = 16.0
+margin_top = 90.0
+margin_right = 96.0
+margin_bottom = 130.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "金"
+
+[node name="valGold" type="Label" parent="Window2/Def/stats"]
+margin_left = 86.0
+margin_top = 90.0
+margin_right = 191.0
+margin_bottom = 130.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "9999"
+align = 2
+
+[node name="lblRice" type="Label" parent="Window2/Def/stats"]
+margin_left = 16.0
+margin_top = 136.0
+margin_right = 96.0
+margin_bottom = 176.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "米"
+
+[node name="valRice" type="Label" parent="Window2/Def/stats"]
+margin_left = 86.0
+margin_top = 135.0
+margin_right = 191.0
+margin_bottom = 175.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "9999"
+align = 2
+
+[node name="lblEndless" type="Label" parent="Window2"]
+margin_left = 86.0
+margin_top = 344.0
+margin_right = 478.0
+margin_bottom = 376.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 4 )
+text = "【简单】无尽模式 第1关"
+align = 1
+
+[node name="lblCity" type="Label" parent="Window2"]
+margin_left = 40.0
+margin_top = 25.0
+margin_right = 564.0
+margin_bottom = 72.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 3 )
+text = "濮阳"
+align = 1

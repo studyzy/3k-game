@@ -1,0 +1,293 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://scene/scene_net/scene_net_p2p.gd" type="Script" id=2]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 1, 1, 1, 1 )
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 1, 0.72549, 0, 1 )
+
+[sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 1, 1, 1, 1 )
+
+[sub_resource type="StyleBoxFlat" id=5]
+bg_color = Color( 0.691406, 0.658997, 0.658997, 1 )
+
+[sub_resource type="StyleBoxFlat" id=6]
+bg_color = Color( 0.0156863, 0.996078, 0.67451, 1 )
+
+[node name="Control" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 2 )
+
+[node name="bg" type="ColorRect" parent="."]
+margin_right = 1024.0
+margin_bottom = 600.0
+color = Color( 0, 0, 0, 0.556863 )
+
+[node name="lblTitle" type="Label" parent="."]
+margin_left = 261.0
+margin_top = 5.0
+margin_right = 711.0
+margin_bottom = 37.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "联机游戏（点对点）"
+align = 1
+
+[node name="btnBack" type="Button" parent="."]
+margin_left = 16.0
+margin_top = 5.0
+margin_right = 134.0
+margin_bottom = 51.0
+custom_fonts/font = ExtResource( 1 )
+text = "返回"
+
+[node name="conPort" type="Control" parent="."]
+margin_left = 49.0
+margin_top = 64.0
+margin_right = 305.0
+margin_bottom = 106.0
+rect_pivot_offset = Vector2( -78, 66 )
+
+[node name="lblTitle" type="Label" parent="conPort"]
+margin_left = 16.0
+margin_top = 5.0
+margin_right = 120.0
+margin_bottom = 37.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "端口:"
+align = 2
+
+[node name="LineEdit" type="LineEdit" parent="conPort"]
+margin_left = 131.0
+margin_top = 6.0
+margin_right = 271.0
+margin_bottom = 38.0
+custom_colors/font_color_selected = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_uneditable = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "27886"
+placeholder_text = "0~65535"
+
+[node name="conNickName" type="Control" parent="."]
+margin_left = 321.0
+margin_top = 64.0
+margin_right = 668.0
+margin_bottom = 106.0
+rect_pivot_offset = Vector2( -78, 66 )
+
+[node name="lblTitle" type="Label" parent="conNickName"]
+margin_left = 16.0
+margin_top = 5.0
+margin_right = 120.0
+margin_bottom = 37.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "昵称:"
+align = 2
+
+[node name="LineEdit" type="LineEdit" parent="conNickName"]
+margin_left = 131.0
+margin_top = 6.0
+margin_right = 288.0
+margin_bottom = 38.0
+custom_colors/font_color_selected = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_uneditable = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+placeholder_text = "请输入昵称"
+
+[node name="Panel" type="Panel" parent="."]
+margin_left = 116.0
+margin_top = 126.0
+margin_right = 925.0
+margin_bottom = 579.0
+rect_pivot_offset = Vector2( 263, 79 )
+custom_styles/panel = SubResource( 4 )
+
+[node name="HFlowContainer" type="HFlowContainer" parent="Panel"]
+margin_right = 807.0
+margin_bottom = 40.0
+
+[node name="Server" type="Button" parent="Panel/HFlowContainer"]
+margin_right = 62.0
+margin_bottom = 38.0
+custom_colors/font_color_pressed = Color( 1, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+toggle_mode = true
+pressed = true
+text = "主机"
+
+[node name="Client" type="Button" parent="Panel/HFlowContainer"]
+margin_left = 66.0
+margin_right = 153.0
+margin_bottom = 38.0
+custom_colors/font_color_pressed = Color( 1, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+toggle_mode = true
+text = "客户端"
+
+[node name="pnlServer" type="Panel" parent="Panel"]
+margin_top = 39.0
+margin_right = 808.0
+margin_bottom = 451.0
+custom_styles/panel = SubResource( 3 )
+
+[node name="conPlayers" type="Control" parent="Panel/pnlServer"]
+margin_left = 97.0
+margin_top = 39.0
+margin_right = 663.0
+margin_bottom = 81.0
+rect_pivot_offset = Vector2( -150, 73 )
+
+[node name="lblTitle" type="Label" parent="Panel/pnlServer/conPlayers"]
+margin_left = 16.0
+margin_top = 5.0
+margin_right = 120.0
+margin_bottom = 37.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "最大游戏人数："
+align = 2
+
+[node name="LineEdit" type="LineEdit" parent="Panel/pnlServer/conPlayers"]
+margin_left = 192.0
+margin_top = 6.0
+margin_right = 276.0
+margin_bottom = 38.0
+custom_colors/font_color_selected = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_uneditable = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 5 )
+text = "4"
+align = 1
+placeholder_text = "2人以上"
+
+[node name="btnCreateRoom" type="Button" parent="Panel/pnlServer"]
+margin_left = 175.0
+margin_top = 95.0
+margin_right = 384.0
+margin_bottom = 144.0
+rect_scale = Vector2( 0.8, 0.8 )
+custom_fonts/font = ExtResource( 1 )
+text = "点此建立主机"
+
+[node name="pnlClient" type="Panel" parent="Panel"]
+visible = false
+margin_top = 39.0
+margin_right = 808.0
+margin_bottom = 451.0
+custom_styles/panel = SubResource( 3 )
+
+[node name="conIP" type="Control" parent="Panel/pnlClient"]
+margin_left = 87.0
+margin_top = 77.0
+margin_right = 653.0
+margin_bottom = 119.0
+rect_pivot_offset = Vector2( -150, 73 )
+
+[node name="lblTitle" type="Label" parent="Panel/pnlClient/conIP"]
+margin_left = 16.0
+margin_top = 5.0
+margin_right = 120.0
+margin_bottom = 37.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+text = "主机IP:"
+align = 2
+
+[node name="LineEdit" type="LineEdit" parent="Panel/pnlClient/conIP"]
+margin_left = 131.0
+margin_top = 6.0
+margin_right = 378.0
+margin_bottom = 38.0
+custom_colors/font_color_selected = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_uneditable = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 5 )
+text = "192.168.0.1"
+
+[node name="btnConnect" type="Button" parent="Panel/pnlClient"]
+margin_left = 233.0
+margin_top = 141.0
+margin_right = 335.0
+margin_bottom = 180.0
+rect_scale = Vector2( 0.8, 0.8 )
+custom_fonts/font = ExtResource( 1 )
+text = "连接"
+
+[node name="pnlTalk" type="Panel" parent="Panel"]
+margin_top = -68.0
+margin_right = 808.0
+margin_bottom = 451.0
+rect_pivot_offset = Vector2( -67, 152 )
+custom_styles/panel = SubResource( 3 )
+
+[node name="btnEndLink" type="Button" parent="Panel/pnlTalk"]
+margin_left = 687.0
+margin_top = 477.0
+margin_right = 805.0
+margin_bottom = 515.0
+custom_fonts/font = ExtResource( 1 )
+text = "断开连接"
+
+[node name="txtMsg" type="RichTextLabel" parent="Panel/pnlTalk"]
+margin_left = 20.0
+margin_top = 18.0
+margin_right = 791.0
+margin_bottom = 402.0
+focus_mode = 2
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+custom_fonts/normal_font = ExtResource( 1 )
+custom_styles/normal = SubResource( 6 )
+bbcode_enabled = true
+scroll_following = true
+selection_enabled = true
+
+[node name="btnStart" type="Button" parent="Panel/pnlTalk"]
+margin_left = 546.0
+margin_top = 477.0
+margin_right = 664.0
+margin_bottom = 515.0
+custom_fonts/font = ExtResource( 1 )
+toggle_mode = true
+text = "开始游戏"
+
+[node name="LineEdit" type="LineEdit" parent="Panel/pnlTalk"]
+margin_left = 21.0
+margin_top = 424.0
+margin_right = 712.0
+margin_bottom = 456.0
+custom_colors/font_color_selected = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_uneditable = Color( 0, 0, 0, 1 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 5 )
+placeholder_text = "输入聊天内容"
+
+[node name="btnSendMsg" type="Button" parent="Panel/pnlTalk"]
+margin_left = 722.0
+margin_top = 425.0
+margin_right = 806.0
+margin_bottom = 463.0
+rect_scale = Vector2( 0.8, 0.8 )
+custom_fonts/font = ExtResource( 1 )
+text = "发送"
+
+[connection signal="pressed" from="Panel/HFlowContainer/Server" to="." method="_on_Server_pressed"]
+[connection signal="pressed" from="Panel/HFlowContainer/Client" to="." method="_on_Client_pressed"]
+[connection signal="pressed" from="Panel/pnlServer/btnCreateRoom" to="." method="_on_btnCreateRoom_pressed"]
+[connection signal="pressed" from="Panel/pnlClient/btnConnect" to="." method="_on_btnConnect_pressed"]
+[connection signal="pressed" from="Panel/pnlTalk/btnEndLink" to="." method="_on_btnEndLink_pressed"]
+[connection signal="pressed" from="Panel/pnlTalk/btnStart" to="." method="_on_btnStart_pressed"]
+[connection signal="pressed" from="Panel/pnlTalk/btnSendMsg" to="." method="_on_btnSendMsg_pressed"]

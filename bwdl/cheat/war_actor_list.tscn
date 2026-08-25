@@ -1,0 +1,298 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
+[ext_resource path="res://cheat/keyword.gd" type="Script" id=2]
+[ext_resource path="res://resource/images/actor/face/face-0.png" type="Texture" id=3]
+[ext_resource path="res://cheat/pager.gd" type="Script" id=4]
+[ext_resource path="res://cheat/war_actor_list.gd" type="Script" id=5]
+[ext_resource path="res://cheat/war_actor_detail.tscn" type="PackedScene" id=6]
+[ext_resource path="res://cheat/actor.tscn" type="PackedScene" id=7]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0.145098, 0.145098, 0.164706, 1 )
+
+[node name="war_actor_list" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -424.0
+margin_bottom = -200.0
+rect_min_size = Vector2( 600, 400 )
+script = ExtResource( 5 )
+
+[node name="nav" type="HBoxContainer" parent="."]
+margin_right = 600.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 600, 42 )
+custom_constants/separation = 0
+
+[node name="keyword" type="LineEdit" parent="nav"]
+margin_right = 120.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 1 )
+caret_blink = true
+caret_blink_speed = 0.5
+script = ExtResource( 2 )
+__meta__ = {
+"_editor_description_": "0,5"
+}
+
+[node name="sep1" type="Panel" parent="nav"]
+margin_left = 120.0
+margin_right = 136.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 16, 40 )
+
+[node name="search" type="Button" parent="nav"]
+margin_left = 136.0
+margin_right = 196.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "搜"
+
+[node name="sep2" type="Panel" parent="nav"]
+margin_left = 196.0
+margin_right = 260.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 64, 40 )
+
+[node name="first" type="Button" parent="nav"]
+margin_left = 260.0
+margin_right = 320.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "|<"
+
+[node name="prev" type="Button" parent="nav"]
+margin_left = 320.0
+margin_right = 380.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "<"
+
+[node name="page" type="LineEdit" parent="nav"]
+margin_left = 380.0
+margin_right = 480.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 100, 40 )
+custom_fonts/font = ExtResource( 1 )
+align = 1
+caret_blink = true
+caret_blink_speed = 0.5
+script = ExtResource( 4 )
+__meta__ = {
+"_editor_description_": "1,3"
+}
+
+[node name="next" type="Button" parent="nav"]
+margin_left = 480.0
+margin_right = 540.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = ">"
+
+[node name="last" type="Button" parent="nav"]
+margin_left = 540.0
+margin_right = 600.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = ">|"
+
+[node name="header" type="HBoxContainer" parent="."]
+margin_top = 60.0
+margin_right = 600.0
+margin_bottom = 100.0
+rect_min_size = Vector2( 600, 40 )
+custom_constants/separation = 0
+
+[node name="战将" type="Button" parent="header"]
+margin_right = 190.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 190, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "战将"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "actor"
+}
+
+[node name="体" type="Button" parent="header"]
+margin_left = 190.0
+margin_right = 240.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 50, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "体"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "hp"
+}
+
+[node name="士兵" type="Button" parent="header"]
+margin_left = 240.0
+margin_right = 310.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 70, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "士兵"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "soldier"
+}
+
+[node name="机动力" type="Button" parent="header"]
+margin_left = 310.0
+margin_right = 370.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 60, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "机"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "ap"
+}
+
+[node name="状态" type="Button" parent="header"]
+margin_left = 370.0
+margin_right = 490.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 120, 40 )
+custom_fonts/font = ExtResource( 1 )
+disabled = true
+text = "所在"
+icon_align = 2
+__meta__ = {
+"_editor_description_": "leadership"
+}
+
+[node name="操作区" type="Button" parent="header"]
+margin_left = 490.0
+margin_right = 600.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 110, 40 )
+custom_fonts/font = ExtResource( 1 )
+disabled = true
+
+[node name="row" type="HBoxContainer" parent="."]
+margin_top = 100.0
+margin_right = 600.0
+margin_bottom = 160.0
+rect_min_size = Vector2( 600, 60 )
+custom_constants/separation = 0
+
+[node name="ac" type="Panel" parent="row"]
+margin_right = 50.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 50, 60 )
+
+[node name="avatar" type="Sprite" parent="row/ac"]
+scale = Vector2( 1.5, 1.5 )
+texture = ExtResource( 3 )
+centered = false
+region_enabled = true
+region_rect = Rect2( 0, 0, 32, 40 )
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="name" type="Label" parent="row"]
+margin_left = 50.0
+margin_right = 190.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 140, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "完颜阿骨打"
+align = 1
+valign = 1
+
+[node name="体" type="Label" parent="row"]
+margin_left = 190.0
+margin_right = 240.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 50, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "99"
+align = 1
+valign = 1
+
+[node name="士兵" type="Label" parent="row"]
+margin_left = 240.0
+margin_right = 310.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 70, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "3000	"
+align = 1
+valign = 1
+
+[node name="机动力" type="Label" parent="row"]
+margin_left = 310.0
+margin_right = 370.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 60, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "999"
+align = 1
+valign = 1
+
+[node name="状态" type="Label" parent="row"]
+margin_left = 370.0
+margin_right = 490.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 120, 60 )
+custom_fonts/font = ExtResource( 1 )
+custom_styles/normal = SubResource( 1 )
+text = "<20,20>"
+align = 1
+valign = 1
+
+[node name="operation" type="Panel" parent="row"]
+margin_left = 490.0
+margin_right = 600.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 110, 60 )
+
+[node name="btn" type="Button" parent="row/operation"]
+margin_left = 15.0
+margin_top = 10.0
+margin_right = 95.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 80, 40 )
+custom_fonts/font = ExtResource( 1 )
+text = "修改"
+
+[node name="list" type="VBoxContainer" parent="."]
+margin_top = 100.0
+margin_right = 600.0
+margin_bottom = 400.0
+rect_min_size = Vector2( 600, 300 )
+custom_constants/separation = 0
+
+[node name="detail" parent="." instance=ExtResource( 6 )]
+
+[node name="basics" parent="." instance=ExtResource( 7 )]
+rect_min_size = Vector2( 600, 400 )
+
+[connection signal="pressed" from="nav/search" to="." method="search"]
+[connection signal="pressed" from="nav/first" to="." method="page_first"]
+[connection signal="pressed" from="nav/prev" to="." method="page_prev"]
+[connection signal="pressed" from="nav/next" to="." method="page_next"]
+[connection signal="pressed" from="nav/last" to="." method="page_last"]
+[connection signal="pressed" from="header/战将" to="." method="sorting" binds= [ "actor" ]]
+[connection signal="pressed" from="header/体" to="." method="sorting" binds= [ "hp" ]]
+[connection signal="pressed" from="header/士兵" to="." method="sorting" binds= [ "soldier" ]]
+[connection signal="pressed" from="header/机动力" to="." method="sorting" binds= [ "ap" ]]
+[connection signal="basics" from="detail" to="." method="go_basics"]
+[connection signal="cancel" from="detail" to="." method="reload"]
+[connection signal="saved" from="detail" to="." method="saved"]
+[connection signal="cancel" from="basics" to="." method="reload"]
+[connection signal="saved" from="basics" to="." method="saved"]

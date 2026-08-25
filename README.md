@@ -1,172 +1,97 @@
 <div align="center">
 
-# 霸王的大陆（Godot 移植版）
+# 霸王的大陆（Godot 3.5.3 反编译工程）
 
-**三国志题材经典策略游戏「霸王的大陆」的 Godot 4 + Go 客户端/服务器复刻版**
+**「霸王的大陆GD安卓版 2540.Apk」反编译得到的完整可运行 Godot 3.5.3 工程**
 
-![Godot](https://img.shields.io/badge/Godot-4.7.2-478cbf?logo=godotengine&logoColor=white)
-![Go](https://img.shields.io/badge/Go-1.24-00ADD8?logo=go&logoColor=white)
-![go-zero](https://img.shields.io/badge/go--zero-1.10.3-00ADD8)
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
-![CI](https://github.com/studyzy/3k-game/actions/workflows/ci.yml/badge.svg)
+![Godot](https://img.shields.io/badge/Godot-3.5.3-478cbf?logo=godotengine&logoColor=white)
+![GDScript](https://img.shields.io/badge/GDScript-1378%20个脚本-478cbf)
+![License](https://img.shields.io/badge/License-仅供学习研究-red.svg)
 
 </div>
 
 ## 📖 简介
 
-「霸王的大陆」是光荣（KOEI）于 1992 年推出的经典三国策略游戏。本项目是其 **客户端/服务器（C/S）复刻版**：
+本仓库是把安卓游戏 **《霸王的大陆GD安卓版 2540.Apk》**（一款 Godot 3.5.3 导出的三国策略游戏，游戏内项目名为 `Sgz Bwddl`，即「三国志2 霸王的大陆」复刻版）反编译、重组后的 **可编译、可运行** 的完整 Godot 工程。
 
-- **Go 权威服务器**（go-zero + WebSocket）：承载全部游戏逻辑——武将数值公式、内政、战争、战术战斗、月度事件、AI 决策、随机数生成与结果判定。
-- **Godot 4 纯 UI 客户端**：只负责渲染界面与发送指令，不做任何逻辑计算。
+> ⚠️ **版权声明**：原版《霸王的大陆》为光荣（KOEI）的版权作品，本 APK 为第三方复刻。本项目仅用于**学习研究反编译技术与游戏逻辑**，不包含任何自主创作，请勿用于任何商业用途或二次分发。
 
-目标为 **100% 复刻原版的数据与逻辑**。服务器是唯一权威，客户端无法篡改随机数/属性/资源，天然防作弊；每局独立、状态存服务器，支持跨设备与云端存档。
+## 🗂 目录结构
 
-> ⚠️ **版权声明**：原版《霸王的大陆》为光荣（KOEI）的版权作品。本仓库为**致敬与学习性质**的开源复刻，不包含原版任何受版权保护的素材（图像、音频、关卡数据均为本项目自行构建），仅供学习研究使用，请勿用于商业用途。
+| 路径 | 说明 |
+|---|---|
+| `bwdl/` | **反编译后的完整 Godot 3.5.3 工程**（主交付物） |
+| `bwdl/script/` | 框架脚本（战斗、内政、战争、技能、数据管理） |
+| `bwdl/scene/` | 各场景脚本（标题、内政、战斗、单挑、战争等） |
+| `bwdl/windows/` | UI 控件脚本 |
+| `bwdl/resource/` | 美术/音频/字体资源（PNG、OGG、TTF 等） |
+| `bwdl/packed/data/` | 游戏数据（武将/城市/技能/装备/剧本等 JSON，可直接改） |
+| `bwdl/packed/images/` | 运行时图片（2207 张） |
+| `bwdl/packed/sgz_script/` | 游戏规则脚本（1189 个 `.gd`，原作者明文源码，含中文注释） |
+| `Godot_3.5.3.app/` | 运行本工程所需的 Godot 3.5.3 编辑器（macOS 版） |
+| `霸王的大陆GD安卓版 2540.Apk` | 原始 APK（仅反编译输入源，已不需要） |
 
-## ✨ 功能特性
+## 🔧 内容统计
 
-**服务器（`server/`，Go）**
-- **完整数据层**：185 武将、48 城池、3 势力、32 武器，完整数值公式（经验升级、忠诚、薪水、收入、征兵、内政效果、战力计算等）
-- **核心循环**：选君主 → 大地图 → 城市内政 → 结束回合 → AI 行动 → 月度推进
-- **内政系统**：开垦、劝商、治水、巡查、征兵、搜索、登用、奖赏、任命、输送
-- **战争系统**：手动网格地图（19×32）、A* 寻路 + 机动力、村庄交互、16 种计策、AI 追击、日循环、遭遇战
-- **战斗系统**：5 种阵型（手动/自动）、逐格战术战斗 / SimulatedBattle 自动结算
-- **计策/战术/单挑**：16 种计策完整成功率与效果公式、6 种战术、单挑攻防/命中/招降
-- **月度事件**：起义、旱灾/洪涝/蝗灾/瘟疫/骚乱、伤病恢复、在野武将流动、武将登场
-- **AI**：势力每月收税、内政、搜索登用、奖赏、征兵、输送、评估进攻
-- **权威性**：可播种 RNG（seed 入档，可回放）、服务器唯一权威、防作弊
-- **其它**：自建武将（随机服务器化）、存档落盘（JSON）、HTTP 登录/建局/存读档 + WebSocket 局内通信
-
-**客户端（Godot）**
-- 纯 UI 渲染，仅发送指令 + 播放服务器返回
-- 通过 WebSocket 接收服务器推送（状态增量、战争/战斗步骤、回合结果）
-
-## 🖥️ 运行环境
-
-| 依赖 | 版本 |
-|------|------|
-| [Go](https://go.dev/dl/) | **1.24+** |
-| [Godot](https://godotengine.org/download) | **4.7.2**（或更新 4.x 版本） |
-| 操作系统 | macOS / Windows / Linux |
+| 类型 | 数量 | 说明 |
+|---|---|---|
+| 框架脚本（`.gd`） | 189 | 从 `.gdc` 字节码反编译，已加中文注释 |
+| 规则脚本（`sgz_script/*.gd`） | 1189 | 原作者明文源码，本身含中文注释 |
+| 场景（`.tscn`） | 117 | 文本格式 |
+| 纹理（`.png`） | 920 + 2207 | 工程内资源 + 运行时打包资源 |
+| 音频（`.ogg`） | 55 | 从 `.oggstr` 还原 |
+| 数据（`.json`） | 1200 | 武将/城市/技能/装备等，可直接修改 |
+| 资源/着色器 | 24 + 2 | `.tres` / `.gdshader` 文本格式 |
 
 ## 🚀 快速开始
 
-### 1. 启动服务器
-
-```bash
-cd server
-make run          # 或: go run ./cmd/server
-# 服务器监听 0.0.0.0:8080（HTTP + WebSocket）
-```
-
-> 注意：本机若 `GOROOT` 环境变量被错误指向 go1.26 模块工具链，请用 `make build` / `make run`（Makefile 已封装 `GOROOT=/usr/local/go GOTOOLCHAIN=local`）。
-
-### 2. 运行客户端
-
-```bash
-cd 3k-game
-godot --path .    # 客户端启动后自动连接 127.0.0.1:8080
-```
-
-或用 Godot 编辑器打开 `project.godot` 后按 F5。
-
-### HTTP 接口
-
-| 方法 | 路径 | 作用 |
-|------|------|------|
-| POST | `/auth/login` | 登录（开发期 mock，返回 token） |
-| POST | `/game/new` | 创建新局，返回全量快照 |
-| POST | `/game/save` | 存档到服务器 |
-| POST | `/game/load` | 读档 |
-| GET | `/game/ws` | WebSocket 游戏长连接 |
-
-## 🧪 测试
-
-### 服务器单元测试（Go）
-
-```bash
-cd server
-make test         # 运行 internal/game 全部单测
-make vet          # go vet 静态检查
-```
-
-覆盖：数据加载、武将公式、内政命令、回合/月度、战争准备、自建武将、存档往返一致。
-
-### 客户端校验
-
-```bash
-make check        # headless 校验工程（导入资源、检查脚本错误）
-```
-
-> 原 GDScript 逻辑测试（`scenes/tests/`、`tests/`）已随逻辑迁移到 Go 服务器删除，逻辑测试现为 `server/internal/game/world_test.go`。客户端仅保留 headless 工程校验。
-
-## 📁 项目结构
-
-```
-├── project.godot           # Godot 工程配置（含 autoload：NetClient/Mirror/缓存）
-├── Makefile                # 客户端常用命令（run/check）
-├── assets/                 # 美术资源（字体/音频/UI 图片）
-├── data/                   # 静态配置数据（武将/城池/势力/武器 JSON、阵型/地图 CSV）
-├── scenes/                 # 场景（main 主菜单 / ui 各界面）
-├── scripts/
-│   ├── net/                # NetClient（HTTP+WebSocket）/ Mirror（只读镜像）★ 新增
-│   └── ui/                 # UI 逻辑（发指令 + 播结果）
-├── server/                 # ★ Go 服务器
-│   ├── cmd/server/         # 入口（config + svc + 路由注册）
-│   ├── internal/
-│   │   ├── config/         # go-zero 配置
-│   │   ├── types/          # HTTP DTO
-│   │   ├── handler/        # HTTP handler
-│   │   ├── logic/          # HTTP 业务逻辑
-│   │   ├── svc/            # ServiceContext 依赖注入
-│   │   ├── ws/             # WebSocket 网关/协议/session
-│   │   ├── game/           # ★ 全部游戏逻辑（entities/rng 子包 + world_test.go）
-│   │   └── persist/        # 存档存储
-│   └── Makefile            # 服务器命令（build/run/test/vet）
-└── addons/                 # Godot 插件
-```
-
-## 🛠️ 开发
-
-### 架构（C/S）
-
-**核心设计模式：Go 权威服务器 + Godot 纯 UI 客户端。**
-
-- **服务器唯一权威**：全部随机数（可播种 RNG）、结果判定、AI 决策在服务器完成。客户端只读服务器下发的状态（`Mirror`），不执行任何 `randi*` 或公式。
-- **通信**：HTTP 承载一次性动作（登录/建局/存读档）；WebSocket 承载局内命令与服务器推送（状态增量 `S2C_Delta`、战争/战斗步骤、回合结果）。
-- **协议**：统一信封 `{"v":1,"type":"req"|"push","seq":N,"op":<opcode>,"body":{}}`；opcode 复用原版 `GameInfo.TaskType` 枚举作为命令表。
-- **游戏逻辑层**（`server/internal/game/`）为纯净 Go 包，不依赖 go-zero，可用 `go test` 独立测试，为将来拆分微服务/万人演进预留。
-- 修改逻辑前，先理解"服务器哪个函数处理该命令、客户端哪个场景触发它"。
-
-### 客户端 autoload 单例
-
-- **网络**：`NetClient`（登录/建局/存档 HTTP + WebSocket 长连接）、`Mirror`（只读状态镜像）。
-- **静态数据渲染**：`DataManager`/`CityListCache`/`CountryListCache`/`GeneralListCache`/`WeaponListCache`/`TextLibrary`/`GameInfo`（仅用于读取武将名/属性/城池坐标等静态配置与枚举，不含游戏逻辑计算）。
-- 本地游戏逻辑单例（`TurnManager`/`WarManager`/`BattleManager`/`MapManager`/`SoloManager`）已从 autoload 移除。
-
-### 服务器分层（go-zero）
-
-```
-handler → logic → svc(ServiceContext) → game(World)
-   │           └→ persist(存档)
-   └→ ws(Gateway/Session) ─→ game(World)
-```
-
 ### 环境要求
 
-- **Go 1.24+**、**Godot 4.7.2**
-- **本机坑**：若 `GOROOT` 环境变量被错误指向 go1.26 模块工具链，用 `cd server && make ...`（已封装正确的 `GOROOT`/`GOTOOLCHAIN`）。
-- 开发期服务器不依赖 redis/mysql（内存态 + JSON 存档）；`Godot` 开启"警告当错误"，脚本中推断为 Variant 的变量需显式声明类型。
+- **Godot 3.5.3**（本仓库已自带 macOS 版 `Godot_3.5.3.app`）
+- 注意：**不能用 Godot 4.x** 打开（脚本为 GDScript 1.0 语法，会报版本不兼容）
 
-## 🤝 贡献
+### 运行方式
 
-欢迎任何形式的贡献！请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
+```bash
+# 方式一：Makefile（推荐）
+make run          # 运行游戏
+make edit         # 打开编辑器
+make check        # headless 校验工程
+make clean        # 清理导入缓存
 
-- 🐛 报告问题 / 💡 建议功能 → [Issues](https://github.com/studyzy/3k-game/issues)
-- 🚀 提交代码 → [Pull Requests](https://github.com/studyzy/3k-game/pulls)
+# 方式二：直接命令行
+./Godot_3.5.3.app/Contents/MacOS/Godot --path bwdl
+```
 
-## 📄 许可证
+> 💡 这是**移动端（触摸）游戏**，桌面运行靠鼠标模拟触摸（`project.godot` 已开启 `emulate_touch_from_mouse`）。游戏存档会写到 Godot 可执行文件同级的 `sgz/` 目录。
 
-本项目以 [MIT](LICENSE) 许可证开源。
+## 📝 中文注释说明
 
-> 免责声明：本移植版为学习与致敬目的开发，与光荣（KOEI）及其《霸王的大陆》无任何关联或授权。若涉及任何权利争议，请与维护者联系。
+反编译得到的代码全部添加了中文注释：
+
+- **全部 189 个脚本**：文件头注释，说明该脚本职责。
+- **核心逻辑文件**：逐段详细注释，含关键公式推导，例如：
+  - `script/Flow_Manager.gd` — 流程字符串调度系统
+  - `script/objects/clSoloFight.gd` — 单挑与劝降查表公式
+  - `script/affair/clDevelopCommand.gd` — 开发收益公式（土地/产业/人口/防灾）
+  - `script/affair/clSearchCommand.gd` — 搜索/招募的相性距离判定
+  - `script/affair/clPolicyCommand.gd` — 六种外交政策的成功率公式
+  - `script/objects/clCity.gd` — 城市属性、连接、攻击范围、叛乱概率
+  - `script/objects/clBattleFight.gd` — 战斗结束判定、撤退损失
+  - `script/Battle_Unit.gd` — 白兵战伤害计算（刀/枪/剑修正、斧加成、格挡、回血）
+
+## 🔬 反编译方法（可复现）
+
+本工程使用 [GDRETools/gdsdecomp](https://github.com/GDRETools/gdsdecomp)（Godot RE Tools v2.6.4）完成：
+
+```bash
+gdre_tools --headless --recover="霸王的大陆GD安卓版 2540.Apk" --output=bwdl
+```
+
+该工具一次性完成：`.gdc` 字节码反编译、`project.binary` 还原、`.stex`→`.png`、`.oggstr`→`.ogg` 等资源转换。
+
+> 📌 关于加密数据：原版游戏的数据打包在 `resource/bwdl.pck`（带 520 字节 RSA 签名头的标准 PCK）。反编译后**已把 pck 内容解包为 `res://packed/` 下的真实文件**（`data` / `images` / `sgz_script`），并修改了 `Static_Manager.gd` 跳过 pck 加载与验签。因此现在**无需加密/签名**，直接改 `packed/` 下的 JSON 或脚本即可，导出时 Godot 会明文打包。
+
+## 📄 License
+
+仅供学习研究使用。原版游戏版权归其原作者所有。

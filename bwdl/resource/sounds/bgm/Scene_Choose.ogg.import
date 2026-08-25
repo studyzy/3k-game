@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/Scene_Choose.ogg-407b4960ebb26320cc8db897211fb634.oggstr"
+
+[deps]
+
+source_file="res://resource/sounds/bgm/Scene_Choose.ogg"
+dest_files=[ "res://.import/Scene_Choose.ogg-407b4960ebb26320cc8db897211fb634.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0
