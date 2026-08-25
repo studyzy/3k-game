@@ -10,7 +10,11 @@ export/
 Thumbs.db
 
 # IDE
+.idea/
 *.code-workspace
 
 # Godot 误把阵型 CSV 当翻译生成的产物
 *.translation
+
+# gdUnit4 测试报告
+reports/

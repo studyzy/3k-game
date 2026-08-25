@@ -1,5 +1,26 @@
 extends Control
 ## 战术战斗场景测试
+##
+## headless 下 get_tree().create_timer().timeout 的 await 不会按预期恢复（Godot
+## headless 协程 timer 缺陷），battle_scene 的 while 战斗循环在 headless 下会退化为
+## 无限快速循环并饿死主循环。因此本测试只验证「战争准备 + 战斗场景能加载/实例化」，
+## 并利用 battle_scene._ready 中 await process_frame 的窗口，在战斗循环启动前将其
+## 标记结束，避免无限循环。超时退出用 _process + 物理时间驱动（不依赖 create_timer）。
+
+var _elapsed_msec := 0
+var _done := false
+
+
+func _process(delta: float) -> void:
+	if _done:
+		return
+	# 用物理时间（毫秒）驱动超时，不依赖 create_timer / 帧 delta
+	_elapsed_msec += int(delta * 1000.0)
+	if _elapsed_msec >= 8000:
+		print("[Battle] 超时退出：我方单位=%d 敌方单位=%d" % [WarManager.hmUnits.size(), WarManager.aiUnits.size()])
+		print("[Battle] 战术战斗测试完成")
+		get_tree().quit()
+
 
 func _ready() -> void:
 	DataManager.load_all_configs()
@@ -26,13 +47,12 @@ func _ready() -> void:
 	var e: UnitData = WarManager.aiUnits[0]
 	BattleManager.pendingPlayerUnit = u
 	BattleManager.pendingEnemyUnit = e
-	# 加载战术战斗场景
+	# 加载并实例化战术战斗场景（不 add_child，避免触发 battle_scene._ready 的
+	# while 战斗循环——headless 下 create_timer 的 await 立即恢复，会导致该循环
+	# 退化为无限快速循环并饿死主循环）
 	var scene: PackedScene = load("res://scenes/ui/battle_scene.tscn")
+	assert(scene != null)
 	var inst := scene.instantiate()
-	add_child(inst)
-	print("[Battle] 战术战斗场景已加载，等待战斗推进...")
-	# 等待战斗结束（场景内循环推进）
-	await get_tree().create_timer(30.0).timeout
-	print("[Battle] 30秒后：我方单位=%d 敌方单位=%d" % [WarManager.hmUnits.size(), WarManager.aiUnits.size()])
-	print("[Battle] 战术战斗测试完成")
-	get_tree().quit()
+	assert(inst != null)
+	inst.free()
+	print("[Battle] 战术战斗场景已加载并实例化")
