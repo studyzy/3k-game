@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Godot 测试
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Godot 4.7.2
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          # 纯 GDScript 项目，无需 .NET 版
+          version: 4.7.2
+          use-dotnet: false
+
+      - name: 验证 Godot
+        run: godot --version
+
+      - name: Headless 校验工程（导入资源、检查错误）
+        run: make check
+
+      - name: 运行集成测试（scenes/tests/）
+        run: make test
+
+      - name: 运行单元测试（tests/，gdUnit4）
+        run: make test-unit
+
+      - name: 上传测试报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: reports/
+          if-no-files-found: ignore

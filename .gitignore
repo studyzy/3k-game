@@ -1,20 +1,25 @@
-# Godot 4 缓存
+# Godot 4 缓存（自动生成的导入资源与类缓存）
 .godot/
 *.tmp
 
 # 导出
 export/
+*.exe
+*.pck
+*.zip
 
 # 系统文件
 .DS_Store
 Thumbs.db
+*.swp
 
 # IDE
 .idea/
 *.code-workspace
+.vscode/
 
 # Godot 误把阵型 CSV 当翻译生成的产物
 *.translation
 
-# gdUnit4 测试报告
+# 测试报告（gdUnit4 生成）
 reports/
