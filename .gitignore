@@ -1,6 +1,7 @@
-# Godot 3.5 缓存（自动生成的导入资源与编辑器缓存）
+# Godot 缓存（自动生成的导入资源与编辑器缓存，用 `make import` 重新生成）
 .import/
 .godot/
+*.import
 
 # 导出产物
 export/

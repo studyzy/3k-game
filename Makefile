@@ -1,12 +1,13 @@
 # 霸王的大陆（三国志2 复刻版）- Godot 3.x 反编译工程
-# 用法: make [setup|run|edit|check|clean|help]
+# 用法: make [setup|import|run|edit|check|clean|help]
 #
 # 说明：
 #   - setup 安装依赖环境（下载 Godot 编辑器，macOS）
-#   - run   运行游戏主场景
+#   - import headless 导入资源（生成 .import/.godot 缓存，仓库不追踪导入产物）
+#   - run   运行游戏主场景（运行前自动导入资源）
 #   - edit  打开 Godot 编辑器
-#   - check headless 校验工程（导入资源 + 检查脚本语法）
-#   - clean 清理导入缓存（下次打开会自动重新导入）
+#   - check headless 校验工程（检查脚本语法）
+#   - clean 清理导入缓存（下次运行会自动重新导入）
 
 # Godot 版本（3.x LTS 最终版）
 GODOT_VERSION ?= 3.6.3
@@ -40,8 +41,26 @@ setup: ## 安装依赖环境（下载并解压 Godot 编辑器）
 		echo "==> Godot $(GODOT_VERSION) 安装完成: $(GODOT_BIN)"; \
 	fi
 
+# Godot 3.x 无 --import 参数，headless 导入通过后台运行编辑器、等待 .stex 数量稳定后结束
+.PHONY: import
+import: ## headless 导入资源（生成 .import/.godot 缓存）
+	@if [ -d "$(PROJECT)/.import" ] && [ "$$(find $(PROJECT)/.import -name '*.stex' 2>/dev/null | wc -l | tr -d ' ')" != "0" ]; then \
+		echo "==> 资源已导入，跳过"; \
+	else \
+		echo "==> 导入资源..."; \
+		$(GODOT) --headless --path $(PROJECT) --editor > /tmp/godot_import.log 2>&1 & \
+		pid=$$!; prev=0; i=0; \
+		while [ $$i -lt 120 ]; do \
+			cur=$$(find $(PROJECT)/.import -name '*.stex' 2>/dev/null | wc -l | tr -d ' '); \
+			if [ "$$cur" != "0" ] && [ "$$cur" = "$$prev" ]; then break; fi; \
+			prev=$$cur; i=$$((i+1)); sleep 1; \
+		done; \
+		kill $$pid 2>/dev/null; wait $$pid 2>/dev/null; \
+		echo "==> 导入完成 ($$cur 个纹理)"; \
+	fi
+
 .PHONY: run
-run: ## 运行游戏（主场景）
+run: import ## 运行游戏（主场景，运行前自动导入资源）
 	"$(GODOT)" --path $(PROJECT)
 
 .PHONY: edit
@@ -49,11 +68,11 @@ edit: ## 打开 Godot 编辑器
 	"$(GODOT)" --path $(PROJECT) --editor
 
 .PHONY: check
-check: ## headless 校验工程（导入资源、检查脚本错误）
+check: ## headless 校验工程（检查脚本语法）
 	"$(GODOT)" --headless --path $(PROJECT) --editor --quit
 
 .PHONY: clean
-clean: ## 清理导入缓存与编辑器缓存（下次打开会自动重新导入）
+clean: ## 清理导入缓存与编辑器缓存（下次运行会自动重新导入）
 	rm -rf "$(PROJECT)/.import" "$(PROJECT)/.godot"
 
 .PHONY: help
