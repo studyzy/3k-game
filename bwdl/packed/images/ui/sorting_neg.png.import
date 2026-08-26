@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/sorting_neg.png-d5cabf46b9f93a430d5dcc246f82b49b.stex"
+path="res://.import/sorting_neg.png-78195547755be1488c787c0d4c986ceb.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/ui/sorting_neg.png"
-dest_files=[ "res://.import/sorting_neg.png-d5cabf46b9f93a430d5dcc246f82b49b.stex" ]
+source_file="res://packed/images/ui/sorting_neg.png"
+dest_files=[ "res://.import/sorting_neg.png-78195547755be1488c787c0d4c986ceb.stex" ]
 
 [params]
 

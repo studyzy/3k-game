@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/bob_horse.png-555dc8bbc311225bf26c85c5ab73f4c9.stex"
+path="res://.import/bob_horse.png-342b7948e47b844f3ee70c60329c3776.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/bob_horse.png"
-dest_files=[ "res://.import/bob_horse.png-555dc8bbc311225bf26c85c5ab73f4c9.stex" ]
+source_file="res://packed/images/picture/bob_horse.png"
+dest_files=[ "res://.import/bob_horse.png-342b7948e47b844f3ee70c60329c3776.stex" ]
 
 [params]
 

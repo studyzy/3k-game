@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/emu_select.png-64d70d840499861beada49ddb72e74a4.stex"
+path="res://.import/emu_select.png-255e00d7779c41f4769298679e56eb26.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/JoyControl/emu_select.png"
-dest_files=[ "res://.import/emu_select.png-64d70d840499861beada49ddb72e74a4.stex" ]
+source_file="res://packed/images/JoyControl/emu_select.png"
+dest_files=[ "res://.import/emu_select.png-255e00d7779c41f4769298679e56eb26.stex" ]
 
 [params]
 

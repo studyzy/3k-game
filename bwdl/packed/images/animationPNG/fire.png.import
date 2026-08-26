@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/fire.png-46855dcf097bccf2d630cef21fa0f4e3.stex"
+path="res://.import/fire.png-d6dbd605da0bf2098f79771109098c1f.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/animationPNG/fire.png"
-dest_files=[ "res://.import/fire.png-46855dcf097bccf2d630cef21fa0f4e3.stex" ]
+source_file="res://packed/images/animationPNG/fire.png"
+dest_files=[ "res://.import/fire.png-d6dbd605da0bf2098f79771109098c1f.stex" ]
 
 [params]
 

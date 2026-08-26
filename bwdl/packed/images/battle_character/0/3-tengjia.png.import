@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/3-tengjia.png-2de0745d5e473009736259129f96cc4b.stex"
+path="res://.import/3-tengjia.png-69f3567a3206c3ab9cf4f1b811a76622.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/0/3-tengjia.png"
-dest_files=[ "res://.import/3-tengjia.png-2de0745d5e473009736259129f96cc4b.stex" ]
+source_file="res://packed/images/battle_character/0/3-tengjia.png"
+dest_files=[ "res://.import/3-tengjia.png-69f3567a3206c3ab9cf4f1b811a76622.stex" ]
 
 [params]
 

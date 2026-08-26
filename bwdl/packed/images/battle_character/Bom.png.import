@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Bom.png-f84a381dfb24aacb7d318f5b77cc7b03.stex"
+path="res://.import/Bom.png-4895beb8d4bdd7d93a02386be71fc742.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/Bom.png"
-dest_files=[ "res://.import/Bom.png-f84a381dfb24aacb7d318f5b77cc7b03.stex" ]
+source_file="res://packed/images/battle_character/Bom.png"
+dest_files=[ "res://.import/Bom.png-4895beb8d4bdd7d93a02386be71fc742.stex" ]
 
 [params]
 

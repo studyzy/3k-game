@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/lightChooose2.png-eb33fff679c111a9d07472cce55dd5d1.stex"
+path="res://.import/lightChooose2.png-cd855355045563af82672a11f63646a4.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/lightChooose2.png"
-dest_files=[ "res://.import/lightChooose2.png-eb33fff679c111a9d07472cce55dd5d1.stex" ]
+source_file="res://packed/images/picture/lightChooose2.png"
+dest_files=[ "res://.import/lightChooose2.png-cd855355045563af82672a11f63646a4.stex" ]
 
 [params]
 

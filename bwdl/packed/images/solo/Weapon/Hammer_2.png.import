@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Hammer_2.png-98042bed8ea6c21e50beeefcd307639d.stex"
+path="res://.import/Hammer_2.png-3ff2b6a604c5516cd947cdc87da0731a.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/solo/Weapon/Hammer_2.png"
-dest_files=[ "res://.import/Hammer_2.png-98042bed8ea6c21e50beeefcd307639d.stex" ]
+source_file="res://packed/images/solo/Weapon/Hammer_2.png"
+dest_files=[ "res://.import/Hammer_2.png-3ff2b6a604c5516cd947cdc87da0731a.stex" ]
 
 [params]
 

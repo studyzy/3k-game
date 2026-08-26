@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/barrack.png-5ec3bdda6444eb42f972a001e304e063.stex"
+path="res://.import/barrack.png-40e020b601967bd52274015a0792ec16.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/barrack.png"
-dest_files=[ "res://.import/barrack.png-5ec3bdda6444eb42f972a001e304e063.stex" ]
+source_file="res://packed/images/picture/barrack.png"
+dest_files=[ "res://.import/barrack.png-40e020b601967bd52274015a0792ec16.stex" ]
 
 [params]
 

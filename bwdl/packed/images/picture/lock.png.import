@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/lock.png-ee0e400afe2e6b2de9864299dc8eaf11.stex"
+path="res://.import/lock.png-c26d057ade94f26da8bb2d5aec812157.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/lock.png"
-dest_files=[ "res://.import/lock.png-ee0e400afe2e6b2de9864299dc8eaf11.stex" ]
+source_file="res://packed/images/picture/lock.png"
+dest_files=[ "res://.import/lock.png-c26d057ade94f26da8bb2d5aec812157.stex" ]
 
 [params]
 

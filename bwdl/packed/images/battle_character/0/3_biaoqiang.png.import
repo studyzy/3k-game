@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/3_biaoqiang.png-b1f0249f8fbcc4cdbbce68efbb1109b8.stex"
+path="res://.import/3_biaoqiang.png-f0b2eb18b76a2148aab5b268ea71f228.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/0/3_biaoqiang.png"
-dest_files=[ "res://.import/3_biaoqiang.png-b1f0249f8fbcc4cdbbce68efbb1109b8.stex" ]
+source_file="res://packed/images/battle_character/0/3_biaoqiang.png"
+dest_files=[ "res://.import/3_biaoqiang.png-f0b2eb18b76a2148aab5b268ea71f228.stex" ]
 
 [params]
 

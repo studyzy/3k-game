@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/blocks.png-3fe03c8165eb390e1a95aec6fb808a39.stex"
+path="res://.import/blocks.png-93b01482a1cc48eb2ead8bc3aaaf04ed.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/war_mapblock/blocks.png"
-dest_files=[ "res://.import/blocks.png-3fe03c8165eb390e1a95aec6fb808a39.stex" ]
+source_file="res://packed/images/war_mapblock/blocks.png"
+dest_files=[ "res://.import/blocks.png-93b01482a1cc48eb2ead8bc3aaaf04ed.stex" ]
 
 [params]
 

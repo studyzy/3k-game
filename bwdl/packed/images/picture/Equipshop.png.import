@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Equipshop.png-6fdbb450997d147c0570923fb0ebfa9e.stex"
+path="res://.import/Equipshop.png-c27270a91421ab30df0d0e20aadec411.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/Equipshop.png"
-dest_files=[ "res://.import/Equipshop.png-6fdbb450997d147c0570923fb0ebfa9e.stex" ]
+source_file="res://packed/images/picture/Equipshop.png"
+dest_files=[ "res://.import/Equipshop.png-c27270a91421ab30df0d0e20aadec411.stex" ]
 
 [params]
 

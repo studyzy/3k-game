@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Sword_2.png-3ec3df29064d09c0cb4fa70ab012a13b.stex"
+path="res://.import/Sword_2.png-179561917bfb6dc1c72c1f29dcb7e8ba.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/solo/Weapon/Sword_2.png"
-dest_files=[ "res://.import/Sword_2.png-3ec3df29064d09c0cb4fa70ab012a13b.stex" ]
+source_file="res://packed/images/solo/Weapon/Sword_2.png"
+dest_files=[ "res://.import/Sword_2.png-179561917bfb6dc1c72c1f29dcb7e8ba.stex" ]
 
 [params]
 

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/0.png-5eb70c421b37fc1891a3f3c276db6dc8.stex"
+path="res://.import/0.png-0c11f1df46312f5ac7cae2b351670a8f.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/6/0.png"
-dest_files=[ "res://.import/0.png-5eb70c421b37fc1891a3f3c276db6dc8.stex" ]
+source_file="res://packed/images/battle_character/6/0.png"
+dest_files=[ "res://.import/0.png-0c11f1df46312f5ac7cae2b351670a8f.stex" ]
 
 [params]
 

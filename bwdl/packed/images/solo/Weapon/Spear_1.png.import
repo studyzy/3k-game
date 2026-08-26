@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Spear_1.png-e2e580338e3f1301e6a79207a0109b6c.stex"
+path="res://.import/Spear_1.png-c7422dc2ab6582a86128dec0a17fe437.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/solo/Weapon/Spear_1.png"
-dest_files=[ "res://.import/Spear_1.png-e2e580338e3f1301e6a79207a0109b6c.stex" ]
+source_file="res://packed/images/solo/Weapon/Spear_1.png"
+dest_files=[ "res://.import/Spear_1.png-c7422dc2ab6582a86128dec0a17fe437.stex" ]
 
 [params]
 

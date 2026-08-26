@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/unify2.png-286d226b9a1cfda6e37475cebd6a4c66.stex"
+path="res://.import/unify2.png-334662eb7e39b7fc24c8494c036498e3.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/animationPNG/unify2.png"
-dest_files=[ "res://.import/unify2.png-286d226b9a1cfda6e37475cebd6a4c66.stex" ]
+source_file="res://packed/images/animationPNG/unify2.png"
+dest_files=[ "res://.import/unify2.png-334662eb7e39b7fc24c8494c036498e3.stex" ]
 
 [params]
 

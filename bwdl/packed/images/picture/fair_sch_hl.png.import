@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/fair_sch_hl.png-580494617f5a22148c4eed10d3eadd4e.stex"
+path="res://.import/fair_sch_hl.png-b7f37a7d437971f753df02d9cf781ff7.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/fair_sch_hl.png"
-dest_files=[ "res://.import/fair_sch_hl.png-580494617f5a22148c4eed10d3eadd4e.stex" ]
+source_file="res://packed/images/picture/fair_sch_hl.png"
+dest_files=[ "res://.import/fair_sch_hl.png-b7f37a7d437971f753df02d9cf781ff7.stex" ]
 
 [params]
 

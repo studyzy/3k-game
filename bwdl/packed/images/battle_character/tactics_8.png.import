@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/tactics_8.png-ce28132bfe469ea025549315feab6b59.stex"
+path="res://.import/tactics_8.png-551dad141bb98741026c0222cbcc011b.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/tactics_8.png"
-dest_files=[ "res://.import/tactics_8.png-ce28132bfe469ea025549315feab6b59.stex" ]
+source_file="res://packed/images/battle_character/tactics_8.png"
+dest_files=[ "res://.import/tactics_8.png-551dad141bb98741026c0222cbcc011b.stex" ]
 
 [params]
 

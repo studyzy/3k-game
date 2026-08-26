@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/rider_up.png-21330a01e1a5534fdf3b6c11aaee0053.stex"
+path="res://.import/rider_up.png-921de6cf6318aaf9ed11b6bee266cca5.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/0/rider_up.png"
-dest_files=[ "res://.import/rider_up.png-21330a01e1a5534fdf3b6c11aaee0053.stex" ]
+source_file="res://packed/images/battle_character/0/rider_up.png"
+dest_files=[ "res://.import/rider_up.png-921de6cf6318aaf9ed11b6bee266cca5.stex" ]
 
 [params]
 

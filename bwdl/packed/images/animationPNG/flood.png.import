@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/flood.png-9ea15e1ad600343fb08214e9a6a1ffd1.stex"
+path="res://.import/flood.png-fee80ed1d6f56321783b8224ca59d336.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/animationPNG/flood.png"
-dest_files=[ "res://.import/flood.png-9ea15e1ad600343fb08214e9a6a1ffd1.stex" ]
+source_file="res://packed/images/animationPNG/flood.png"
+dest_files=[ "res://.import/flood.png-fee80ed1d6f56321783b8224ca59d336.stex" ]
 
 [params]
 

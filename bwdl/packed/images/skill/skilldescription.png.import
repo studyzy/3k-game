@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/skilldescription.png-4e16fd502f65c47185307100de257204.stex"
+path="res://.import/skilldescription.png-7b18c64f9ab36c2b09d5669f5be30ef0.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/skill/skilldescription.png"
-dest_files=[ "res://.import/skilldescription.png-4e16fd502f65c47185307100de257204.stex" ]
+source_file="res://packed/images/skill/skilldescription.png"
+dest_files=[ "res://.import/skilldescription.png-7b18c64f9ab36c2b09d5669f5be30ef0.stex" ]
 
 [params]
 

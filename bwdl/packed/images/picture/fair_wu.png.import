@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/fair_wu.png-28beeaa4532ef4b41a292c78d1785006.stex"
+path="res://.import/fair_wu.png-9c68eb4c3c0f0bc91f5f1f7bfb65c2d3.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/fair_wu.png"
-dest_files=[ "res://.import/fair_wu.png-28beeaa4532ef4b41a292c78d1785006.stex" ]
+source_file="res://packed/images/picture/fair_wu.png"
+dest_files=[ "res://.import/fair_wu.png-9c68eb4c3c0f0bc91f5f1f7bfb65c2d3.stex" ]
 
 [params]
 

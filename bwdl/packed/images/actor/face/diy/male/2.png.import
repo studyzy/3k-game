@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/2.png-40948de0177f528cfafd4b8550561f95.stex"
+path="res://.import/2.png-a10fc6ab71cf0a2613990de5847e39cb.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/actor/face/diy/male/2.png"
-dest_files=[ "res://.import/2.png-40948de0177f528cfafd4b8550561f95.stex" ]
+source_file="res://packed/images/actor/face/diy/male/2.png"
+dest_files=[ "res://.import/2.png-a10fc6ab71cf0a2613990de5847e39cb.stex" ]
 
 [params]
 

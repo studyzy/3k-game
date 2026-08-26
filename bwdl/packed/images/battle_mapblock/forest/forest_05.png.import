@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/forest_05.png-d6218a07d462069407b6cbc2ffe7f72e.stex"
+path="res://.import/forest_05.png-1e04f8ec4c3fe1f0755dd46569edc48d.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_mapblock/forest/forest_05.png"
-dest_files=[ "res://.import/forest_05.png-d6218a07d462069407b6cbc2ffe7f72e.stex" ]
+source_file="res://packed/images/battle_mapblock/forest/forest_05.png"
+dest_files=[ "res://.import/forest_05.png-1e04f8ec4c3fe1f0755dd46569edc48d.stex" ]
 
 [params]
 

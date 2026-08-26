@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/FireArrow03.png-93f176fe39d7f385a41e0b7d2975d6ac.stex"
+path="res://.import/FireArrow03.png-27be978c66ad37062cd297791feb8831.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/FireArrow03.png"
-dest_files=[ "res://.import/FireArrow03.png-93f176fe39d7f385a41e0b7d2975d6ac.stex" ]
+source_file="res://packed/images/picture/FireArrow03.png"
+dest_files=[ "res://.import/FireArrow03.png-27be978c66ad37062cd297791feb8831.stex" ]
 
 [params]
 

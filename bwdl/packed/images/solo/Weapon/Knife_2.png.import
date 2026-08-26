@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Knife_2.png-aed3023dca0424d48c9aa675918fc76f.stex"
+path="res://.import/Knife_2.png-18d181dad3de93a1d1cbdd543a293631.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/solo/Weapon/Knife_2.png"
-dest_files=[ "res://.import/Knife_2.png-aed3023dca0424d48c9aa675918fc76f.stex" ]
+source_file="res://packed/images/solo/Weapon/Knife_2.png"
+dest_files=[ "res://.import/Knife_2.png-18d181dad3de93a1d1cbdd543a293631.stex" ]
 
 [params]
 

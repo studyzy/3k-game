@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/cityinfo_Army.png-5d5a18f4cd0af4c66c11735c1ea56932.stex"
+path="res://.import/cityinfo_Army.png-f4b76b1deef7d0ccab60812e64f3f70b.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/cityinfo_Army.png"
-dest_files=[ "res://.import/cityinfo_Army.png-5d5a18f4cd0af4c66c11735c1ea56932.stex" ]
+source_file="res://packed/images/picture/cityinfo_Army.png"
+dest_files=[ "res://.import/cityinfo_Army.png-f4b76b1deef7d0ccab60812e64f3f70b.stex" ]
 
 [params]
 

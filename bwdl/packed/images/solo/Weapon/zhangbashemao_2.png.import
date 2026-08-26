@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/zhangbashemao_2.png-6d50034736cbebd84e2dc3e17fcafdb1.stex"
+path="res://.import/zhangbashemao_2.png-95bc171c8fe08d58b3fd9aa60613aacd.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/solo/Weapon/zhangbashemao_2.png"
-dest_files=[ "res://.import/zhangbashemao_2.png-6d50034736cbebd84e2dc3e17fcafdb1.stex" ]
+source_file="res://packed/images/solo/Weapon/zhangbashemao_2.png"
+dest_files=[ "res://.import/zhangbashemao_2.png-95bc171c8fe08d58b3fd9aa60613aacd.stex" ]
 
 [params]
 

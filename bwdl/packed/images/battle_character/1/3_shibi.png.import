@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/3_shibi.png-a52dd735d3333826f21ca775482d6ea8.stex"
+path="res://.import/3_shibi.png-e46a576d66731fd7dc9f27a59eb45ba8.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/1/3_shibi.png"
-dest_files=[ "res://.import/3_shibi.png-a52dd735d3333826f21ca775482d6ea8.stex" ]
+source_file="res://packed/images/battle_character/1/3_shibi.png"
+dest_files=[ "res://.import/3_shibi.png-e46a576d66731fd7dc9f27a59eb45ba8.stex" ]
 
 [params]
 

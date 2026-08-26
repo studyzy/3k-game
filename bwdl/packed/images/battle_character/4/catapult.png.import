@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/catapult.png-197ff38df77d5debabad3ae7a7101ff2.stex"
+path="res://.import/catapult.png-be8623c54a4ff5afa95f3c1d5f8de6fc.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/4/catapult.png"
-dest_files=[ "res://.import/catapult.png-197ff38df77d5debabad3ae7a7101ff2.stex" ]
+source_file="res://packed/images/battle_character/4/catapult.png"
+dest_files=[ "res://.import/catapult.png-be8623c54a4ff5afa95f3c1d5f8de6fc.stex" ]
 
 [params]
 

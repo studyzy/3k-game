@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/cityinfo_blank.png-ea6553e31a9469f7138d49653d878dc0.stex"
+path="res://.import/cityinfo_blank.png-09816c1c2f692183210d49d0323f66a5.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/cityinfo_blank.png"
-dest_files=[ "res://.import/cityinfo_blank.png-ea6553e31a9469f7138d49653d878dc0.stex" ]
+source_file="res://packed/images/picture/cityinfo_blank.png"
+dest_files=[ "res://.import/cityinfo_blank.png-09816c1c2f692183210d49d0323f66a5.stex" ]
 
 [params]
 

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/endless.png-450d158436447a827d7bc0b8150bec03.stex"
+path="res://.import/endless.png-e23c9cde7f9cb087c1da1b6691c39557.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/endless.png"
-dest_files=[ "res://.import/endless.png-450d158436447a827d7bc0b8150bec03.stex" ]
+source_file="res://packed/images/picture/endless.png"
+dest_files=[ "res://.import/endless.png-e23c9cde7f9cb087c1da1b6691c39557.stex" ]
 
 [params]
 

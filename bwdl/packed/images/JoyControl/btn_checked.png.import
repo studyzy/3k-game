@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/btn_checked.png-6972fddcf0fb63d8aa7ab30d242ecf08.stex"
+path="res://.import/btn_checked.png-7c5dd49dc296dfab925e7c57507c4b57.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/JoyControl/btn_checked.png"
-dest_files=[ "res://.import/btn_checked.png-6972fddcf0fb63d8aa7ab30d242ecf08.stex" ]
+source_file="res://packed/images/JoyControl/btn_checked.png"
+dest_files=[ "res://.import/btn_checked.png-7c5dd49dc296dfab925e7c57507c4b57.stex" ]
 
 [params]
 

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/fair_bus.png-1aae2aefcdaa4d580175ebcac048439b.stex"
+path="res://.import/fair_bus.png-28a3917b2bfcad09d9aa1778693c4f65.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/fair_bus.png"
-dest_files=[ "res://.import/fair_bus.png-1aae2aefcdaa4d580175ebcac048439b.stex" ]
+source_file="res://packed/images/picture/fair_bus.png"
+dest_files=[ "res://.import/fair_bus.png-28a3917b2bfcad09d9aa1778693c4f65.stex" ]
 
 [params]
 

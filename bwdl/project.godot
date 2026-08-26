@@ -235,7 +235,6 @@ OrderHistory="*res://script/objects/OrderHistory.gd"
 
 settings/fps/force_fps=60
 gdscript/warnings/enable=false
-gdscript/warnings/return_value_discarded=false
 shapes/collision/draw_2d_outlines=false
 
 [display]

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/fs_wood.png-0f91f11c3d437bb61db8bbcdf1e24e70.stex"
+path="res://.import/fs_wood.png-5d8d3155736f83a2487f509a8b3cbf58.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/poker/fs_wood.png"
-dest_files=[ "res://.import/fs_wood.png-0f91f11c3d437bb61db8bbcdf1e24e70.stex" ]
+source_file="res://packed/images/poker/fs_wood.png"
+dest_files=[ "res://.import/fs_wood.png-5d8d3155736f83a2487f509a8b3cbf58.stex" ]
 
 [params]
 

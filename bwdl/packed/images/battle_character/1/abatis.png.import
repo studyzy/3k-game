@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/abatis.png-60094fbc71342c635bdec05f776de49c.stex"
+path="res://.import/abatis.png-5e6d5f7b40b27167001b8d542e824258.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/1/abatis.png"
-dest_files=[ "res://.import/abatis.png-60094fbc71342c635bdec05f776de49c.stex" ]
+source_file="res://packed/images/battle_character/1/abatis.png"
+dest_files=[ "res://.import/abatis.png-5e6d5f7b40b27167001b8d542e824258.stex" ]
 
 [params]
 

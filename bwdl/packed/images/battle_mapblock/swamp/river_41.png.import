@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/river_41.png-9f03db2bede5a4a7bc17db02eab02339.stex"
+path="res://.import/river_41.png-072a20e9f02acf67fb3f8caf25747135.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_mapblock/swamp/river_41.png"
-dest_files=[ "res://.import/river_41.png-9f03db2bede5a4a7bc17db02eab02339.stex" ]
+source_file="res://packed/images/battle_mapblock/swamp/river_41.png"
+dest_files=[ "res://.import/river_41.png-072a20e9f02acf67fb3f8caf25747135.stex" ]
 
 [params]
 

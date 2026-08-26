@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/land_1D.png-8f7c2bfa6503fe002ef7e4351424d55e.stex"
+path="res://.import/land_1D.png-82a7e4d623c0fb0a424f4723a82058d6.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_mapblock/land/land_1D.png"
-dest_files=[ "res://.import/land_1D.png-8f7c2bfa6503fe002ef7e4351424d55e.stex" ]
+source_file="res://packed/images/battle_mapblock/land/land_1D.png"
+dest_files=[ "res://.import/land_1D.png-82a7e4d623c0fb0a424f4723a82058d6.stex" ]
 
 [params]
 

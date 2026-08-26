@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/wallcity_80.png-cb608781beee148339810b6e473b5487.stex"
+path="res://.import/wallcity_80.png-59271d05f8b8eec516071a3b8f43ab2a.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_mapblock/wall/wallcity_80.png"
-dest_files=[ "res://.import/wallcity_80.png-cb608781beee148339810b6e473b5487.stex" ]
+source_file="res://packed/images/battle_mapblock/wall/wallcity_80.png"
+dest_files=[ "res://.import/wallcity_80.png-59271d05f8b8eec516071a3b8f43ab2a.stex" ]
 
 [params]
 

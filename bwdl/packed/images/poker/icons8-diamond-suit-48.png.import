@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/icons8-diamond-suit-48.png-f543ae412348662eea51ba04b17e8ce6.stex"
+path="res://.import/icons8-diamond-suit-48.png-b55bb1fdc850ac067bcad2d509398bed.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/poker/icons8-diamond-suit-48.png"
-dest_files=[ "res://.import/icons8-diamond-suit-48.png-f543ae412348662eea51ba04b17e8ce6.stex" ]
+source_file="res://packed/images/poker/icons8-diamond-suit-48.png"
+dest_files=[ "res://.import/icons8-diamond-suit-48.png-b55bb1fdc850ac067bcad2d509398bed.stex" ]
 
 [params]
 

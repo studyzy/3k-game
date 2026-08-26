@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/speed_up.png-e4252d7e129be72201c9eff34a9e1e14.stex"
+path="res://.import/speed_up.png-f79e44515c65f641f5164dc845726b11.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/speed_up.png"
-dest_files=[ "res://.import/speed_up.png-e4252d7e129be72201c9eff34a9e1e14.stex" ]
+source_file="res://packed/images/battle_character/speed_up.png"
+dest_files=[ "res://.import/speed_up.png-f79e44515c65f641f5164dc845726b11.stex" ]
 
 [params]
 

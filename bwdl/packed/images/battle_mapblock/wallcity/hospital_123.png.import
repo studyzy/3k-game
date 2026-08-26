@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/hospital_123.png-31c221ec90c57334cbca3dd749c4d3ba.stex"
+path="res://.import/hospital_123.png-45e0287edc2b965c7dd419b93a94eeb5.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_mapblock/wallcity/hospital_123.png"
-dest_files=[ "res://.import/hospital_123.png-31c221ec90c57334cbca3dd749c4d3ba.stex" ]
+source_file="res://packed/images/battle_mapblock/wallcity/hospital_123.png"
+dest_files=[ "res://.import/hospital_123.png-45e0287edc2b965c7dd419b93a94eeb5.stex" ]
 
 [params]
 

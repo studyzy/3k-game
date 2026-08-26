@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/analog_up.png-80b7e8b6d14b68a5d9b484334cfff357.stex"
+path="res://.import/analog_up.png-2e41e2babd10d8d2a3ead725a4fcf81b.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/JoyControl/analog_up.png"
-dest_files=[ "res://.import/analog_up.png-80b7e8b6d14b68a5d9b484334cfff357.stex" ]
+source_file="res://packed/images/JoyControl/analog_up.png"
+dest_files=[ "res://.import/analog_up.png-2e41e2babd10d8d2a3ead725a4fcf81b.stex" ]
 
 [params]
 

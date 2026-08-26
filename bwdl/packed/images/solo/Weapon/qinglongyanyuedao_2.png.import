@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/qinglongyanyuedao_2.png-6848bf63877aa39a35e065719104b0b6.stex"
+path="res://.import/qinglongyanyuedao_2.png-68986613af563848d60e2db2b5b62a7c.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/solo/Weapon/qinglongyanyuedao_2.png"
-dest_files=[ "res://.import/qinglongyanyuedao_2.png-6848bf63877aa39a35e065719104b0b6.stex" ]
+source_file="res://packed/images/solo/Weapon/qinglongyanyuedao_2.png"
+dest_files=[ "res://.import/qinglongyanyuedao_2.png-68986613af563848d60e2db2b5b62a7c.stex" ]
 
 [params]
 

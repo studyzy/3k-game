@@ -10,8 +10,8 @@ export/
 *.apk
 *.Apk
 
-# 本地 Godot 编辑器（体积大，请自行下载对应版本 Godot 3.5.3）
-Godot_3.5.3.app/
+# 本地 Godot 编辑器（体积大，请用 `make setup` 下载对应版本）
+Godot_*.app/
 
 # 原始 APK（反编译输入源，体积大，不入库）
 霸王的大陆GD安卓版 2540.Apk

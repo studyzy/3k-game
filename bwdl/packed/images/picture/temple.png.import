@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/temple.png-561de535a8454dd3b5a41e7ff50501d7.stex"
+path="res://.import/temple.png-94ea0c76959a160f601b1b438d236ff1.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/temple.png"
-dest_files=[ "res://.import/temple.png-561de535a8454dd3b5a41e7ff50501d7.stex" ]
+source_file="res://packed/images/picture/temple.png"
+dest_files=[ "res://.import/temple.png-94ea0c76959a160f601b1b438d236ff1.stex" ]
 
 [params]
 

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/hill_7C.png-cdb213b1d0aa4d6b3b0609988096f9f5.stex"
+path="res://.import/hill_7C.png-79a08e717b450ced540002895d6d6afa.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_mapblock/hill/hill_7C.png"
-dest_files=[ "res://.import/hill_7C.png-cdb213b1d0aa4d6b3b0609988096f9f5.stex" ]
+source_file="res://packed/images/battle_mapblock/hill/hill_7C.png"
+dest_files=[ "res://.import/hill_7C.png-79a08e717b450ced540002895d6d6afa.stex" ]
 
 [params]
 

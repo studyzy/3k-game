@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/year_month.png-d6766b47a63dbb1195de807230bc9dce.stex"
+path="res://.import/year_month.png-425dcf860c604951beae825620a2e7c1.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/year_month.png"
-dest_files=[ "res://.import/year_month.png-d6766b47a63dbb1195de807230bc9dce.stex" ]
+source_file="res://packed/images/picture/year_month.png"
+dest_files=[ "res://.import/year_month.png-425dcf860c604951beae825620a2e7c1.stex" ]
 
 [params]
 

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/desert_32.png-a20d73741a6d6329c544cc06f28a1146.stex"
+path="res://.import/desert_32.png-22105c57f767e9a4d86c6e1b52ea2047.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_mapblock/desert/desert_32.png"
-dest_files=[ "res://.import/desert_32.png-a20d73741a6d6329c544cc06f28a1146.stex" ]
+source_file="res://packed/images/battle_mapblock/desert/desert_32.png"
+dest_files=[ "res://.import/desert_32.png-22105c57f767e9a4d86c6e1b52ea2047.stex" ]
 
 [params]
 

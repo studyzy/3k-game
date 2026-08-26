@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/buffs_1.png-374b26898aeb29a53e53f07e17b61483.stex"
+path="res://.import/buffs_1.png-65516378be8f19f92260c126811ccbca.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/buffs_1.png"
-dest_files=[ "res://.import/buffs_1.png-374b26898aeb29a53e53f07e17b61483.stex" ]
+source_file="res://packed/images/battle_character/buffs_1.png"
+dest_files=[ "res://.import/buffs_1.png-65516378be8f19f92260c126811ccbca.stex" ]
 
 [params]
 

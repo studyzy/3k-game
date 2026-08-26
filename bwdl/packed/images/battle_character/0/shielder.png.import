@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/shielder.png-46f08abb108d879b01567088d9d960bb.stex"
+path="res://.import/shielder.png-93ba8f1ecbde768054ebfea58088524d.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/0/shielder.png"
-dest_files=[ "res://.import/shielder.png-46f08abb108d879b01567088d9d960bb.stex" ]
+source_file="res://packed/images/battle_character/0/shielder.png"
+dest_files=[ "res://.import/shielder.png-93ba8f1ecbde768054ebfea58088524d.stex" ]
 
 [params]
 

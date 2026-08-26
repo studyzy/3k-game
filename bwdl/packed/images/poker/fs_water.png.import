@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/fs_water.png-707d52eefe03ce0a0de959c9fe962c06.stex"
+path="res://.import/fs_water.png-cdd59a2f195cbdabe8d3b2c878451749.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/poker/fs_water.png"
-dest_files=[ "res://.import/fs_water.png-707d52eefe03ce0a0de959c9fe962c06.stex" ]
+source_file="res://packed/images/poker/fs_water.png"
+dest_files=[ "res://.import/fs_water.png-cdd59a2f195cbdabe8d3b2c878451749.stex" ]
 
 [params]
 

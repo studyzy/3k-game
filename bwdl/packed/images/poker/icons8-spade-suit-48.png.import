@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/icons8-spade-suit-48.png-e0516b0da795524c1b42f89acc2509b2.stex"
+path="res://.import/icons8-spade-suit-48.png-eac8dfca6bff77b5145137beda89f700.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/poker/icons8-spade-suit-48.png"
-dest_files=[ "res://.import/icons8-spade-suit-48.png-e0516b0da795524c1b42f89acc2509b2.stex" ]
+source_file="res://packed/images/poker/icons8-spade-suit-48.png"
+dest_files=[ "res://.import/icons8-spade-suit-48.png-eac8dfca6bff77b5145137beda89f700.stex" ]
 
 [params]
 

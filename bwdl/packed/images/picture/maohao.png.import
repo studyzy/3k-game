@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/maohao.png-d153211973de6340304fc5e435131cb9.stex"
+path="res://.import/maohao.png-559fde504f0c888d79c6718c6c8c7580.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/maohao.png"
-dest_files=[ "res://.import/maohao.png-d153211973de6340304fc5e435131cb9.stex" ]
+source_file="res://packed/images/picture/maohao.png"
+dest_files=[ "res://.import/maohao.png-559fde504f0c888d79c6718c6c8c7580.stex" ]
 
 [params]
 

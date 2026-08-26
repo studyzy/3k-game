@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/bob_ceil.png-deded366fa2948301ac8f9e1827d1161.stex"
+path="res://.import/bob_ceil.png-d132cf5808a53a1d7e50b1e0cbf6f693.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/bob_ceil.png"
-dest_files=[ "res://.import/bob_ceil.png-deded366fa2948301ac8f9e1827d1161.stex" ]
+source_file="res://packed/images/picture/bob_ceil.png"
+dest_files=[ "res://.import/bob_ceil.png-d132cf5808a53a1d7e50b1e0cbf6f693.stex" ]
 
 [params]
 

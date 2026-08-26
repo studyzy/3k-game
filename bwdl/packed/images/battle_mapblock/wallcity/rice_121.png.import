@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/rice_121.png-b0b8a86cf6846f9f612c6f6823b1a006.stex"
+path="res://.import/rice_121.png-43005b5886e05149d7d7da502f5e0e95.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_mapblock/wallcity/rice_121.png"
-dest_files=[ "res://.import/rice_121.png-b0b8a86cf6846f9f612c6f6823b1a006.stex" ]
+source_file="res://packed/images/battle_mapblock/wallcity/rice_121.png"
+dest_files=[ "res://.import/rice_121.png-43005b5886e05149d7d7da502f5e0e95.stex" ]
 
 [params]
 

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/god2.png-edc07fb694ba99354a2b82558a605e39.stex"
+path="res://.import/god2.png-2a3c28c1a4805a19de54d18995f8c422.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/actor/face/god2.png"
-dest_files=[ "res://.import/god2.png-edc07fb694ba99354a2b82558a605e39.stex" ]
+source_file="res://packed/images/actor/face/god2.png"
+dest_files=[ "res://.import/god2.png-2a3c28c1a4805a19de54d18995f8c422.stex" ]
 
 [params]
 

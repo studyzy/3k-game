@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/skillname.png-1f5e8d48815f08b08af2250a27317589.stex"
+path="res://.import/skillname.png-27b2b4b997ca4d29b96b1bcfb7bcb927.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/skill/skillname.png"
-dest_files=[ "res://.import/skillname.png-1f5e8d48815f08b08af2250a27317589.stex" ]
+source_file="res://packed/images/skill/skillname.png"
+dest_files=[ "res://.import/skillname.png-27b2b4b997ca4d29b96b1bcfb7bcb927.stex" ]
 
 [params]
 

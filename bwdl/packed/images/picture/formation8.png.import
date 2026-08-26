@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/formation8.png-544795431e26912da52a087b68d52c5d.stex"
+path="res://.import/formation8.png-2d6f404922bc7753cf9db4e3efdf3b64.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/formation8.png"
-dest_files=[ "res://.import/formation8.png-544795431e26912da52a087b68d52c5d.stex" ]
+source_file="res://packed/images/picture/formation8.png"
+dest_files=[ "res://.import/formation8.png-2d6f404922bc7753cf9db4e3efdf3b64.stex" ]
 
 [params]
 

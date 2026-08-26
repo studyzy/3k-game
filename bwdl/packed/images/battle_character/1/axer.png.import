@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/axer.png-d3a56ecee7584f3de948a05f48b55fe6.stex"
+path="res://.import/axer.png-caac489e1ecbe5aebde1a30e02c1c559.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/battle_character/1/axer.png"
-dest_files=[ "res://.import/axer.png-d3a56ecee7584f3de948a05f48b55fe6.stex" ]
+source_file="res://packed/images/battle_character/1/axer.png"
+dest_files=[ "res://.import/axer.png-caac489e1ecbe5aebde1a30e02c1c559.stex" ]
 
 [params]
 

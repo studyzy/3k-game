@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/loy_100.png-cca9ab000e6303e6e5d6eb80812b4b22.stex"
+path="res://.import/loy_100.png-c224f5341c9d73a54068959da327e13d.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/picture/loy_100.png"
-dest_files=[ "res://.import/loy_100.png-cca9ab000e6303e6e5d6eb80812b4b22.stex" ]
+source_file="res://packed/images/picture/loy_100.png"
+dest_files=[ "res://.import/loy_100.png-c224f5341c9d73a54068959da327e13d.stex" ]
 
 [params]
 

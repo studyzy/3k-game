@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/icons8-club-suit-48.png-f6645d02744742ec7ace1be984e23fb7.stex"
+path="res://.import/icons8-club-suit-48.png-c678ea322bcb71151bb64f57f5d5e2b8.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/poker/icons8-club-suit-48.png"
-dest_files=[ "res://.import/icons8-club-suit-48.png-f6645d02744742ec7ace1be984e23fb7.stex" ]
+source_file="res://packed/images/poker/icons8-club-suit-48.png"
+dest_files=[ "res://.import/icons8-club-suit-48.png-c678ea322bcb71151bb64f57f5d5e2b8.stex" ]
 
 [params]
 

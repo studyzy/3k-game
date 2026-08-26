@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/fs_metal.png-c77d803935bbc3da0115db9059ca667e.stex"
+path="res://.import/fs_metal.png-4139519dd34d5f512605f872a3a3e7ac.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/poker/fs_metal.png"
-dest_files=[ "res://.import/fs_metal.png-c77d803935bbc3da0115db9059ca667e.stex" ]
+source_file="res://packed/images/poker/fs_metal.png"
+dest_files=[ "res://.import/fs_metal.png-4139519dd34d5f512605f872a3a3e7ac.stex" ]
 
 [params]
 

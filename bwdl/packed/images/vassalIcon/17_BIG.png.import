@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/17_BIG.png-db6b58519eaf09df0bfb35f2188523fa.stex"
+path="res://.import/17_BIG.png-431e7ba5be65115b17e6f9e0eba763b8.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/vassalIcon/17_BIG.png"
-dest_files=[ "res://.import/17_BIG.png-db6b58519eaf09df0bfb35f2188523fa.stex" ]
+source_file="res://packed/images/vassalIcon/17_BIG.png"
+dest_files=[ "res://.import/17_BIG.png-431e7ba5be65115b17e6f9e0eba763b8.stex" ]
 
 [params]
 

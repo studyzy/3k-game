@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/axe_2.png-1a6723879075a9bfba7db714345dbe78.stex"
+path="res://.import/axe_2.png-9be9ff3c57e22aec84eced116b214111.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/images/solo/Weapon/axe_2.png"
-dest_files=[ "res://.import/axe_2.png-1a6723879075a9bfba7db714345dbe78.stex" ]
+source_file="res://packed/images/solo/Weapon/axe_2.png"
+dest_files=[ "res://.import/axe_2.png-9be9ff3c57e22aec84eced116b214111.stex" ]
 
 [params]
 
