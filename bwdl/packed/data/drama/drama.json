@@ -80,5 +80,68 @@
         "description": "天行有常，而世多无常。\n将星散落九州，枭雄旗布天下。\n棋盘重摆，香茶再续。这次的故事，怎么讲？",
         "fromYear": 273,
         "fromMonth": 1
+    },
+    {
+        "ID": 6,
+        "name": "两晋十六国",
+        "enabled": true,
+        "path": "liangjin",
+        "description": "永嘉之后，晋室南渡，偏安江左。\n北地胡骑纵横，冉魏、前燕、前秦、前凉并立。\n乱世如棋，谁执先手？",
+        "fromYear": 350,
+        "fromMonth": 1
+    },
+    {
+        "ID": 7,
+        "name": "南北朝",
+        "enabled": true,
+        "path": "nanbeichao",
+        "description": "刘裕代晋，宋室初立。\n南有宋齐梁陈相继，北有北魏雄踞中原。\n百年对峙，烽火连天，终归一统之机。",
+        "fromYear": 420,
+        "fromMonth": 1
+    },
+    {
+        "ID": 8,
+        "name": "隋唐",
+        "enabled": true,
+        "path": "suitang",
+        "description": "杨广暴政，天下分崩。\n群雄逐鹿，王世充、窦建德、李密各据一方。\n李唐初兴，鹿死谁手，尚未可知。",
+        "fromYear": 618,
+        "fromMonth": 1
+    },
+    {
+        "ID": 9,
+        "name": "五代十国",
+        "enabled": true,
+        "path": "wudai",
+        "description": "朱温篡唐，五代迭兴。\n梁唐晋汉周，乱世更替；十国割据，江南偏安。\n中原板荡，终待真主。",
+        "fromYear": 907,
+        "fromMonth": 1
+    },
+    {
+        "ID": 10,
+        "name": "两宋辽金西夏",
+        "enabled": true,
+        "path": "song",
+        "description": "陈桥兵变，黄袍加身。\n宋室重文，与辽、夏、金并立。\n靖康之变，南渡偏安，忠烈长存。",
+        "fromYear": 960,
+        "fromMonth": 1
+    },
+    {
+        "ID": 11,
+        "name": "元明",
+        "enabled": true,
+        "path": "yuanming",
+        "description": "元末苛政，民变蜂起。\n红巾席卷，刘福通、徐寿辉、张士诚、方国珍各据一方。\n乱世沉浮，谁主中原？",
+        "fromYear": 1351,
+        "fromMonth": 1
+    },
+    {
+        "ID": 12,
+        "name": "清",
+        "enabled": true,
+        "path": "qing",
+        "description": "闯王入京，崇祯自缢。\n清军入关，山河易主。\n大顺、大西、南明，残局未了。",
+        "fromYear": 1644,
+        "fromMonth": 1
     }
 ]
