@@ -10,6 +10,7 @@ export/
 *.aab
 *.apk
 *.Apk
+*.idsig
 
 # 本地 Godot 编辑器（体积大，请用 `make setup` 下载对应版本）
 Godot_*.app/

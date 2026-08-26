@@ -1,5 +1,5 @@
 # 霸王的大陆（三国志2 复刻版）- Godot 3.x 反编译工程
-# 用法: make [setup|import|run|edit|check|clean|help]
+# 用法: make [setup|import|run|edit|check|clean|setup-apk|apk|help]
 #
 # 说明：
 #   - setup 安装依赖环境（下载 Godot 编辑器，macOS）
@@ -8,6 +8,8 @@
 #   - edit  打开 Godot 编辑器
 #   - check headless 校验工程（检查脚本语法）
 #   - clean 清理导入缓存（下次运行会自动重新导入）
+#   - setup-apk 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 / keystore）
+#   - apk   导出 Android debug APK（依赖 setup-apk 的产物，导出前自动导入资源）
 
 # Godot 版本（3.x LTS 最终版）
 GODOT_VERSION ?= 3.6.3
@@ -25,6 +27,22 @@ GODOT ?= $(shell if [ -x "$(GODOT_BIN)" ]; then printf '%s' "$(GODOT_BIN)"; \
 
 # 反编译工程目录
 PROJECT ?= bwdl
+
+# ---- Android 导出相关 ----
+# Godot 3.6 导出 Android 需要 JDK 17（不能用更高的 21）
+JAVA_HOME_17 ?= /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
+# Android SDK 根目录（Godot 从环境变量 ANDROID_SDK_ROOT 读取）
+ANDROID_SDK_ROOT ?= $(HOME)/Library/Android/sdk
+# 需要的 SDK 组件版本（与 Godot 3.6 官方工具链一致）
+ANDROID_BUILD_TOOLS ?= 34.0.0
+ANDROID_PLATFORM ?= android-34
+# brew 安装的 cmdline-tools 位置
+ANDROID_CMDLINE_TOOLS ?= /opt/homebrew/share/android-commandlinetools/cmdline-tools/latest/bin
+# Godot 导出模板版本目录（Godot 3.x 在 macOS 用 templates/ 而非 export_templates/）
+EXPORT_TEMPLATES_DIR ?= $(HOME)/Library/Application Support/Godot/templates/$(GODOT_VERSION).stable
+EXPORT_TEMPLATES_URL ?= https://github.com/godotengine/godot/releases/download/$(GODOT_VERSION)-stable/Godot_v$(GODOT_VERSION)-stable_export_templates.tpz
+# Godot 3.x 编辑器设置文件（Android SDK / keystore / JDK 路径由此读取，环境变量仅在首次创建时生效）
+GODOT_EDITOR_SETTINGS ?= $(HOME)/Library/Application Support/Godot/editor_settings-3.tres
 
 .PHONY: setup
 setup: ## 安装依赖环境（下载并解压 Godot 编辑器）
@@ -74,6 +92,63 @@ check: ## headless 校验工程（检查脚本语法）
 .PHONY: clean
 clean: ## 清理导入缓存与编辑器缓存（下次运行会自动重新导入）
 	rm -rf "$(PROJECT)/.import" "$(PROJECT)/.godot"
+
+# ---- Android 导出 ----
+
+.PHONY: setup-apk
+setup-apk: ## 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 / keystore）
+	@echo "==> [1/5] 检查 JDK 17 ..."
+	@if [ ! -x "$(JAVA_HOME_17)/bin/java" ]; then \
+		echo "错误: 未找到 JDK 17，请安装后设置 JAVA_HOME_17（如 brew install --cask temurin@17）"; exit 1; \
+	else echo "JDK 17: $(JAVA_HOME_17)"; fi
+	@echo "==> [2/5] 检查 Android cmdline-tools ..."
+	@if [ ! -x "$(ANDROID_CMDLINE_TOOLS)/sdkmanager" ]; then \
+		brew install --cask android-commandlinetools; \
+	fi
+	@echo "==> [3/5] 安装 SDK 组件并接受许可 ..."
+	@mkdir -p "$(ANDROID_SDK_ROOT)"
+	@yes | "$(ANDROID_CMDLINE_TOOLS)/sdkmanager" --sdk_root="$(ANDROID_SDK_ROOT)" --licenses > /tmp/sdk_licenses.log 2>&1 || true
+	@"$(ANDROID_CMDLINE_TOOLS)/sdkmanager" --sdk_root="$(ANDROID_SDK_ROOT)" \
+		"platform-tools" "build-tools;$(ANDROID_BUILD_TOOLS)" "platforms;$(ANDROID_PLATFORM)"
+	@echo "==> [4/5] 安装 Godot 导出模板 + 生成 debug keystore ..."
+	@if [ ! -f "$(EXPORT_TEMPLATES_DIR)/android_release.apk" ]; then \
+		echo "下载导出模板 ..."; \
+		mkdir -p "$(EXPORT_TEMPLATES_DIR)"; \
+		curl -L -o /tmp/godot_templates.tpz "$(EXPORT_TEMPLATES_URL)" && \
+		unzip -q -o /tmp/godot_templates.tpz -d /tmp/godot_templates && \
+		cp -R /tmp/godot_templates/templates/* "$(EXPORT_TEMPLATES_DIR)/" && \
+		rm -rf /tmp/godot_templates.tpz /tmp/godot_templates; \
+	else echo "导出模板已安装: $(EXPORT_TEMPLATES_DIR)"; fi
+	@if [ ! -f "$(HOME)/.android/debug.keystore" ]; then \
+		echo "生成 debug keystore ..."; \
+		mkdir -p "$(HOME)/.android"; \
+		"$(JAVA_HOME_17)/bin/keytool" -keyalg RSA -genkeypair -alias androiddebugkey \
+			-keypass android -keystore "$(HOME)/.android/debug.keystore" -storepass android \
+			-dname "CN=Android Debug,O=Android,C=US" -validity 9999; \
+	else echo "debug keystore 已存在: $(HOME)/.android/debug.keystore"; fi
+	@echo "==> [5/5] 配置 Godot 编辑器设置（SDK / keystore / JDK 路径）..."
+	@ES="$(GODOT_EDITOR_SETTINGS)"; mkdir -p "$$(dirname "$$ES")"; touch "$$ES"; \
+	set_key() { k="$$1"; v="$$2"; \
+		if grep -q "^$${k} = " "$$ES" 2>/dev/null; then \
+			sed -i '' "s|^$${k} = .*|$${k} = \"$${v}\"|" "$$ES"; \
+		else \
+			printf '%s = "%s"\n' "$${k}" "$${v}" >> "$$ES"; \
+		fi; }; \
+	set_key "export/android/android_sdk_path" "$(ANDROID_SDK_ROOT)"; \
+	set_key "export/android/debug_keystore" "$(HOME)/.android/debug.keystore"; \
+	set_key "export/android/java_sdk_path" "$(JAVA_HOME_17)"; \
+	echo "  android_sdk_path = $(ANDROID_SDK_ROOT)"; \
+	echo "  debug_keystore   = $(HOME)/.android/debug.keystore"; \
+	echo "  java_sdk_path    = $(JAVA_HOME_17)"
+	@echo "==> setup-apk 完成"
+
+.PHONY: apk
+apk: setup-apk import ## 导出 Android debug APK（自动安装依赖并导入资源）
+	@mkdir -p "$(PROJECT)/build"
+	JAVA_HOME="$(JAVA_HOME_17)" ANDROID_SDK_ROOT="$(ANDROID_SDK_ROOT)" \
+		"$(GODOT)" --headless --path "$(PROJECT)" --export-debug "Android" "$(abspath $(PROJECT)/build/bwdl.apk)"
+	@echo "==> APK 已生成:"
+	@ls -la "$(PROJECT)/build/bwdl.apk"
 
 .PHONY: help
 help: ## 显示帮助
