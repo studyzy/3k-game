@@ -1302,7 +1302,7 @@ var mod_info_cache: Dictionary = {}
 var wiki_items: Dictionary = {}
 
 
-var basic_avatars: Array = []
+var face_x_sheet = null
 
 
 var special_avatars: Dictionary = {}
@@ -1509,8 +1509,8 @@ func reload(mod_path: String, drama_name: String = ""):
 	get_mod_info(mod_path)
 
 	
-	if basic_avatars.empty():
-		basic_avatars = preload_basic_avatars()
+	if face_x_sheet == null:
+		face_x_sheet = Global.load_pic_with_cache("res://resource/images/actor/face/face-X.png")
 	
 	if special_avatars.empty():
 		special_avatars = preload_special_avatars()
@@ -7173,18 +7173,6 @@ func pinyin(msg: String) -> PoolStringArray:
 			brief = extendedBrief
 	var ret = full
 	ret.append_array(brief)
-	return ret
-
-func preload_basic_avatars() -> Array:
-	var ret = []
-	DataManager.grouped_trace("")
-	for page in 8:
-		var img = Global.load_pic_with_cache("res://resource/images/actor/face/face-{0}.png".format([page]))
-		ret.append(img)
-		DataManager.grouped_trace("AV-BSC")
-	var img = Global.load_pic_with_cache("res://resource/images/actor/face/face-X.png")
-	DataManager.grouped_trace("AV-BSC")
-	ret.append(img)
 	return ret
 
 func preload_special_avatars() -> Dictionary:

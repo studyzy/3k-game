@@ -8,8 +8,6 @@
 extends Node
 class_name Actor_Helper
 
-const AVATAR_GROUP_SIZE = 75
-
 var status_change_ghistory = []
 
 
@@ -1123,10 +1121,9 @@ class ActorInfo:
 	func get_avatar_options() -> Array:
 		var options = []
 		
-		var page = int(actorId / AVATAR_GROUP_SIZE)
 		var defaultOption = {
-			"sort": actorId % AVATAR_GROUP_SIZE, 
-			"img": StaticManager.basic_avatars[page], 
+			"sort": 0, 
+			"img": Global.load_pic_with_cache("res://packed/images/actor/face/avatar/{0}.png".format([actorId])), 
 		}
 		
 		var specified = _get_attr_str("头像")
@@ -1178,7 +1175,7 @@ class ActorInfo:
 			if not matched:
 				continue
 			var option = setting["then"].duplicate()
-			option["img"] = StaticManager.basic_avatars[int(option["picture"])]
+			option["img"] = StaticManager.face_x_sheet
 			if not "optional" in option:
 				
 				option["id"] = 0

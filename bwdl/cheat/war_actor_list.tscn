@@ -2,7 +2,7 @@
 
 [ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=1]
 [ext_resource path="res://cheat/keyword.gd" type="Script" id=2]
-[ext_resource path="res://resource/images/actor/face/face-0.png" type="Texture" id=3]
+[ext_resource path="res://resource/images/actor/face/random.png" type="Texture" id=3]
 [ext_resource path="res://cheat/pager.gd" type="Script" id=4]
 [ext_resource path="res://cheat/war_actor_list.gd" type="Script" id=5]
 [ext_resource path="res://cheat/war_actor_detail.tscn" type="PackedScene" id=6]
