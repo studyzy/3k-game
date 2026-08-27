@@ -122,8 +122,8 @@
         "name": "两宋辽金西夏",
         "enabled": true,
         "path": "song",
-        "description": "陈桥兵变，黄袍加身。\n宋室重文，与辽、夏、金并立。\n靖康之变，南渡偏安，忠烈长存。",
-        "fromYear": 960,
+        "description": "靖康之变，宋室南渡偏安。\n金据中原，西夏雄峙西北，蒙古崛起大漠。\n大理据西南，西辽遥镇西域，群雄环伺。",
+        "fromYear": 1208,
         "fromMonth": 1
     },
     {
@@ -131,8 +131,8 @@
         "name": "元明",
         "enabled": true,
         "path": "yuanming",
-        "description": "元末苛政，民变蜂起。\n红巾席卷，刘福通、徐寿辉、张士诚、方国珍各据一方。\n乱世沉浮，谁主中原？",
-        "fromYear": 1351,
+        "description": "元室衰微，群雄逐鹿。\n朱元璋据集庆，陈友谅霸两湖，明玉珍雄踞巴蜀。\n张士诚坐断江东，方国珍据有浙东，鹿死谁手？",
+        "fromYear": 1360,
         "fromMonth": 1
     },
     {
@@ -140,8 +140,8 @@
         "name": "清",
         "enabled": true,
         "path": "qing",
-        "description": "闯王入京，崇祯自缢。\n清军入关，山河易主。\n大顺、大西、南明，残局未了。",
-        "fromYear": 1644,
+        "description": "甲申国变，清军入关。\n南明偏安江南，大顺余部转战，大西雄踞巴蜀。\n郑氏扬帆海上，残局未了，山河谁主？",
+        "fromYear": 1645,
         "fromMonth": 1
     }
 ]
