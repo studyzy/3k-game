@@ -1,5 +1,5 @@
 # 霸王的大陆（三国志2 复刻版）- Godot 3.x 反编译工程
-# 用法: make [setup|import|run|edit|check|clean|setup-apk|apk|help]
+# 用法: make [setup|import|run|edit|check|clean|build|setup-apk|apk|help]
 #
 # 说明：
 #   - setup 安装依赖环境（下载 Godot 编辑器，macOS）
@@ -8,6 +8,7 @@
 #   - edit  打开 Godot 编辑器
 #   - check headless 校验工程（检查脚本语法）
 #   - clean 清理导入缓存（下次运行会自动重新导入）
+#   - build 导出 macOS app（运行前自动导入资源）
 #   - setup-apk 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 / keystore）
 #   - apk   导出 Android debug APK（依赖 setup-apk 的产物，导出前自动导入资源）
 
@@ -92,6 +93,15 @@ check: ## headless 校验工程（检查脚本语法）
 .PHONY: clean
 clean: ## 清理导入缓存与编辑器缓存（下次运行会自动重新导入）
 	rm -rf "$(PROJECT)/.import" "$(PROJECT)/.godot"
+
+# ---- macOS 导出 ----
+
+.PHONY: build
+build: import ## 导出 macOS app（自动导入资源）
+	@mkdir -p "$(PROJECT)/build"
+	"$(GODOT)" --headless --path "$(PROJECT)" --export-debug "Mac OSX" "$(abspath $(PROJECT)/build/bwdl.app)"
+	@echo "==> app 已生成:"
+	@ls -la "$(PROJECT)/build/bwdl.app"
 
 # ---- Android 导出 ----
 

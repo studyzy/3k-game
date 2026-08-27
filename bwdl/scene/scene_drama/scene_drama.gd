@@ -36,8 +36,12 @@ func _process(delta: float) -> void :
 		lsc.move_up()
 	if Input.is_action_just_pressed("ANALOG_DOWN"):
 		lsc.move_down()
+	if Input.is_action_just_pressed("ANALOG_LEFT"):
+		lsc.move_left()
+	if Input.is_action_just_pressed("ANALOG_RIGHT"):
+		lsc.move_right()
 	var drama = dramas[lsc.cursor_index]
-	description.text = drama["description"] + "\n\n" + "上下选择时期，A键确认"
+	description.text = drama["description"] + "\n\n" + "上下左右选择时期，A键确认"
 	if not Global.is_action_pressed_AX():
 		return
 	DataManager.loading_version_resource(DataManager.mod_path, drama["path"])

@@ -55,13 +55,12 @@
 
 > ⚠️ 当前全工程无任何 `.gd` 代码加载此文件（死数据），改动不生效。
 
-### actor_skills.json / actor_skills_full.json —— 武将技能表（各 1661 条）
+### actor_skills.json —— 武将技能表（1661 条）
 
 按 `ID` 对应武将，记录每个武将 8 个等级档位的技能名（`LV1`~`LV8`）：
 
 - 每个档位可填一个或多个技能名，多个用 `/` 分隔（对应阴/阳两面两套技能）。
 - 空字符串表示该档位无技能。
-- 两份文件几乎相同：`actor_skills_full.json` 是完整版，`actor_skills.json` 是对部分武将隐藏了尚未启用/在开发中的技能（共 10 处差异）。运行时默认使用精简版。
 
 技能名的具体效果见 `description/skills.json` 与 `skill_system/skill.json`。
 
@@ -434,7 +433,6 @@
 | --- | --- | --- |
 | `actors.json` | `Static_Manager.gd:1399` | 武将主表，新增一条记录。`ID` 取当前最大 ID + 1（全局唯一）；字段见上文「actors.json」一节 |
 | `actor_skills.json` | `Static_Manager.gd:1420` | 按 `ID` 对齐的技能表（`LV1`~`LV8`），空档位填 `""` |
-| `actor_skills_full.json` | `Static_Manager.gd:1422` | 完整技能表，beta 版使用，需与上面同步 |
 
 ### 可选（缺了不报错，按需加）
 
@@ -464,7 +462,7 @@
 
 ### 添加流程
 
-1. 改 `actors.json` + `actor_skills.json` + `actor_skills_full.json`（可先用 `tools/sync_actors.py` 从 `docs/actors_expansion/*.md` 生成主表，但该脚本**只写主表**，不写技能/相性/头像）。
+1. 改 `actors.json` + `actor_skills.json`（可先用 `tools/sync_actors.py` 从 `docs/actors_expansion/*.md` 生成主表，但该脚本**只写主表**，不写技能/相性/头像）。
 2. 放头像图 `packed/images/actor/face/avatar/{ID}.png`（256×40）。
 3. 跑 `make import` 生成 Godot 资源导入缓存（`.import`）。
 
@@ -477,8 +475,7 @@ data/
 ├── actors.json              武将主表
 ├── actors_extra.json        武将附加属性（相性/标签）
 ├── actors_others.json       特殊单位（象群等）
-├── actor_skills.json        武将技能（精简，默认）
-├── actor_skills_full.json   武将技能（完整）
+├── actor_skills.json        武将技能
 ├── old_skills.json          旧技能名清单
 ├── actor_relation.json      武将人际关系
 ├── actor_follower.json      父子登场关系

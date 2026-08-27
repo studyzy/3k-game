@@ -5,6 +5,7 @@
 
 # 导出产物
 export/
+build/
 *.exe
 *.zip
 *.aab
@@ -31,3 +32,8 @@ Thumbs.db
 # 临时文件
 *.tmp
 .workbuddy/
+
+# Python 缓存与生成预览
+__pycache__/
+*.pyc
+tools/avatar_gen/preview/

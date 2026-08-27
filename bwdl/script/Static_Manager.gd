@@ -1418,8 +1418,6 @@ func reload(mod_path: String, drama_name: String = ""):
 	
 	
 	actor_skills = parse_json(_get_file_content(mod_path, drama_name, "actor_skills.json"))
-	if DataManager.is_beta_version():
-		actor_skills = parse_json(_get_file_content(mod_path, drama_name, "actor_skills_full.json"))
 
 	stratagems = _load_stratagems(_get_file_content(mod_path, "", "skill_system/stratagem.json"))
 	stratagemDic = {}
