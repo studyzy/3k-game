@@ -53,6 +53,8 @@
 
 少量非常规「武将」，如 `ID=-10` 的「象群」（象兵单位），字段结构与 `actors.json` 相同但 `ID` 为负数，表示非人类战斗单位。
 
+> ⚠️ 当前全工程无任何 `.gd` 代码加载此文件（死数据），改动不生效。
+
 ### actor_skills.json / actor_skills_full.json —— 武将技能表（各 1661 条）
 
 按 `ID` 对应武将，记录每个武将 8 个等级档位的技能名（`LV1`~`LV8`）：
@@ -77,6 +79,8 @@
 | `relation` | 关系类型，如 `痛恨`、`密友`、`部将`、`妻弟`、`仇视`、`拥立`、`纳降`、`堂兄`、`族兄` 等 |
 
 用于游戏中的对话、事件、忠诚与加入判定。
+
+> ⚠️ 当前全工程无任何 `.gd` 代码加载此文件（死数据），改动不生效。
 
 ### actor_follower.json —— 父子登场关系
 
@@ -417,6 +421,52 @@
 | `bwdl.signer.pub.json` | 签名者公钥 |
 
 用于校验 mod 数据包是否被篡改（不属于游戏数据本身）。
+
+---
+
+## 十一、添加武将：需要改哪些文件
+
+数据加载入口是 `bwdl/script/Static_Manager.gd` 的 `reload()`（约 1387 行），运行时把 `res://resource` 重写为 `res://packed`（`Static_Manager.gd:1395`），因此数据只需维护 `bwdl/packed/` 一份。
+
+### 必改（缺了不生效）
+
+| 文件 | 加载位置 | 说明 |
+| --- | --- | --- |
+| `actors.json` | `Static_Manager.gd:1399` | 武将主表，新增一条记录。`ID` 取当前最大 ID + 1（全局唯一）；字段见上文「actors.json」一节 |
+| `actor_skills.json` | `Static_Manager.gd:1420` | 按 `ID` 对齐的技能表（`LV1`~`LV8`），空档位填 `""` |
+| `actor_skills_full.json` | `Static_Manager.gd:1422` | 完整技能表，beta 版使用，需与上面同步 |
+
+### 可选（缺了不报错，按需加）
+
+| 文件 | 加载位置 | 说明 |
+| --- | --- | --- |
+| `actors_extra.json` | `Static_Manager.gd:1404` | 相性/标签，按 `ID` merge 进主表；缺失的 `ID` 会被跳过 |
+| `actor_follower.json` | `Static_Manager.gd:1433` | 父子登场 |
+| `actor_special_titles.json` | `Static_Manager.gd:1450` | 特殊称呼/蔑称 |
+| `multi_face.json` | `Static_Manager.gd:1449` | 多面立绘，需配合主表的 `面` 字段 |
+| `citys_unoffice.json` | `Static_Manager.gd:1432` | 在野登场表 |
+| `citys.json` | `Static_Manager.gd:1398` | 若开局在某城，把新 `ID` 加进该城的 `武将` 列表 |
+| `vstates.json` | `Static_Manager.gd:1434` | 若做君主/继承人/部将，势力表需引用新 `ID` |
+
+### 图片
+
+默认头像：`packed/images/actor/face/avatar/{ID}.png`（256×40 八帧表情条），由 `Actor_Helper.gd:1126` 按 `actorId` 直连加载。
+
+### 剧本快照（按需）
+
+剧本子目录缺少文件时会自动回退到主表（`Static_Manager.gd:1526` 的 `_get_file_path`），所以只有「该武将在某剧本里有不同开局状态」时才需改 `drama/<剧本>/actors.json`（完整快照，非差异补丁）等文件。
+
+### 已知坑
+
+1. **头像 ID 断层**：`avatar/` 目前只有 600 张（ID 0~599），而 `actors.json` 已到 1660。ID 561~1660 的跨朝代武将没有默认头像；`load_pic_with_cache` 遇缺文件返回 `null`（`global.gd:171`），不崩溃但无头像。
+2. **三国剧本快照滞后**：`guandu`/`wolong`/`chibi`/`stars` 的 `actors.json` 仍是 561 条，跨朝代剧本才是 1661 条。新武将若要在三国剧本登场，需手动同步这些快照。
+3. **死数据**：`actor_relation.json`、`actors_others.json` 全工程无加载，改动不生效。
+
+### 添加流程
+
+1. 改 `actors.json` + `actor_skills.json` + `actor_skills_full.json`（可先用 `tools/sync_actors.py` 从 `docs/actors_expansion/*.md` 生成主表，但该脚本**只写主表**，不写技能/相性/头像）。
+2. 放头像图 `packed/images/actor/face/avatar/{ID}.png`（256×40）。
+3. 跑 `make import` 生成 Godot 资源导入缓存（`.import`）。
 
 ---
 
