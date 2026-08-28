@@ -46,11 +46,44 @@
 |---|---|
 | `avatar_composer.py` | 通用生成方法 + 分类逻辑（对外主入口） |
 | `compose.py` | 两段拼接核心 + 发际线检测 |
+| `expressions.py` | 五官检测 + 八帧表情派生（4 心情 × 2 嘴型） |
+| `fix_all_frames.py` | 存量批量修复入口（幂等，只动生成段） |
+| `check_frames.py` | 全库合规校验（八帧全同清单/尺寸异常/缺文件） |
 | `palette_utils.py` | 中位切分、主色板映射 |
 | `generate_all.py` | 批量生成脚本（按 ID 做随机种子） |
 | `extract.py` | 从 `packed/images/actor/face/avatar/` 抽取参考帧 + 生成主色板 |
 | `palette.txt` | 游戏主色板（64 色） |
 | `reference/` | 561 张三国参考帧（32×40 单帧），compose 的数据源 |
+| `tests/` | 单元 + 集成测试（stdlib unittest，合成 fixture 不依赖真实资产） |
+
+## 八帧表情条格式
+
+游戏对话头像按「4 心情 × 2 嘴型」取帧（`actor_face.gd:100`）：
+
+```
+帧序: [怒闭, 怒张, 喜闭, 喜张, 平闭, 平张, 哀闭, 哀张]
+帧 x = mood*2*32 + mouthFlag*32    mood: 0怒 1喜 2平(默认) 3哀
+```
+
+`to_sheet()` / `fix_all_frames.py` 都通过 `expressions.derive_sheet()` 从「平静-闭嘴」帧派生八帧：
+怒=瞪眼（眼区增高）、喜=眯眼（眼区压扁）、哀=垂眼（眼区下移）、张嘴=嘴线中段清空后下方开口。
+派生只用帧内已有颜色，天然满足 64 色板约束；帧 4 永不修改，重跑幂等。
+
+## 批量修复与校验（存量头像）
+
+```bash
+cd tools/avatar_gen
+# 全库校验：报告八帧全同清单 / 尺寸异常 / 缺文件（违规时退出码非 0）
+python3 check_frames.py --dir ../../bwdl/packed/images/actor/face/avatar
+
+# 批量修复（幂等可重跑；只处理 ID 561~2562，跳过原版段与 546 灰占位）
+python3 fix_all_frames.py --dir ../../bwdl/packed/images/actor/face/avatar --dry-run  # 演练
+python3 fix_all_frames.py --dir ../../bwdl/packed/images/actor/face/avatar            # 正式
+python3 fix_all_frames.py --only 566 --preview /tmp/preview                           # 单张 4x 预览
+
+# 跑测试
+cd tests && python3 -m unittest test_expressions test_fix_all_frames -v
+```
 
 ## 快速开始
 

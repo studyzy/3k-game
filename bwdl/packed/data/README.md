@@ -450,6 +450,8 @@
 
 默认头像：`packed/images/actor/face/avatar/{ID}.png`（256×40 八帧表情条），由 `Actor_Helper.gd:1126` 按 `actorId` 直连加载。
 
+**八帧格式**：4 心情 × 2 嘴型，帧序 `[怒闭, 怒张, 喜闭, 喜张, 平闭, 平张, 哀闭, 哀张]`（每帧 32×40，取帧公式 `mood*2*32 + mouthFlag*32`，见 `actor_face.gd:100`）。八帧不得全同——可用 `tools/avatar_gen/check_frames.py` 校验；由单帧派生八帧用 `tools/avatar_gen/expressions.py`。
+
 ### 剧本快照（按需）
 
 剧本子目录缺少文件时会自动回退到主表（`Static_Manager.gd:1526` 的 `_get_file_path`），所以只有「该武将在某剧本里有不同开局状态」时才需改 `drama/<剧本>/actors.json`（完整快照，非差异补丁）等文件。
@@ -463,7 +465,7 @@
 ### 添加流程
 
 1. 改 `actors.json` + `actor_skills.json`（可先用 `tools/sync_actors.py` 从 `docs/actors_expansion/*.md` 生成主表，但该脚本**只写主表**，不写技能/相性/头像）。
-2. 放头像图 `packed/images/actor/face/avatar/{ID}.png`（256×40）。
+2. 放头像图 `packed/images/actor/face/avatar/{ID}.png`（256×40 八帧表情条，格式见上；可用 `tools/avatar_gen/generate_all.py` 批量生成，自动产出合规八帧）。
 3. 跑 `make import` 生成 Godot 资源导入缓存（`.import`）。
 
 ---

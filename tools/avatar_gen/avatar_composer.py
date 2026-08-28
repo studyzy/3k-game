@@ -19,6 +19,7 @@ import sys
 from PIL import Image
 
 from compose import compose, load
+from expressions import derive_sheet
 from palette_utils import load_palette, map_to_palette
 
 ACTORS = os.path.join(os.path.dirname(__file__), "..", "..",
@@ -78,11 +79,13 @@ def generate_female(seed=None):
 
 
 def to_sheet(frame):
-    """把 32x40 单帧铺成 256x40 八帧表情条。"""
-    sheet = Image.new("RGB", (32 * 8, 40))
-    for i in range(8):
-        sheet.paste(frame, (i * 32, 0))
-    return sheet
+    """把 32×40 单帧派生为 256×40 八帧表情条（4 心情 × 2 嘴型，非简单复制）。
+
+    修复历史 Bug（2026-08-28）: 旧实现把同一帧复制 8 次，导致对话中
+    表情与嘴型动画完全失效。现改调 expressions.derive_sheet 派生，
+    保证新生成头像直接合规（specs/001-fix-avatar-frames FR-009）。
+    """
+    return derive_sheet(frame)
 
 
 def main():
