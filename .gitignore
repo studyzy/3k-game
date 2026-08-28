@@ -2,6 +2,7 @@
 .import/
 .godot/
 *.import
+.import-complete
 
 # 导出产物
 export/

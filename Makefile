@@ -21,6 +21,9 @@ GODOT ?= godot
 
 # 反编译工程目录
 PROJECT ?= bwdl
+# 导入完成标记。放在 .import 目录外：Godot 编辑器扫描会把 .import 内无对应源资源的
+# 「孤儿文件」清掉（2026-08-28 踩过，标记被 check/edit 清掉后 import 每次全量变慢）
+IMPORT_DONE = $(PROJECT)/.import-complete
 
 # ---- Android 导出相关 ----
 # Godot 3.6 导出 Android 需要 JDK 17（不能用更高的 21）
@@ -55,13 +58,16 @@ setup: ## 安装依赖环境（brew 安装 Godot 3.6）
 	fi
 
 # Godot 3.x 无 --import 参数，headless 导入通过后台运行编辑器、等待 .stex 数量稳定后结束。
-# 坑（2026-08-28 踩过）：全量导入 3000+ 纹理远超 1 分钟，旧逻辑「1 秒不变即稳定 + 120 秒上限」
+# 坑1（2026-08-28 踩过）：全量导入 3000+ 纹理远超 1 分钟，旧逻辑「1 秒不变即稳定 + 120 秒上限」
 # 会中途杀掉编辑器留下半残缓存，run 时 SceneManager 等 Autoload 加载失败报 Nil。
-# 现改为：连续 5 秒 stex 数不变才视为稳定，上限 1 小时；完成后写 .complete 标记，
+# 坑2（2026-08-28 实验发现）：小变更（如新增1张图）时编辑器「先扫描完才导入」，扫描的几秒里
+# stex 计数一直不变，旧阈值 5 秒会在导入开始前误杀编辑器、还误写完成标记，新资源永远导不进来。
+# 现改为：连续 30 秒 stex 数不变才视为稳定（须覆盖扫描+导入全程无产出），上限 1 小时；
+# 完成后写 .import-complete 标记（在 .import 目录外，防编辑器孤儿清理删掉它），
 # 后续 run/build 只看标记，中断过的导入不会被误判为已完成。
 .PHONY: import
 import: ## headless 导入资源（生成 .import/.godot 缓存）
-	@if [ -f "$(PROJECT)/.import/.complete" ]; then \
+	@if [ -f "$(IMPORT_DONE)" ]; then \
 		echo "==> 资源已导入，跳过"; \
 	else \
 		echo "==> 导入资源（全量需数分钟，请勿中断）..."; \
@@ -72,7 +78,7 @@ import: ## headless 导入资源（生成 .import/.godot 缓存）
 			cur=$$(find $(PROJECT)/.import -name '*.stex' 2>/dev/null | wc -l | tr -d ' '); \
 			if [ "$$cur" != "0" ] && [ "$$cur" = "$$prev" ]; then \
 				stable=$$((stable+1)); \
-				if [ $$stable -ge 5 ]; then break; fi; \
+				if [ $$stable -ge 30 ]; then break; fi; \
 			else \
 				stable=0; \
 			fi; \
@@ -81,7 +87,7 @@ import: ## headless 导入资源（生成 .import/.godot 缓存）
 		kill $$pid 2>/dev/null; wait $$pid 2>/dev/null; \
 		cur=$$(find $(PROJECT)/.import -name '*.stex' 2>/dev/null | wc -l | tr -d ' '); \
 		if [ "$$done" = "1" ] || [ $$i -lt 3600 ]; then \
-			touch "$(PROJECT)/.import/.complete"; \
+			touch "$(IMPORT_DONE)"; \
 			echo "==> 导入完成 ($$cur 个纹理)"; \
 		else \
 			echo "==> 导入超时未完成 ($$cur 个纹理)，请重新执行 make import"; \
@@ -103,6 +109,7 @@ check: ## headless 校验工程（检查脚本语法）
 .PHONY: clean
 clean: ## 清理导入缓存与编辑器缓存（下次运行会自动重新导入）
 	rm -rf "$(PROJECT)/.import" "$(PROJECT)/.godot"
+	rm -f "$(IMPORT_DONE)"
 
 # ---- macOS 导出 ----
 
