@@ -60,22 +60,38 @@ setup: ## 安装依赖环境（下载并解压 Godot 编辑器）
 		echo "==> Godot $(GODOT_VERSION) 安装完成: $(GODOT_BIN)"; \
 	fi
 
-# Godot 3.x 无 --import 参数，headless 导入通过后台运行编辑器、等待 .stex 数量稳定后结束
+# Godot 3.x 无 --import 参数，headless 导入通过后台运行编辑器、等待 .stex 数量稳定后结束。
+# 坑（2026-08-28 踩过）：全量导入 3000+ 纹理远超 1 分钟，旧逻辑「1 秒不变即稳定 + 120 秒上限」
+# 会中途杀掉编辑器留下半残缓存，run 时 SceneManager 等 Autoload 加载失败报 Nil。
+# 现改为：连续 5 秒 stex 数不变才视为稳定，上限 1 小时；完成后写 .complete 标记，
+# 后续 run/build 只看标记，中断过的导入不会被误判为已完成。
 .PHONY: import
 import: ## headless 导入资源（生成 .import/.godot 缓存）
-	@if [ -d "$(PROJECT)/.import" ] && [ "$$(find $(PROJECT)/.import -name '*.stex' 2>/dev/null | wc -l | tr -d ' ')" != "0" ]; then \
+	@if [ -f "$(PROJECT)/.import/.complete" ]; then \
 		echo "==> 资源已导入，跳过"; \
 	else \
-		echo "==> 导入资源..."; \
+		echo "==> 导入资源（全量需数分钟，请勿中断）..."; \
 		$(GODOT) --headless --path $(PROJECT) --editor > /tmp/godot_import.log 2>&1 & \
-		pid=$$!; prev=0; i=0; \
-		while [ $$i -lt 120 ]; do \
+		pid=$$!; prev=-1; stable=0; i=0; done=0; \
+		while [ $$i -lt 3600 ]; do \
+			kill -0 $$pid 2>/dev/null || { done=1; break; }; \
 			cur=$$(find $(PROJECT)/.import -name '*.stex' 2>/dev/null | wc -l | tr -d ' '); \
-			if [ "$$cur" != "0" ] && [ "$$cur" = "$$prev" ]; then break; fi; \
+			if [ "$$cur" != "0" ] && [ "$$cur" = "$$prev" ]; then \
+				stable=$$((stable+1)); \
+				if [ $$stable -ge 5 ]; then break; fi; \
+			else \
+				stable=0; \
+			fi; \
 			prev=$$cur; i=$$((i+1)); sleep 1; \
 		done; \
 		kill $$pid 2>/dev/null; wait $$pid 2>/dev/null; \
-		echo "==> 导入完成 ($$cur 个纹理)"; \
+		cur=$$(find $(PROJECT)/.import -name '*.stex' 2>/dev/null | wc -l | tr -d ' '); \
+		if [ "$$done" = "1" ] || [ $$i -lt 3600 ]; then \
+			touch "$(PROJECT)/.import/.complete"; \
+			echo "==> 导入完成 ($$cur 个纹理)"; \
+		else \
+			echo "==> 导入超时未完成 ($$cur 个纹理)，请重新执行 make import"; \
+		fi; \
 	fi
 
 .PHONY: run
