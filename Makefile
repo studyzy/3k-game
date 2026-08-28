@@ -2,7 +2,7 @@
 # 用法: make [setup|import|run|edit|check|clean|build|setup-apk|apk|help]
 #
 # 说明：
-#   - setup 安装依赖环境（下载 Godot 编辑器，macOS）
+#   - setup 安装依赖环境（brew 安装 Godot 3.6，macOS）
 #   - import headless 导入资源（生成 .import/.godot 缓存，仓库不追踪导入产物）
 #   - run   运行游戏主场景（运行前自动导入资源）
 #   - edit  打开 Godot 编辑器
@@ -10,21 +10,14 @@
 #   - clean 清理导入缓存（下次运行会自动重新导入）
 #   - build 导出 macOS app（运行前自动导入资源）
 #   - setup-apk 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 / keystore）
-#   - apk   导出 Android debug APK（依赖 setup-apk 的产物，导出前自动导入资源）
+#   - apk   导出 Android release APK（脚本编译为字节码 + release 签名，导出前自动导入资源）
 
-# Godot 版本（3.x LTS 最终版）
+# Godot 版本（3.x LTS 最终版，需与系统安装的版本一致）
 GODOT_VERSION ?= 3.6.3
 
-# 本地 Godot 编辑器（setup 安装位置）
-GODOT_APP = Godot_$(GODOT_VERSION).app
-GODOT_BIN = $(GODOT_APP)/Contents/MacOS/Godot
-
-# Godot 下载地址（macOS universal）
-GODOT_URL = https://github.com/godotengine/godot/releases/download/$(GODOT_VERSION)-stable/Godot_v$(GODOT_VERSION)-stable_osx.universal.zip
-
-# Godot 可执行文件：优先本地 app，其次 PATH 中的 godot（其它平台），最后回退本地路径
-GODOT ?= $(shell if [ -x "$(GODOT_BIN)" ]; then printf '%s' "$(GODOT_BIN)"; \
-          else command -v godot 2>/dev/null || printf '%s' "$(GODOT_BIN)"; fi)
+# Godot 可执行文件：使用系统 PATH 中的 godot（brew cask godot@3 装于 /Applications/Godot.app），
+# 可用 GODOT=... 覆盖为其他路径
+GODOT ?= godot
 
 # 反编译工程目录
 PROJECT ?= bwdl
@@ -44,20 +37,21 @@ EXPORT_TEMPLATES_DIR ?= $(HOME)/Library/Application Support/Godot/templates/$(GO
 EXPORT_TEMPLATES_URL ?= https://github.com/godotengine/godot/releases/download/$(GODOT_VERSION)-stable/Godot_v$(GODOT_VERSION)-stable_export_templates.tpz
 # Godot 3.x 编辑器设置文件（Android SDK / keystore / JDK 路径由此读取，环境变量仅在首次创建时生效）
 GODOT_EDITOR_SETTINGS ?= $(HOME)/Library/Application Support/Godot/editor_settings-3.tres
+# 正式签名 keystore（release 导出用；文件不入库，请自行备份，丢失后已装用户无法覆盖升级）
+# 路径/用户/密码已同步写在 bwdl/export_presets.cfg 的 keystore/release* 三项，改动需两边一致
+RELEASE_KEYSTORE ?= $(HOME)/.android/bwdl-release.keystore
+RELEASE_KEYSTORE_USER ?= bwdl
+RELEASE_KEYSTORE_PASS ?= bwdl-release
 
 .PHONY: setup
-setup: ## 安装依赖环境（下载并解压 Godot 编辑器）
-	@if [ -x "$(GODOT_BIN)" ]; then \
-		echo "Godot $(GODOT_VERSION) 已安装: $(GODOT_BIN)"; \
+setup: ## 安装依赖环境（brew 安装 Godot 3.6）
+	@if command -v godot >/dev/null 2>&1; then \
+		echo "Godot 已安装: $$(command -v godot) ($$(godot --version))"; \
 	else \
-		echo "==> 下载 Godot $(GODOT_VERSION) ..."; \
-		curl -L -o /tmp/godot.zip "$(GODOT_URL)" && \
-		unzip -q -o /tmp/godot.zip -d /tmp/godot_setup && \
-		rm -rf "$(GODOT_APP)" && \
-		mv /tmp/godot_setup/Godot.app "$(GODOT_APP)" && \
-		rm -rf /tmp/godot.zip /tmp/godot_setup && \
-		xattr -dr com.apple.quarantine "$(GODOT_APP)" 2>/dev/null || true; \
-		echo "==> Godot $(GODOT_VERSION) 安装完成: $(GODOT_BIN)"; \
+		echo "==> 未找到 godot，通过 brew 安装 godot@$(GODOT_VERSION) ..."; \
+		brew install --cask godot@$(GODOT_VERSION) || \
+			{ echo "错误: brew 安装失败，请手动安装 Godot $(GODOT_VERSION)"; exit 1; }; \
+		echo "==> Godot $(GODOT_VERSION) 安装完成: $$(command -v godot)"; \
 	fi
 
 # Godot 3.x 无 --import 参数，headless 导入通过后台运行编辑器、等待 .stex 数量稳定后结束。
@@ -123,20 +117,20 @@ build: import ## 导出 macOS app（自动导入资源）
 
 .PHONY: setup-apk
 setup-apk: ## 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 / keystore）
-	@echo "==> [1/5] 检查 JDK 17 ..."
+	@echo "==> [1/6] 检查 JDK 17 ..."
 	@if [ ! -x "$(JAVA_HOME_17)/bin/java" ]; then \
 		echo "错误: 未找到 JDK 17，请安装后设置 JAVA_HOME_17（如 brew install --cask temurin@17）"; exit 1; \
 	else echo "JDK 17: $(JAVA_HOME_17)"; fi
-	@echo "==> [2/5] 检查 Android cmdline-tools ..."
+	@echo "==> [2/6] 检查 Android cmdline-tools ..."
 	@if [ ! -x "$(ANDROID_CMDLINE_TOOLS)/sdkmanager" ]; then \
 		brew install --cask android-commandlinetools; \
 	fi
-	@echo "==> [3/5] 安装 SDK 组件并接受许可 ..."
+	@echo "==> [3/6] 安装 SDK 组件并接受许可 ..."
 	@mkdir -p "$(ANDROID_SDK_ROOT)"
 	@yes | "$(ANDROID_CMDLINE_TOOLS)/sdkmanager" --sdk_root="$(ANDROID_SDK_ROOT)" --licenses > /tmp/sdk_licenses.log 2>&1 || true
 	@"$(ANDROID_CMDLINE_TOOLS)/sdkmanager" --sdk_root="$(ANDROID_SDK_ROOT)" \
 		"platform-tools" "build-tools;$(ANDROID_BUILD_TOOLS)" "platforms;$(ANDROID_PLATFORM)"
-	@echo "==> [4/5] 安装 Godot 导出模板 + 生成 debug keystore ..."
+	@echo "==> [4/6] 安装 Godot 导出模板 + 生成 debug keystore ..."
 	@if [ ! -f "$(EXPORT_TEMPLATES_DIR)/android_release.apk" ]; then \
 		echo "下载导出模板 ..."; \
 		mkdir -p "$(EXPORT_TEMPLATES_DIR)"; \
@@ -152,7 +146,16 @@ setup-apk: ## 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 /
 			-keypass android -keystore "$(HOME)/.android/debug.keystore" -storepass android \
 			-dname "CN=Android Debug,O=Android,C=US" -validity 9999; \
 	else echo "debug keystore 已存在: $(HOME)/.android/debug.keystore"; fi
-	@echo "==> [5/5] 配置 Godot 编辑器设置（SDK / keystore / JDK 路径）..."
+	@echo "==> [5/6] 生成 release keystore ..."
+	@if [ ! -f "$(RELEASE_KEYSTORE)" ]; then \
+		mkdir -p "$$(dirname "$(RELEASE_KEYSTORE)")"; \
+		"$(JAVA_HOME_17)/bin/keytool" -genkeypair -alias "$(RELEASE_KEYSTORE_USER)" \
+			-keyalg RSA -keysize 2048 -validity 10000 \
+			-keystore "$(RELEASE_KEYSTORE)" -storepass "$(RELEASE_KEYSTORE_PASS)" \
+			-keypass "$(RELEASE_KEYSTORE_PASS)" -dname "CN=Bwddl,O=Sgz,C=CN"; \
+		echo "已生成: $(RELEASE_KEYSTORE)（请自行备份，丢失后已装用户无法覆盖升级）"; \
+	else echo "release keystore 已存在: $(RELEASE_KEYSTORE)"; fi
+	@echo "==> [6/6] 配置 Godot 编辑器设置（SDK / keystore / JDK 路径）..."
 	@ES="$(GODOT_EDITOR_SETTINGS)"; mkdir -p "$$(dirname "$$ES")"; touch "$$ES"; \
 	set_key() { k="$$1"; v="$$2"; \
 		if grep -q "^$${k} = " "$$ES" 2>/dev/null; then \
@@ -169,10 +172,10 @@ setup-apk: ## 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 /
 	@echo "==> setup-apk 完成"
 
 .PHONY: apk
-apk: setup-apk import ## 导出 Android debug APK（自动安装依赖并导入资源）
+apk: setup-apk import ## 导出 Android release APK（脚本字节码 + release 签名，自动安装依赖并导入资源）
 	@mkdir -p "$(PROJECT)/build"
 	JAVA_HOME="$(JAVA_HOME_17)" ANDROID_SDK_ROOT="$(ANDROID_SDK_ROOT)" \
-		"$(GODOT)" --headless --path "$(PROJECT)" --export-debug "Android" "$(abspath $(PROJECT)/build/bwdl.apk)"
+		"$(GODOT)" --headless --path "$(PROJECT)" --export "Android" "$(abspath $(PROJECT)/build/bwdl.apk)"
 	@echo "==> APK 已生成:"
 	@ls -la "$(PROJECT)/build/bwdl.apk"
 
