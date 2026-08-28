@@ -22,16 +22,26 @@ func _ready() -> void :
 	rect_scale.y = scale;
 	if (vstateId == - 1):
 		Big.visible = false;
-		lbllordName.text = vstate_name;
+		set_lord_name(vstate_name);
 		lblcityNums.visible = false;
 		return ;
 	var vstate = clVState.vstate(vstateId)
 	if (vstate_name == ""):
 		vstate_name = vstate.get_lord_name()
-	
-	lbllordName.text = vstate_name;
+
+	set_lord_name(vstate_name);
 	var citys = DataManager.get_city_num_by_vstate(vstateId)
 	citys = max(citys, 1)
 	lblcityNums.text = "×{0}".format([citys])
 	Big.texture = Global.load_pic("res://resource/images/vassalIcon/{0}_BIG.png".format([vstateId]));
+	return
+
+# 名字超过 4 个字时按总宽度不超过 4 字（120px）等比缩小字号，字越多字号越小
+func set_lord_name(text: String) -> void :
+	lbllordName.text = text;
+	var length = text.length();
+	if (length > 4):
+		var font: DynamicFont = lbllordName.get_font("font").duplicate();
+		font.size = max(15, int(120.0 / length));
+		lbllordName.add_font_override("font", font);
 	return
