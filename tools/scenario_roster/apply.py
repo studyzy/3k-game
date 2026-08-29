@@ -140,20 +140,29 @@ def main():
             if aid >= len(actors):
                 errors.append(f'placement {aid}: 超出快照')
                 continue
-            if actors[aid]['状态'] != '在野':
-                errors.append(f'placement {aid} {actors[aid]["姓名"]}: 状态={actors[aid]["状态"]} 非在野')
-                continue
-            if roster_of(aid) is not None:
-                errors.append(f'placement {aid} {actors[aid]["姓名"]}: 已在 {roster_of(aid)["城池名"]}')
-                continue
             if cid not in city_by_id:
                 errors.append(f'placement {aid}: 目标城 {cid} 不存在')
                 continue
             if city_by_id[cid]['归属'] != vs:
                 errors.append(f'placement {aid} {actors[aid]["姓名"]}: 城{city_by_id[cid]["城池名"]}归属{city_by_id[cid]["归属"]}≠势力{vs}')
                 continue
-            city_by_id[cid]['武将'].append(aid)
-            actors[aid]['状态'] = '出仕'
+            st = actors[aid]['状态']
+            if st == '在野':
+                if roster_of(aid) is not None:
+                    errors.append(f'placement {aid} {actors[aid]["姓名"]}: 已在 {roster_of(aid)["城池名"]}')
+                    continue
+                city_by_id[cid]['武将'].append(aid)
+                actors[aid]['状态'] = '出仕'
+            elif st == '出仕':
+                # 幂等：重复执行时已出仕者直接就位/换城，不再报错
+                cur = roster_of(aid)
+                if cur is None:
+                    errors.append(f'placement {aid} {actors[aid]["姓名"]}: 状态出仕却不在任何城')
+                elif cur['ID'] != cid:
+                    cur['武将'].remove(aid)
+                    city_by_id[cid]['武将'].append(aid)
+            else:
+                errors.append(f'placement {aid} {actors[aid]["姓名"]}: 状态={st} 不可出仕')
 
         # 4) 校验
         placed_cnt = {}
