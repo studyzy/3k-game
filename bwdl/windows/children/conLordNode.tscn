@@ -1,9 +1,40 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=7 format=2]
 
-[ext_resource path="res://resource/images/vassalIcon/2_BIG.png" type="Texture" id=1]
+[ext_resource path="res://resource/images/vassalIcon/4_BIG.png" type="Texture" id=1]
 [ext_resource path="res://resource/font/FandolSong-Bold/30.tres" type="DynamicFont" id=2]
 [ext_resource path="res://resource/font/FandolSong-Bold/25.tres" type="DynamicFont" id=3]
 [ext_resource path="res://windows/children/conLordNode.gd" type="Script" id=4]
+
+[sub_resource type="Shader" id=2]
+code = "shader_type canvas_item;
+render_mode unshaded;
+
+//边框色
+uniform vec3 outline_color_rgb = vec3(0,0,0);
+//内图色
+uniform vec3 inside_color_rgb = vec3(1,1,0.2);
+//透明度
+uniform float alpha = 1.0;
+
+void fragment(){
+	COLOR = texture(TEXTURE,UV);
+	if (COLOR.a > 0.1) {
+		//边框
+		if (COLOR.r <= float(1) && COLOR.r >=float(0.5)) {
+			COLOR.rgb = outline_color_rgb;
+			COLOR.a = alpha;
+		} else {
+			COLOR.rgb = inside_color_rgb;
+			COLOR.a = alpha;
+		}
+	}
+}"
+
+[sub_resource type="ShaderMaterial" id=3]
+shader = SubResource( 2 )
+shader_param/outline_color_rgb = Vector3( 0, 0, 0 )
+shader_param/inside_color_rgb = Vector3( 1, 1, 0.2 )
+shader_param/alpha = 1.0
 
 [node name="conLordNode" type="Control"]
 script = ExtResource( 4 )
@@ -30,6 +61,7 @@ custom_fonts/font = ExtResource( 3 )
 text = "×1"
 
 [node name="Big" type="Sprite" parent="."]
+material = SubResource( 3 )
 position = Vector2( 129.496, 20.496 )
 scale = Vector2( 1.219, 1.219 )
 texture = ExtResource( 1 )
