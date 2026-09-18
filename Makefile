@@ -3,14 +3,17 @@
 #
 # 说明：
 #   - setup 安装依赖环境（brew 安装 Godot 3.6，macOS）
-#   - import headless 导入资源（生成 .import/.godot 缓存，仓库不追踪导入产物）
+#   - import 无窗口导入资源（生成 .import/.godot 缓存，仓库不追踪导入产物）
 #   - run   运行游戏主场景（运行前自动导入资源）
 #   - edit  打开 Godot 编辑器
-#   - check headless 校验工程（检查脚本语法）
+#   - check 无窗口校验工程（检查脚本语法）
 #   - clean 清理导入缓存（下次运行会自动重新导入）
 #   - build 导出 macOS app（运行前自动导入资源）
 #   - setup-apk 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 / keystore）
 #   - apk   导出 Android release APK（脚本编译为字节码 + release 签名，导出前自动导入资源）
+#
+# 注：Godot 3.x 无 --headless 参数（那是 4.x 的），无窗口运行用 --no-window。
+#     命令行里的 --no-window 仅对 windows/x11 平台生效；CI 用 linux_headless 版二进制。
 
 # Godot 版本（3.x LTS 最终版，需与系统安装的版本一致）
 GODOT_VERSION ?= 3.6.3
@@ -41,8 +44,11 @@ EXPORT_TEMPLATES_URL ?= https://github.com/godotengine/godot/releases/download/$
 # Godot 3.x 编辑器设置文件（Android SDK / keystore / JDK 路径由此读取，环境变量仅在首次创建时生效）
 GODOT_EDITOR_SETTINGS ?= $(HOME)/Library/Application Support/Godot/editor_settings-3.tres
 # 正式签名 keystore（release 导出用；文件不入库，请自行备份，丢失后已装用户无法覆盖升级）
-# 路径/用户/密码已同步写在 bwdl/export_presets.cfg 的 keystore/release* 三项，改动需两边一致
+# export_presets.cfg 里写的是相对项目目录的路径 .ci-signing/release.keystore，
+# 本地用软链指向这里，CI 用 secret 还原到项目内同名位置。用户/密码两边需一致。
 RELEASE_KEYSTORE ?= $(HOME)/.android/bwdl-release.keystore
+# export_presets.cfg 中 keystore/release 的相对路径基准是项目目录
+RELEASE_KEYSTORE_LINK ?= $(PROJECT)/.ci-signing/release.keystore
 RELEASE_KEYSTORE_USER ?= bwdl
 RELEASE_KEYSTORE_PASS ?= bwdl-release
 
@@ -71,7 +77,7 @@ import: ## headless 导入资源（生成 .import/.godot 缓存）
 		echo "==> 资源已导入，跳过"; \
 	else \
 		echo "==> 导入资源（全量需数分钟，请勿中断）..."; \
-		$(GODOT) --headless --path $(PROJECT) --editor > /tmp/godot_import.log 2>&1 & \
+		$(GODOT) --no-window --path $(PROJECT) --editor > /tmp/godot_import.log 2>&1 & \
 		pid=$$!; prev=-1; stable=0; i=0; done=0; \
 		while [ $$i -lt 3600 ]; do \
 			kill -0 $$pid 2>/dev/null || { done=1; break; }; \
@@ -104,7 +110,7 @@ edit: ## 打开 Godot 编辑器
 
 .PHONY: check
 check: ## headless 校验工程（检查脚本语法）
-	"$(GODOT)" --headless --path $(PROJECT) --editor --quit
+	"$(GODOT)" --no-window --path $(PROJECT) --editor --quit
 
 .PHONY: clean
 clean: ## 清理导入缓存与编辑器缓存（下次运行会自动重新导入）
@@ -116,7 +122,7 @@ clean: ## 清理导入缓存与编辑器缓存（下次运行会自动重新导�
 .PHONY: build
 build: import ## 导出 macOS app（自动导入资源）
 	@mkdir -p "$(PROJECT)/build"
-	"$(GODOT)" --headless --path "$(PROJECT)" --export-debug "Mac OSX" "$(abspath $(PROJECT)/build/bwdl.app)"
+	"$(GODOT)" --no-window --path "$(PROJECT)" --export-debug "Mac OSX" "$(abspath $(PROJECT)/build/bwdl.app)"
 	@echo "==> app 已生成:"
 	@ls -la "$(PROJECT)/build/bwdl.app"
 
@@ -153,7 +159,7 @@ setup-apk: ## 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 /
 			-keypass android -keystore "$(HOME)/.android/debug.keystore" -storepass android \
 			-dname "CN=Android Debug,O=Android,C=US" -validity 9999; \
 	else echo "debug keystore 已存在: $(HOME)/.android/debug.keystore"; fi
-	@echo "==> [5/6] 生成 release keystore ..."
+	@echo "==> [5/6] 生成 release keystore 并链接到项目内 ..."
 	@if [ ! -f "$(RELEASE_KEYSTORE)" ]; then \
 		mkdir -p "$$(dirname "$(RELEASE_KEYSTORE)")"; \
 		"$(JAVA_HOME_17)/bin/keytool" -genkeypair -alias "$(RELEASE_KEYSTORE_USER)" \
@@ -162,6 +168,13 @@ setup-apk: ## 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 /
 			-keypass "$(RELEASE_KEYSTORE_PASS)" -dname "CN=Bwddl,O=Sgz,C=CN"; \
 		echo "已生成: $(RELEASE_KEYSTORE)（请自行备份，丢失后已装用户无法覆盖升级）"; \
 	else echo "release keystore 已存在: $(RELEASE_KEYSTORE)"; fi
+	@mkdir -p "$$(dirname "$(RELEASE_KEYSTORE_LINK)")"; \
+	if [ ! -e "$(RELEASE_KEYSTORE_LINK)" ]; then \
+		ln -s "$(RELEASE_KEYSTORE)" "$(RELEASE_KEYSTORE_LINK)"; \
+		echo "已链接: $(RELEASE_KEYSTORE_LINK) -> $(RELEASE_KEYSTORE)"; \
+	elif [ -L "$(RELEASE_KEYSTORE_LINK)" ]; then \
+		echo "链接已存在: $(RELEASE_KEYSTORE_LINK)"; \
+	else echo "注意: $(RELEASE_KEYSTORE_LINK) 是实体文件（非软链），将直接使用它"; fi
 	@echo "==> [6/6] 配置 Godot 编辑器设置（SDK / keystore / JDK 路径）..."
 	@ES="$(GODOT_EDITOR_SETTINGS)"; mkdir -p "$$(dirname "$$ES")"; touch "$$ES"; \
 	set_key() { k="$$1"; v="$$2"; \
@@ -182,7 +195,7 @@ setup-apk: ## 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 /
 apk: setup-apk import ## 导出 Android release APK（脚本字节码 + release 签名，自动安装依赖并导入资源）
 	@mkdir -p "$(PROJECT)/build"
 	JAVA_HOME="$(JAVA_HOME_17)" ANDROID_SDK_ROOT="$(ANDROID_SDK_ROOT)" \
-		"$(GODOT)" --headless --path "$(PROJECT)" --export "Android" "$(abspath $(PROJECT)/build/bwdl.apk)"
+		"$(GODOT)" --no-window --path "$(PROJECT)" --export "Android" "$(abspath $(PROJECT)/build/bwdl.apk)"
 	@echo "==> APK 已生成:"
 	@ls -la "$(PROJECT)/build/bwdl.apk"
 

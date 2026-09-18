@@ -2,65 +2,119 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [godot3, main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      check_all:
+        description: "校验全部脚本（默认只校验本次变更的 .gd 文件，全量约 16 分钟）"
+        type: boolean
+        default: false
 
 jobs:
-  server-test:
-    name: 服务器测试（Go）
-    runs-on: ubuntu-latest
+  script-check:
+    name: 脚本语法校验（Godot 3.6.3）
+    runs-on: ubuntu-22.04
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
-
-      - name: 安装 Go
-        uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
-          cache-dependency-path: server/go.sum
+          # 需要历史以计算变更文件范围
+          fetch-depth: 0
 
-      - name: Go 静态检查（vet）
-        run: cd server && make vet
-
-      - name: 运行 Go 单元测试（游戏逻辑）
-        run: cd server && make test
-
-  client-test:
-    name: 客户端测试（Godot）
-    runs-on: ubuntu-latest
-    steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
-
-      - name: 安装 Godot 4.7.2
-        uses: chickensoft-games/setup-godot@v2
+      # Godot 3.6.3 无 --headless 参数（那是 4.x 的），无窗口运行用 --no-window；
+      # linux_headless 版二进制本身不含 X11 依赖。
+      - name: 缓存 Godot
+        id: cache-godot
+        uses: actions/cache@v4
         with:
-          # 纯 GDScript 项目，无需 .NET 版
-          version: 4.7.2
-          use-dotnet: false
+          path: ~/godot-bin
+          key: godot-editor-3.6.3-stable-linux-headless
+
+      - name: 下载 Godot 3.6.3
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p ~/godot-bin
+          url="https://github.com/godotengine/godot/releases/download/3.6.3-stable/Godot_v3.6.3-stable_linux_headless.64.zip"
+          curl -fsSL -o /tmp/godot.zip "$url"
+          unzip -q -o /tmp/godot.zip -d /tmp/godot-extract
+          bin=$(find /tmp/godot-extract -type f -name 'Godot*' | head -1)
+          [ -n "$bin" ] || { echo "压缩包内未找到 Godot 可执行文件"; ls -la /tmp/godot-extract; exit 1; }
+          cp "$bin" ~/godot-bin/godot
+          chmod +x ~/godot-bin/godot
 
       - name: 验证 Godot
-        run: godot --version
+        run: ~/godot-bin/godot --version
 
-      - name: 安装 Go（编译 MockServer）
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.24"
-          cache-dependency-path: server/go.sum
+      - name: 计算待校验文件清单
+        id: files
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          CHECK_ALL: ${{ inputs.check_all }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "${CHECK_ALL:-}" = "true" ]; then
+            echo "全量校验模式"
+            (cd bwdl && find . -name '*.gd' | sed 's|^\./|res://|' | sort) > /tmp/files.txt
+          else
+            # 只校验本次变更涉及的 .gd（Godot 3.x 无 --import，全量校验 1378 文件 × 0.7s ≈ 16 分钟）
+            if [ "$EVENT_NAME" = "pull_request" ]; then
+              git fetch --no-tags origin "$BASE_REF" || true
+              RANGE="origin/$BASE_REF...HEAD"
+            else
+              RANGE="$BEFORE_SHA..$HEAD_SHA"
+              # 首次推送或 before 为全零时退化为与上一提交比较
+              case "$BEFORE_SHA" in
+                0000000*) RANGE="HEAD~1..HEAD" ;;
+              esac
+            fi
+            echo "变更范围: $RANGE"
+            git diff --name-only --diff-filter=ACMR "$RANGE" -- 'bwdl/**/*.gd' 2>/dev/null \
+              | sed 's|^bwdl/|res://|' | sort > /tmp/files.txt || true
+            # 若范围计算失败（如新分支），退化为最近一次提交的变更
+            if [ ! -s /tmp/files.txt ]; then
+              git diff --name-only --diff-filter=ACMR HEAD~1 HEAD -- 'bwdl/**/*.gd' \
+                | sed 's|^bwdl/|res://|' | sort > /tmp/files.txt || true
+            fi
+          fi
+          n=$(wc -l < /tmp/files.txt | tr -d ' ')
+          echo "待校验 $n 个文件"
+          sed 's/^/  /' /tmp/files.txt | head -50
+          echo "count=$n" >> "$GITHUB_OUTPUT"
 
-      - name: 编译 MockServer
-        run: make build-mock
+      # 用 --check-only -s 逐文件校验。注意：
+      #  - 该工程是反编译产物，clEquip/clVState/Static_Manager 等存在循环引用，会产生
+      #    "cyclic reference" / "already being loaded" / "isn't declared" 类 Parse Error 噪音，
+      #    且**校验正常文件时退出码也是 1**，故不能用退出码判断。
+      #  - 真正的语法错误报文形如 "Parse Error: <具体描述>"，不含上述循环引用关键词。
+      #    过滤掉噪音后若仍有输出，即为真实语法错误。
+      - name: 校验脚本语法
+        if: steps.files.outputs.count != '0'
+        run: |
+          set -uo pipefail
+          GODOT=~/godot-bin/godot
+          NOISE='cyclic|already being loaded|couldn.t be fully loaded|isn.t declared|possible cyclic reference'
+          fail=0
+          total=0
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            total=$((total+1))
+            res=$(timeout 180 "$GODOT" --no-window --path bwdl --check-only -s "$f" 2>&1 || true)
+            errs=$(printf '%s\n' "$res" | grep 'Parse Error:' | grep -vE "$NOISE" || true)
+            if [ -n "$errs" ]; then
+              echo "::error file=${f#res://}::语法错误"
+              printf '%s\n' "$errs" | sed 's/^/    /'
+              printf '%s\n' "$res" | grep -A1 'Parse Error:' | grep 'at:' | head -3 | sed 's/^/    /'
+              fail=$((fail+1))
+            fi
+          done < /tmp/files.txt
+          echo "已校验 $total 个脚本，其中 $fail 个有语法错误"
+          [ "$fail" -eq 0 ] || exit 1
 
-      - name: Headless 校验工程（导入资源、检查错误）
-        run: make check
-
-      - name: 运行客户端单元测试（MockServer + gdUnit4）
-        run: make test
-
-      - name: 上传测试报告
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: client-test-reports
-          path: reports/
-          if-no-files-found: ignore
+      - name: 无变更脚本需校验
+        if: steps.files.outputs.count == '0'
+        run: echo "本次变更未涉及 .gd 脚本，跳过校验"

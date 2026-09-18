@@ -1,0 +1,301 @@
+name: Android APK
+
+# 在 Linux runner 上导出 Godot 3.6.3 release APK。
+# 打 v* tag 时自动创建 GitHub Release 并附上 APK；也可在 Actions 页面手动触发（只出 artifact）。
+#
+# 所需 Secret：
+#   RELEASE_KEYSTORE_BASE64  release keystore 的 base64（必需）
+#   生成方式：base64 -i ~/.android/bwdl-release.keystore | pbcopy
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "版本名（手动触发时使用，留空则用 0.0.0-<run_number>）"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: "3.6.3"
+  GODOT_RELEASE_TAG: "3.6.3-stable"
+  # 与 Makefile 默认值保持一致
+  ANDROID_BUILD_TOOLS: "34.0.0"
+  ANDROID_PLATFORM: "android-34"
+  # 导出的 APK 签名指纹（SHA-256），用于验证 secret 里的 keystore 正确
+  EXPECTED_CERT_SHA256: "4cbce3c522dcaaf4615c880c4300c3a62ab8cdc807cbfdd7dbf460d8fa724fc8"
+
+jobs:
+  build-apk:
+    name: 构建 Android APK
+    # Godot 3.6.3 是 2023 年的二进制，24.04 的 glibc 有兼容风险，钉 22.04
+    runs-on: ubuntu-22.04
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # ---- Godot 编辑器（linux_headless 版，Server 平台，无 X11 依赖）----
+      - name: 缓存 Godot 编辑器
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ~/godot-bin
+          key: godot-editor-${{ env.GODOT_RELEASE_TAG }}-linux-headless
+
+      - name: 下载 Godot 编辑器
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p ~/godot-bin
+          url="https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE_TAG}/Godot_v${GODOT_VERSION}-stable_linux_headless.64.zip"
+          echo "下载 $url"
+          curl -fsSL -o /tmp/godot.zip "$url"
+          unzip -q -o /tmp/godot.zip -d /tmp/godot-extract
+          # 压缩包内通常是单个可执行文件，不一定是目录结构，做兼容处理
+          bin=$(find /tmp/godot-extract -type f -name 'Godot*' | head -1)
+          [ -n "$bin" ] || { echo "未在压缩包中找到 Godot 可执行文件"; ls -la /tmp/godot-extract; exit 1; }
+          cp "$bin" ~/godot-bin/godot
+          chmod +x ~/godot-bin/godot
+
+      - name: 验证 Godot
+        run: ~/godot-bin/godot --version
+
+      # ---- 导出模板（530MB）----
+      - name: 缓存导出模板
+        id: cache-templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/templates
+          key: godot-templates-${{ env.GODOT_RELEASE_TAG }}
+
+      - name: 下载导出模板
+        if: steps.cache-templates.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          url="https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE_TAG}/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          echo "下载 $url"
+          curl -fsSL -o /tmp/templates.tpz "$url"
+          rm -rf /tmp/tpl && mkdir -p /tmp/tpl
+          unzip -q -o /tmp/templates.tpz -d /tmp/tpl
+          dest="$HOME/.local/share/godot/templates/${GODOT_VERSION}.stable"
+          mkdir -p "$dest"
+          # tpz 内层为 templates/<files>，同时兼容直接平铺的情况
+          if [ -d /tmp/tpl/templates ]; then
+            cp -R /tmp/tpl/templates/. "$dest/"
+          else
+            cp -R /tmp/tpl/. "$dest/"
+          fi
+
+      - name: 校验导出模板
+        run: |
+          set -euo pipefail
+          dest="$HOME/.local/share/godot/templates/${GODOT_VERSION}.stable"
+          ls -la "$dest"
+          for f in android_release.apk android_debug.apk; do
+            [ -f "$dest/$f" ] || { echo "缺少导出模板: $dest/$f"; exit 1; }
+          done
+          echo "导出模板就绪"
+
+      # ---- Android SDK ----
+      - name: 安装 Android SDK
+        run: |
+          set -euo pipefail
+          SDK_ROOT="$HOME/android-sdk"
+          mkdir -p "$SDK_ROOT/cmdline-tools"
+          url="https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+          curl -fsSL -o /tmp/cmdline-tools.zip "$url"
+          unzip -q -o /tmp/cmdline-tools.zip -d /tmp/cmdline-tools
+          mv /tmp/cmdline-tools/cmdline-tools "$SDK_ROOT/cmdline-tools/latest"
+          export ANDROID_SDK_ROOT="$SDK_ROOT"
+          SDKM="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKM" --sdk_root="$SDK_ROOT" --licenses > /dev/null 2>&1 || true
+          "$SDKM" --sdk_root="$SDK_ROOT" \
+            "platform-tools" "build-tools;${ANDROID_BUILD_TOOLS}" "platforms;${ANDROID_PLATFORM}"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "$SDK_ROOT/build-tools/${ANDROID_BUILD_TOOLS}" >> "$GITHUB_PATH"
+
+      # ---- 签名 ----
+      - name: 还原 release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_BASE64:-}" ]; then
+            echo "缺少 Secret RELEASE_KEYSTORE_BASE64"
+            echo "生成：base64 -i ~/.android/bwdl-release.keystore | pbcopy"
+            exit 1
+          fi
+          mkdir -p bwdl/.ci-signing
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > bwdl/.ci-signing/release.keystore
+          # 用 keytool 验证 keystore 可读且 alias 匹配，提前暴露密码/别名不一致
+          keytool -list -keystore bwdl/.ci-signing/release.keystore \
+            -storepass bwdl-release -alias bwdl > /dev/null
+          echo "keystore 校验通过"
+
+      - name: 配置 Godot 编辑器设置
+        run: |
+          set -euo pipefail
+          # 生成临时 debug keystore（preset 未配 debug 项，Godot 回落到编辑器设置）
+          mkdir -p "$HOME/.android"
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            keytool -keyalg RSA -genkeypair -alias androiddebugkey \
+              -keypass android -keystore "$HOME/.android/debug.keystore" -storepass android \
+              -dname "CN=Android Debug,O=Android,C=US" -validity 9999
+          fi
+          ES="$HOME/.local/share/godot/editor_settings-3.tres"
+          mkdir -p "$(dirname "$ES")"
+          : > "$ES"
+          {
+            printf 'export/android/android_sdk_path = "%s"\n' "$HOME/android-sdk"
+            printf 'export/android/java_sdk_path = "%s"\n' "$JAVA_HOME"
+            printf 'export/android/debug_keystore = "%s"\n' "$HOME/.android/debug.keystore"
+            printf 'export/android/debug_keystore_user = "androiddebugkey"\n'
+            printf 'export/android/debug_keystore_pass = "android"\n'
+          } >> "$ES"
+          cat "$ES"
+          # Makefile 的 apk target 依赖这两个环境变量
+          echo "JAVA_HOME=$JAVA_HOME" >> "$GITHUB_ENV"
+
+      # ---- 版本号注入 ----
+      - name: 注入版本号
+        id: version
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.version }}" ]; then
+            v="${{ inputs.version }}"
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            v="${GITHUB_REF_NAME#v}"
+          else
+            v="0.0.0-${GITHUB_RUN_NUMBER}"
+          fi
+          short_sha=$(git rev-parse --short HEAD)
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+          echo "apk_name=bwdl-v${v}-${short_sha}.apk" >> "$GITHUB_OUTPUT"
+          # preset 原本没有 version 项，Android 会认为每次发布都是同一版本，这里注入
+          python3 - "$v" "${GITHUB_RUN_NUMBER}" <<'PY'
+          import re, sys
+          version, code = sys.argv[1], sys.argv[2]
+          p = "bwdl/export_presets.cfg"
+          s = open(p, encoding="utf-8").read()
+          # 先移除既有 version 项（保证可重复执行），再追加到 options 段末尾
+          s = re.sub(r'^version/(name|code)=.*\n?', '', s, flags=re.M)
+          add = f'\nversion/name="{version}"\nversion/code={code}'
+          m = re.search(r'(\[preset\.0\.options\]\n)(.*?)(?=\n\[|\Z)', s, re.S)
+          body = m.group(2).rstrip('\n')
+          s = s[:m.start(2)] + body + add + s[m.end(2):]
+          open(p, "w", encoding="utf-8").write(s)
+          print(f"已注入 version/name={version} version/code={code}")
+          PY
+          grep -n 'version/' bwdl/export_presets.cfg || true
+
+      # ---- 导入资源（缓存 .import，按 md5 增量补齐）----
+      - name: 缓存导入产物
+        uses: actions/cache@v4
+        with:
+          path: |
+            bwdl/.import
+            bwdl/.godot
+          key: godot-import-${{ runner.os }}-${{ hashFiles('bwdl/**/*.png', 'bwdl/**/*.tscn', 'bwdl/**/*.import') }}
+          restore-keys: |
+            godot-import-${{ runner.os }}-
+
+      - name: 导入资源
+        run: |
+          set -euo pipefail
+          # 完成标记不入缓存：make import 的「30 秒稳定」判定在长导入中可能提前写标记，
+          # 复用旧标记会跳过导入导致 APK 缺资源（历史上漏过 1229 个 json 直接闪退）
+          rm -f bwdl/.import-complete
+          export GODOT=~/godot-bin/godot
+          make import
+          echo "stex 数量: $(find bwdl/.import -name '*.stex' | wc -l)"
+
+      # ---- 导出 ----
+      - name: 导出 APK
+        run: |
+          set -euo pipefail
+          export GODOT=~/godot-bin/godot
+          make apk
+          ls -lh bwdl/build/bwdl.apk
+
+      # ---- 校验（导出静默失败是真实风险：apksigner 缺失时 Godot 只发 warning、退出码仍为 0）----
+      - name: 验证 APK 签名
+        run: |
+          set -euo pipefail
+          APK=bwdl/build/bwdl.apk
+          [ -f "$APK" ] || { echo "APK 未生成"; exit 1; }
+          # apksigner verify 校验失败会返回非 0，配合 set -e 直接中止
+          apksigner verify --verbose "$APK"
+          apksigner verify --print-certs "$APK" | tee /tmp/certs.txt
+          actual=$(grep -oE '[0-9a-f]{64}' /tmp/certs.txt | head -1)
+          echo "实际指纹: $actual"
+          echo "期望指纹: $EXPECTED_CERT_SHA256"
+          [ "$actual" = "$EXPECTED_CERT_SHA256" ] || {
+            echo "签名指纹不匹配——secret 里的 keystore 可能不是发布用的那一把"; exit 1; }
+          echo "签名校验通过"
+
+      - name: 验证 APK 版本与资源完整性
+        run: |
+          set -euo pipefail
+          APK=bwdl/build/bwdl.apk
+          echo "--- 版本信息 ---"
+          aapt2 dump badging "$APK" | grep -E "^package:" || true
+          echo "--- 资源数量对比（工程内 vs APK 内）---"
+          src_json=$(find bwdl -path bwdl/build -prune -o -name '*.json' -print | wc -l)
+          apk_json=$(unzip -l "$APK" | grep -c '\.json$' || true)
+          src_pck=$(find bwdl -path bwdl/build -prune -o -name '*.pck' -print | wc -l)
+          apk_pck=$(unzip -l "$APK" | grep -c '\.pck$' || true)
+          echo "json: 工程 $src_json / APK $apk_json"
+          echo "pck : 工程 $src_pck / APK $apk_pck"
+          # json 数据表是运行时裸读的，漏掉会在启动时崩溃
+          [ "$apk_json" -ge "$src_json" ] || { echo "APK 内 json 数量少于工程，导出不完整"; exit 1; }
+          [ "$apk_pck" -ge "$src_pck" ] || { echo "APK 内 pck 数量少于工程，导出不完整"; exit 1; }
+          echo "--- 脚本字节码（加固）---"
+          echo "gdc: $(unzip -l "$APK" | grep -c '\.gdc$' || true)"
+          unzip -l "$APK" | grep -q '\.gd$' && echo "警告: APK 内存在明文 .gd 脚本" || echo "无明文 .gd 脚本（已编译为字节码）"
+
+      - name: 重命名 APK 并生成校验和
+        id: package
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp bwdl/build/bwdl.apk "dist/${{ steps.version.outputs.apk_name }}"
+          cd dist
+          sha256sum "${{ steps.version.outputs.apk_name }}" > "${{ steps.version.outputs.apk_name }}.sha256"
+          cat "${{ steps.version.outputs.apk_name }}.sha256"
+          ls -lh
+
+      - name: 上传 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bwdl-apk-${{ steps.version.outputs.version }}
+          path: dist/*
+          retention-days: 30
+
+      - name: 发布 GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          draft: false
+          body: |
+            ## Android APK
+
+            - 文件：`${{ steps.version.outputs.apk_name }}`
+            - 版本：`${{ steps.version.outputs.version }}` (versionCode `${{ github.run_number }}`)
+            - 提交：`${{ steps.version.outputs.short_sha }}`
+            - 签名指纹：`${{ env.EXPECTED_CERT_SHA256 }}`
+
+            安装前请先卸载旧的 debug 签名版本（签名不同无法覆盖安装）。
+            校验完整性：`sha256sum -c ${{ steps.version.outputs.apk_name }}.sha256`
