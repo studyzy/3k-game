@@ -89,17 +89,34 @@ jobs:
           echo "count=$n" >> "$GITHUB_OUTPUT"
 
       # 用 --check-only -s 逐文件校验。注意：
-      #  - 该工程是反编译产物，clEquip/clVState/Static_Manager 等存在循环引用，会产生
-      #    "cyclic reference" / "already being loaded" / "isn't declared" 类 Parse Error 噪音，
-      #    且**校验正常文件时退出码也是 1**，故不能用退出码判断。
-      #  - 真正的语法错误报文形如 "Parse Error: <具体描述>"，不含上述循环引用关键词。
-      #    过滤掉噪音后若仍有输出，即为真实语法错误。
+      #  - 该工程是反编译产物，clEquip/clVState/Static_Manager/clEnvBase 等存在循环引用，
+      #    且部分 .tscn 引用了不存在的资源，导致 --check-only 无法解析依赖图，产生大量
+      #    "加载失败" 类 Parse Error 噪音；**校验正常文件时退出码也是 1**，不能用退出码判断。
+      #  - 噪音的共同特征是描述「依赖/类加载失败」；真正的语法错误是词法/语法结构描述
+      #    （如 "Unexpected two consecutive operators."）。
+      #  - NOISE 的每一条都来自对全工程 1378 个文件实测归纳，勿凭猜测增删。
       - name: 校验脚本语法
         if: steps.files.outputs.count != '0'
         run: |
           set -uo pipefail
           GODOT=~/godot-bin/godot
-          NOISE='cyclic|already being loaded|couldn.t be fully loaded|isn.t declared|possible cyclic reference'
+          NOISE='couldn.t be fully loaded'
+          NOISE="$NOISE|was found in global scope"
+          NOISE="$NOISE|Couldn.t load the base class"
+          NOISE="$NOISE|Couldn.t fully load the singleton"
+          NOISE="$NOISE|isn.t fully loaded"
+          NOISE="$NOISE|isn.t declared in the current scope"
+          NOISE="$NOISE|Unknown class"
+          NOISE="$NOISE|Can.t preload resource"
+          NOISE="$NOISE|referenced nonexistent resource"
+          NOISE="$NOISE|cyclic reference"
+          NOISE="$NOISE|cyclic preload"
+          NOISE="$NOISE|cyclic inheritance"
+          NOISE="$NOISE|cyclic dependency"
+          NOISE="$NOISE|already being loaded"
+          # clEnvBase 循环引用的次生噪音：该报文的 at: 恒指向 cheat/war_actor_detail.gd:10
+          # 这一依赖文件，从不指向被校验文件（已实测确认）
+          NOISE="$NOISE|Expected a constant expression"
           fail=0
           total=0
           while IFS= read -r f; do
