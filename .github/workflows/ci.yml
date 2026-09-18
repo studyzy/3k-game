@@ -83,7 +83,9 @@ jobs:
           fi
           n=$(wc -l < /tmp/files.txt | tr -d ' ')
           echo "待校验 $n 个文件"
-          sed 's/^/  /' /tmp/files.txt | head -50
+          # 注意用 awk 而非 `sed | head`：head 提前关闭管道会让 sed 收到 SIGPIPE，
+          # 在 set -o pipefail 下整步被判失败（曾踩，exit code 4）
+          awk 'NR<=50 {print "  " $0} END {if (NR>50) print "  ... 共 " NR " 个"}' /tmp/files.txt
           echo "count=$n" >> "$GITHUB_OUTPUT"
 
       # 用 --check-only -s 逐文件校验。注意：
