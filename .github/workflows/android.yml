@@ -152,7 +152,11 @@ jobs:
               -keypass android -keystore "$HOME/.android/debug.keystore" -storepass android \
               -dname "CN=Android Debug,O=Android,C=US" -validity 9999
           fi
-          ES="$HOME/.local/share/godot/editor_settings-3.tres"
+          # Godot 3.x 在 Linux 上按 XDG 规范把编辑器设置放在 $XDG_CONFIG_HOME/godot
+          # （默认 ~/.config/godot），不是 macOS 的 ~/Library/Application Support/Godot，
+          # 也不是 user:// 所在的 ~/.local/share/godot。放错位置 Godot 读不到，
+          # 导出会报 "Debug keystore not configured in the Editor Settings nor in the preset."
+          ES="$HOME/.config/godot/editor_settings-3.tres"
           mkdir -p "$(dirname "$ES")"
           : > "$ES"
           {
