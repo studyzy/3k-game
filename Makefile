@@ -193,6 +193,12 @@ setup-apk: ## 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 /
 
 .PHONY: apk
 apk: setup-apk import ## 导出 Android release APK（脚本字节码 + release 签名，自动安装依赖并导入资源）
+	@$(MAKE) --no-print-directory apk-export
+
+# 仅导出，不跑 setup-apk（本机向：依赖 brew/macOS 路径）。
+# CI 已自行安装 JDK/SDK/导出模板/keystore，故直接用本 target。
+.PHONY: apk-export
+apk-export: import ## 仅导出 Android release APK（假定依赖已就绪，供 CI 使用）
 	@mkdir -p "$(PROJECT)/build"
 	JAVA_HOME="$(JAVA_HOME_17)" ANDROID_SDK_ROOT="$(ANDROID_SDK_ROOT)" \
 		"$(GODOT)" --no-window --path "$(PROJECT)" --export "Android" "$(abspath $(PROJECT)/build/bwdl.apk)"

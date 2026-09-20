@@ -230,7 +230,11 @@ jobs:
         run: |
           set -euo pipefail
           export GODOT=~/godot-bin/godot
-          make apk
+          # 用 apk-export 而非 apk：后者依赖 setup-apk，而 setup-apk 是给本机
+          # (macOS + brew) 用的，会去 brew install android-commandlinetools；
+          # runner 上无 brew 直接 exit 127。本 job 前面已自行装好 JDK/SDK/
+          # 导出模板/keystore，故走「仅导出」这个 target。
+          make apk-export
           ls -lh bwdl/build/bwdl.apk
 
       # ---- 校验（导出静默失败是真实风险：apksigner 缺失时 Godot 只发 warning、退出码仍为 0）----
