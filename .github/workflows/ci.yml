@@ -127,7 +127,14 @@ jobs:
             if [ -n "$errs" ]; then
               echo "::error file=${f#res://}::语法错误"
               printf '%s\n' "$errs" | sed 's/^/    /'
-              printf '%s\n' "$res" | grep -A1 'Parse Error:' | grep 'at:' | head -3 | sed 's/^/    /'
+              # 注意同 "计算待校验文件清单"：`grep ... | head -3` 中 head 提前关闭管道会让
+              # grep 收到 SIGPIPE（实测 PIPESTATUS 末位 141），pipefail 下整步被判失败
+              # （曾致全量校验 exit 2）。用 awk 自己限行，不产生管道写端提前退出。
+              printf '%s\n' "$res" | awk '
+                /Parse Error:/ { inblk = 1; next }
+                inblk && /at:/ { print "    " $0; if (++n >= 3) exit }
+                { inblk = 0 }
+              '
               fail=$((fail+1))
             fi
           done < /tmp/files.txt
