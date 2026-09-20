@@ -156,16 +156,22 @@ jobs:
           # （默认 ~/.config/godot），不是 macOS 的 ~/Library/Application Support/Godot，
           # 也不是 user:// 所在的 ~/.local/share/godot。放错位置 Godot 读不到，
           # 导出会报 "Debug keystore not configured in the Editor Settings nor in the preset."
+          #
+          # 该文件由 ResourceLoader::load(path, "EditorSettings") 加载
+          # （editor_settings.cpp:983），因此必须是合法 .tres 资源：要有
+          # [gd_resource ...] 头与 [resource] 节，键一律写在 [resource] 下。
+          # 裸写 key = value 会让加载失败，Godot 静默用默认值。
           ES="$HOME/.config/godot/editor_settings-3.tres"
           mkdir -p "$(dirname "$ES")"
-          : > "$ES"
           {
+            printf '[gd_resource type="EditorSettings" format=2]\n\n'
+            printf '[resource]\n'
             printf 'export/android/android_sdk_path = "%s"\n' "$HOME/android-sdk"
             printf 'export/android/java_sdk_path = "%s"\n' "$JAVA_HOME"
             printf 'export/android/debug_keystore = "%s"\n' "$HOME/.android/debug.keystore"
             printf 'export/android/debug_keystore_user = "androiddebugkey"\n'
             printf 'export/android/debug_keystore_pass = "android"\n'
-          } >> "$ES"
+          } > "$ES"
           cat "$ES"
           # Makefile 的 apk target 依赖这两个环境变量。
           # JAVA_HOME_17 必须显式导出：setup-java 只设 JAVA_HOME / JAVA_HOME_17_X64，
