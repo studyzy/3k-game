@@ -163,8 +163,13 @@ jobs:
             printf 'export/android/debug_keystore_pass = "android"\n'
           } >> "$ES"
           cat "$ES"
-          # Makefile 的 apk target 依赖这两个环境变量
+          # Makefile 的 apk target 依赖这两个环境变量。
+          # JAVA_HOME_17 必须显式导出：setup-java 只设 JAVA_HOME / JAVA_HOME_17_X64，
+          # 而 Makefile 用的是 `JAVA_HOME_17 ?=`，未定义时会回落到 macOS 的
+          # /Library/Java/... 路径导致 setup-apk 报「未找到 JDK 17」。
+          # 本 job 装的正是 JDK 17，故 JAVA_HOME 即所需路径。
           echo "JAVA_HOME=$JAVA_HOME" >> "$GITHUB_ENV"
+          echo "JAVA_HOME_17=$JAVA_HOME" >> "$GITHUB_ENV"
 
       # ---- 版本号注入 ----
       - name: 注入版本号
