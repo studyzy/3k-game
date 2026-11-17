@@ -2,25 +2,34 @@
 # 用法: make [setup|import|run|edit|check|clean|build|setup-apk|apk|help]
 #
 # 说明：
-#   - setup 安装依赖环境（brew 安装 Godot 3.6，macOS）
+#   - setup 下载项目内 Godot 3 编辑器（装在项目目录，不影响系统全局 Godot 4）
 #   - import 无窗口导入资源（生成 .import/.godot 缓存，仓库不追踪导入产物）
 #   - run   运行游戏主场景（运行前自动导入资源）
 #   - edit  打开 Godot 编辑器
 #   - check 无窗口校验工程（检查脚本语法）
 #   - clean 清理导入缓存（下次运行会自动重新导入）
 #   - build 导出 macOS app（运行前自动导入资源）
+#   - web   导出 WebAssembly 网页版（build/web/）
+#   - serve 本地 HTTP 服务预览网页版
 #   - setup-apk 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 / keystore）
 #   - apk   导出 Android release APK（脚本编译为字节码 + release 签名，导出前自动导入资源）
 #
 # 注：Godot 3.x 无 --headless 参数（那是 4.x 的），无窗口运行用 --no-window。
 #     命令行里的 --no-window 仅对 windows/x11 平台生效；CI 用 linux_headless 版二进制。
 
-# Godot 版本（3.x LTS 最终版，需与系统安装的版本一致）
+# Godot 版本（3.x LTS 最终版）
 GODOT_VERSION ?= 3.6.3
 
-# Godot 可执行文件：使用系统 PATH 中的 godot（brew cask godot@3 装于 /Applications/Godot.app），
-# 可用 GODOT=... 覆盖为其他路径
-GODOT ?= godot
+# 项目内本地 Godot 3 编辑器（不入库，make setup 自动下载）。
+# 独立于系统全局 Godot 4：不改 PATH、不装 /Applications、不动 ~/Library/Application Support/Godot
+# 下的 Godot 4 配置（Godot 3 的配置是 editor_settings-3.tres，天然分开）。
+LOCAL_GODOT_APP ?= $(CURDIR)/Godot_$(GODOT_VERSION).app
+LOCAL_GODOT ?= $(LOCAL_GODOT_APP)/Contents/MacOS/Godot
+GODOT_DOWNLOAD_URL ?= https://github.com/godotengine/godot/releases/download/$(GODOT_VERSION)-stable/Godot_v$(GODOT_VERSION)-stable_osx.universal.zip
+
+# Godot 可执行文件：优先用项目内本地 Godot 3，没有才回退到 PATH 中的 godot
+# （PATH 里可能是 Godot 4，会打不开 config_version=4 的工程，先跑 make setup）
+GODOT ?= $(if $(wildcard $(LOCAL_GODOT)),$(LOCAL_GODOT),godot)
 
 # 反编译工程目录
 PROJECT ?= bwdl
@@ -53,15 +62,32 @@ RELEASE_KEYSTORE_USER ?= bwdl
 RELEASE_KEYSTORE_PASS ?= bwdl-release
 
 .PHONY: setup
-setup: ## 安装依赖环境（brew 安装 Godot 3.6）
-	@if command -v godot >/dev/null 2>&1; then \
-		echo "Godot 已安装: $$(command -v godot) ($$(godot --version))"; \
+setup: ## 下载项目内 Godot 3 编辑器（不覆盖系统全局 Godot 4）
+	@if [ -x "$(LOCAL_GODOT)" ]; then \
+		echo "本地 Godot 已就绪: $(LOCAL_GODOT)"; \
+		"$(LOCAL_GODOT)" --version 2>/dev/null | tail -1; \
 	else \
-		echo "==> 未找到 godot，通过 brew 安装 godot@$(GODOT_VERSION) ..."; \
-		brew install --cask godot@$(GODOT_VERSION) || \
-			{ echo "错误: brew 安装失败，请手动安装 Godot $(GODOT_VERSION)"; exit 1; }; \
-		echo "==> Godot $(GODOT_VERSION) 安装完成: $$(command -v godot)"; \
+		echo "==> 下载 Godot $(GODOT_VERSION)（只解压到 $(LOCAL_GODOT_APP)，不影响 /Applications/Godot.app）..."; \
+		curl -fL --progress-bar -o /tmp/Godot_v$(GODOT_VERSION)-stable_osx.universal.zip "$(GODOT_DOWNLOAD_URL)" || \
+			{ echo "错误: 下载失败，请手动下载 $(GODOT_DOWNLOAD_URL) 解压为 $(LOCAL_GODOT_APP)"; exit 1; }; \
+		rm -rf /tmp/godot_local_unzip; \
+		unzip -q -o /tmp/Godot_v$(GODOT_VERSION)-stable_osx.universal.zip -d /tmp/godot_local_unzip; \
+		rm -rf "$(LOCAL_GODOT_APP)"; \
+		mv /tmp/godot_local_unzip/Godot.app "$(LOCAL_GODOT_APP)"; \
+		rm -rf /tmp/godot_local_unzip /tmp/Godot_v$(GODOT_VERSION)-stable_osx.universal.zip; \
+		xattr -dr com.apple.quarantine "$(LOCAL_GODOT_APP)" 2>/dev/null || true; \
+		echo "==> 完成: $(LOCAL_GODOT)"; \
+		"$(LOCAL_GODOT)" --version 2>/dev/null | tail -1; \
 	fi
+
+# 校验 GODOT 是 3.x：本工程 config_version=4，用 Godot 4 打开会报错或强行改工程文件
+.PHONY: check-godot
+check-godot:
+	@v=$$("$(GODOT)" --version 2>/dev/null | tail -1); \
+	case "$$v" in \
+		3.*) ;; \
+		*) echo "错误: $(GODOT) 是 $$v，本工程需要 Godot 3.x。请先执行 make setup（装到项目内，不动全局 Godot 4）"; exit 1;; \
+	esac
 
 # Godot 3.x 无 --import 参数，headless 导入通过后台运行编辑器、等待 .stex 数量稳定后结束。
 # 坑1（2026-08-28 踩过）：全量导入 3000+ 纹理远超 1 分钟，旧逻辑「1 秒不变即稳定 + 120 秒上限」
@@ -72,7 +98,7 @@ setup: ## 安装依赖环境（brew 安装 Godot 3.6）
 # 完成后写 .import-complete 标记（在 .import 目录外，防编辑器孤儿清理删掉它），
 # 后续 run/build 只看标记，中断过的导入不会被误判为已完成。
 .PHONY: import
-import: ## headless 导入资源（生成 .import/.godot 缓存）
+import: check-godot ## headless 导入资源（生成 .import/.godot 缓存）
 	@if [ -f "$(IMPORT_DONE)" ]; then \
 		echo "==> 资源已导入，跳过"; \
 	else \
@@ -105,11 +131,11 @@ run: import ## 运行游戏（主场景，运行前自动导入资源）
 	"$(GODOT)" --path $(PROJECT)
 
 .PHONY: edit
-edit: ## 打开 Godot 编辑器
+edit: check-godot ## 打开 Godot 编辑器
 	"$(GODOT)" --path $(PROJECT) --editor
 
 .PHONY: check
-check: ## headless 校验工程（检查脚本语法）
+check: check-godot ## headless 校验工程（检查脚本语法）
 	"$(GODOT)" --no-window --path $(PROJECT) --editor --quit
 
 .PHONY: clean
@@ -125,6 +151,25 @@ build: import ## 导出 macOS app（自动导入资源）
 	"$(GODOT)" --no-window --path "$(PROJECT)" --export-debug "Mac OSX" "$(abspath $(PROJECT)/build/bwdl.app)"
 	@echo "==> app 已生成:"
 	@ls -la "$(PROJECT)/build/bwdl.app"
+
+# ---- Web（HTML5 / WebAssembly）导出 ----
+
+WEB_DIR ?= $(PROJECT)/build/web
+WEB_PORT ?= 8060
+
+.PHONY: web
+web: import ## 导出 WebAssembly 网页版（build/web/，用 make serve 预览）
+	@mkdir -p "$(WEB_DIR)"
+	"$(GODOT)" --path "$(PROJECT)" --export "Web" "$(abspath $(WEB_DIR)/index.html)"
+	@echo "==> 网页版已生成: $(WEB_DIR)"
+	@du -sh "$(WEB_DIR)"
+	@ls -lh "$(WEB_DIR)"/index.html "$(WEB_DIR)"/index.js "$(WEB_DIR)"/index.wasm "$(WEB_DIR)"/index.pck
+
+.PHONY: serve
+serve: ## 本地 HTTP 服务预览网页版（默认 8060 端口）
+	@if [ ! -f "$(WEB_DIR)/index.html" ]; then echo "错误: 还没有网页版产物，先执行 make web"; exit 1; fi
+	@echo "==> http://localhost:$(WEB_PORT)/ （Ctrl+C 停止）"
+	@cd "$(WEB_DIR)" && python3 -m http.server $(WEB_PORT) --bind 0.0.0.0
 
 # ---- Android 导出 ----
 

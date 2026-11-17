@@ -168,7 +168,11 @@ func load_pic_with_cache(path: String):
 		path = path.replace("res://resource/images/", "res://packed/images/")
 	if path in PICTURE_CACHE:
 		return PICTURE_CACHE[path]
-	if not Global.file_exists(path):
+	# 注意：导出成 pck 后，图片在包内只保留 xxx.png.import + .import/xxx.stex，
+	# 没有原始的 xxx.png 条目，File.file_exists() 会返回 false（编辑器里为 true）。
+	# 但 load() 能通过 .import 重映射正常拿到纹理，所以这里必须用 ResourceLoader.exists() 兜底，
+	# 否则导出包内所有走本函数的图片（人物头像/背景/单位）全部变黑框。
+	if not Global.file_exists(path) and not ResourceLoader.exists(path):
 		return null
 	DataManager.grouped_trace("")
 	var loaded = load_pic(path)

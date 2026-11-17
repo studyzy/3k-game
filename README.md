@@ -28,7 +28,7 @@
 | `bwdl/packed/data/` | 游戏数据（武将/城市/技能/装备/剧本等 JSON，可直接改） |
 | `bwdl/packed/images/` | 运行时图片（2207 张） |
 | `bwdl/packed/sgz_script/` | 游戏规则脚本（1189 个 `.gd`，原作者明文源码，含中文注释） |
-| `Godot_3.5.3.app/` | 运行本工程所需的 Godot 3.5.3 编辑器（macOS 版） |
+| `Godot_3.6.3.app/` | 运行本工程所需的 Godot 编辑器（macOS 版，`make setup` 自动下载到项目内，不入库） |
 | `霸王的大陆GD安卓版 2540.Apk` | 原始 APK（仅反编译输入源，已不需要） |
 
 ## 🔧 内容统计
@@ -47,8 +47,8 @@
 
 ### 环境要求
 
-- **Godot 3.5.3**（本仓库已自带 macOS 版 `Godot_3.5.3.app`）
-- 注意：**不能用 Godot 4.x** 打开（脚本为 GDScript 1.0 语法，会报版本不兼容）
+- **Godot 3.6.3**（执行 `make setup` 下载到项目内 `Godot_3.6.3.app/`，不影响系统全局的 Godot 4）
+- 注意：**不能用 Godot 4.x** 打开（脚本为 GDScript 1.0 语法，会报版本不兼容）；`make` 各目标已自动优先使用项目内的 3.6.3
 
 ### 运行方式
 
@@ -60,10 +60,21 @@ make check        # headless 校验工程
 make clean        # 清理导入缓存
 
 # 方式二：直接命令行
-./Godot_3.5.3.app/Contents/MacOS/Godot --path bwdl
+./Godot_3.6.3.app/Contents/MacOS/Godot --path bwdl
 ```
 
 > 💡 这是**移动端（触摸）游戏**，桌面运行靠鼠标模拟触摸（`project.godot` 已开启 `emulate_touch_from_mouse`）。游戏存档会写到 Godot 可执行文件同级的 `sgz/` 目录。
+
+### 网页版（WebAssembly）
+
+```bash
+make web          # 导出到 bwdl/build/web/（index.html + .js + .wasm + .pck，约 122MB）
+make serve        # 起本地 HTTP 服务预览，默认 http://localhost:8060
+```
+
+- 必须通过 HTTP 访问，**不能直接双击 `index.html`**（`file://` 下浏览器禁止加载 wasm/pck）。
+- 网页版存档走 `user://sgz/save/`，Godot 3 的 Web 导出把 `user://` 映射到 IndexedDB：按 origin（协议+域名+端口）隔离，清站点数据/无痕模式/换端口都会丢档。
+- `bwdl/export_presets.cfg` 的各预设都带 `exclude_filter="build/*"`，否则导出产物会被打进下一次导出（web 包会从 103MB 涨到 310MB）。
 
 ## 📝 中文注释说明
 
