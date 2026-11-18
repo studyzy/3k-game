@@ -42,6 +42,11 @@ agent-service/node_modules/
 .npm-cache/
 # 测试时从 bwdl/ 复制的真实脚本副本（不入库，避免漂移）
 agent-service/gdharness/ai/
+agent-service/gdharness/battle_ai/AIHttpClient.gd
+agent-service/gdharness/battle_ai/BattleAgent.gd
+agent-service/gdharness/battle_ai/BattleProjection.gd
+# Godot 导入缓存
+agent-service/gdharness/battle_ai/.import/
 
 # 本地下载的 Godot 3.6.3 headless 校验二进制（31MB，不入库）
 .tools/

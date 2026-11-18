@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "全知 AI Agent 敌方决策服务（仅战争场景）；同源托管 Web 导出 + /ai/decide",
-  "engines": { "node": ">=22.19.0" },
+  "description": "全知 AI Agent 敌方决策服务（仅战争场景）；同源托管 Web 导出 + /ai/step",
+  "engines": {
+    "node": ">=22.19.0"
+  },
   "scripts": {
     "start": "node src/server.ts",
     "test": "node --test test/*.test.ts",
@@ -12,7 +14,6 @@
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "1.5.2",
-    "@earendil-works/pi-ai": "1.5.2",
-    "@earendil-works/pi-durable": "1.5.2"
+    "@earendil-works/pi-ai": "1.5.2"
   }
 }

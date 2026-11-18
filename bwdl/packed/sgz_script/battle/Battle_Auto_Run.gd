@@ -5,6 +5,8 @@ const next_step_name = "白兵战-下个步骤"
 
 var player_control
 var ai_control
+# 修改：AI Agent 接入（白兵战）
+var battle_agent = null
 
 var trace = false
 
@@ -15,6 +17,9 @@ func _init() -> void:
 	
 	player_control = Global.load_script(DataManager.mod_path+"sgz_script/battle/player_control.gd")
 	ai_control = Global.load_script(DataManager.mod_path+"sgz_script/battle/AI/AI_Control.gd")
+	# 修改：AI Agent 接入（白兵战）——仅「大模型」难度启用；其余难度零网络请求，走原有规则 AI
+	if DataManager.ai_agent_mode:
+		battle_agent = Global.load_script(DataManager.mod_path+"sgz_script/battle/AI/BattleAgent.gd")
 
 	FlowManager.bind_import_flow("battle_run_start", self)
 	FlowManager.bind_import_flow("battle_init_trigger", self)
@@ -33,6 +38,13 @@ func _init() -> void:
 	FlowManager.bind_import_flow("back_from_solo", self)
 	FlowManager.bind_import_flow("back_from_solo_clear", self)
 	FlowManager.bind_import_flow("after_formation_set_trigger", self)
+	# 修改：AI Agent 接入（白兵战）的编排 flow
+	if battle_agent != null:
+		FlowManager.bind_import_flow("battle_ai_decide", self)
+		FlowManager.bind_import_flow("battle_ai_poll_again", self)
+		FlowManager.bind_import_flow("battle_ai_after_flush", self)
+		FlowManager.bind_import_flow("battle_ai_turn_ready", self)
+		FlowManager.bind_import_flow("battle_ai_fallback", self)
 	return
 
 #读取当前步骤
@@ -235,6 +247,11 @@ func _process(delta: float) -> void:
 		6:#插入到检查A键暂停之前：检查是否满足白兵结束条件
 			check_battle_need_over()
 		7:#AI行为
+			# 修改：AI Agent 接入（白兵战）
+			# 若由 Agent 接管且未回退，跳过规则 AI 的整段决策，改由 battle_agent 驱动
+			if battle_agent != null and not battle_agent.is_local():
+				battle_ai_step(bf)
+				return
 			for wa in [bf.get_attacker(), bf.get_defender()]:
 				if wa == null or wa.disabled:
 					continue
@@ -274,6 +291,61 @@ func _process(delta: float) -> void:
 			wait_for_AI_tactic()
 		9:
 			wait_for_AI_active_skill()
+	return
+
+# ==============================================================================
+# 修改：AI Agent 接入（白兵战）的编排
+# 每回合：开会话（一次）→ 回传待发送结果 → 长轮询取指令 → 执行 → 回传，直到 end_turn
+# ==============================================================================
+func battle_ai_step(bf) -> void:
+	# 我方（无玩家控制的一方）
+	var mine = null
+	for wa in [bf.get_attacker(), bf.get_defender()]:
+		if wa != null and not wa.disabled and wa.get_controlNo() < 0:
+			mine = wa
+			break
+	if mine == null:
+		set_next_step(8)
+		return
+	# 首回合开场：建立战斗会话
+	if battle_agent.get_session_id() == "":
+		if battle_agent.open(mine.actorId):
+			FlowManager.add_flow("battle_ai_poll_again")
+		else:
+			FlowManager.add_flow("battle_ai_fallback")
+		return
+	# 有待回传的执行结果：先回传
+	if battle_agent.has_pending_results():
+		battle_agent.flush()
+		return
+	# 取下一个指令
+	battle_agent.poll()
+	return
+
+# 本战斗回合的指令下发完毕：交还引擎结算
+func battle_ai_turn_ready() -> void:
+	battle_agent.resume_turn()
+	set_next_step(8)
+	return
+
+# 服务端暂无指令：继续挂起
+func battle_ai_poll_again() -> void:
+	FlowManager.add_flow("battle_ai_decide")
+	return
+
+# 结果已回传：继续取指令
+func battle_ai_after_flush() -> void:
+	FlowManager.add_flow("battle_ai_decide")
+	return
+
+func battle_ai_decide() -> void:
+	var bf = DataManager.get_current_battle_fight()
+	battle_ai_step(bf)
+	return
+
+# 回退：交回原有规则 AI
+func battle_ai_fallback() -> void:
+	set_next_step(7)
 	return
 
 func unit_action():

@@ -1,13 +1,23 @@
-// 单进程同源服务：静态托管 bwdl/build/web/ + GET /ai/health + POST /ai/decide
+// 单进程同源服务：静态托管 bwdl/build/web/ + GET /ai/health + 回合会话三路由
+//
+// 服务端驱动的逐步交互：
+//   POST /ai/turn             Godot 开启一个 AI 回合会话（后台跑 agent loop）
+//   GET  /ai/turn/:id/pending 长轮询：取下一个待执行动作 / end / 空闲超时
+//   POST /ai/turn/:id/result  Godot 执行完动作后回传最新状态
 // 设计文档 §2.1 / §4.2。启动：node src/server.ts [--port 8060] [--mode mock|stub|pi]
 import http from "node:http";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfig, BUDGETS } from "./config.ts";
-import { validateRequest, ValidationError } from "./validate.ts";
-import { decide, ServiceError } from "./agent.ts";
+import {
+  validateTurnRequest, validateToolResult, validateBattleRequest, validateBattleResult, ValidationError,
+} from "./validate.ts";
+import { startTurn, ServiceError } from "./agent.ts";
+import { startBattle } from "./battle-agent.ts";
+import { battleStore } from "./battle-session.ts";
 import { traceStore } from "./trace.ts";
+import { turnStore } from "./session.ts";
 
 const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -43,6 +53,15 @@ async function readBody(req: http.IncomingMessage): Promise<string> {
     chunks.push(buf);
   }
   return Buffer.concat(chunks).toString("utf8");
+}
+
+async function parseJsonBody(req: http.IncomingMessage): Promise<unknown> {
+  const raw = await readBody(req);
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new ServiceError(400, "bad_json", "body must be valid JSON");
+  }
 }
 
 async function serveStatic(webDir: string, urlPath: string, res: http.ServerResponse): Promise<void> {
@@ -87,6 +106,8 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
       }
 
       if (url.pathname === "/ai/health") {
+        // 探活/预算表：禁止缓存，避免浏览器或反向代理把探活结果固化
+        res.setHeader("cache-control", "no-store");
         json(res, 200, { ok: true, mode: config.mode, bundle: "v1", node: ">=22.19", budgets: BUDGETS });
         return;
       }
@@ -134,23 +155,124 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
         return;
       }
 
-      if (url.pathname === "/ai/decide") {
-        if (req.method !== "POST") {
-          json(res, 405, { error: "method_not_allowed" });
-          return;
-        }
-        const raw = await readBody(req);
-        let body: unknown;
-        try {
-          body = JSON.parse(raw);
-        } catch {
-          json(res, 400, { error: "bad_json" });
-          return;
-        }
-        const request = validateRequest(body);
+      // ---- 回合会话：开启 ----
+      if (url.pathname === "/ai/turn") {
+        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
+        const body = await parseJsonBody(req);
+        const request = validateTurnRequest(body);
         const mockCase = req.headers["x-mock-case"] as string | undefined;
-        const response = await decide(request, { mode: config.mode, config, mockCase });
-        json(res, 200, response);
+        const { session, budget } = startTurn(request, { mode: config.mode, config, mockCase });
+        json(res, 200, {
+          session_id: session.id,
+          idle_timeout_ms: budget.idle_timeout_ms,
+          poll_timeout_ms: Math.min(budget.idle_timeout_ms, 15000),
+        });
+        return;
+      }
+
+      // ---- 回合会话：长轮询取动作 ----
+      if (url.pathname.startsWith("/ai/turn/") && url.pathname.endsWith("/pending")) {
+        const id = decodeURIComponent(url.pathname.slice("/ai/turn/".length, -"/pending".length));
+        const session = turnStore.get(id);
+        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        const cap = Number(url.searchParams.get("wait_ms") ?? 15000);
+        const wait = Math.max(0, Math.min(cap, session.idleRemaining()));
+        const r = await session.nextAction(wait);
+        if (r.type === "action") { json(res, 200, r); return; }
+        if (r.type === "end") { json(res, 200, r); turnStore.delete(id); return; }
+        if (r.type === "error") { json(res, 200, r); turnStore.delete(id); return; }
+        // 本次轮询到点仍无动作：若已超出空闲预算，回传 idle_timeout 让 Godot 回退
+        if (session.idleRemaining() <= 0) {
+          json(res, 200, { type: "idle_timeout" });
+          session.fail(new ServiceError(504, "agent_idle_timeout", "agent 空闲超时"));
+          turnStore.delete(id);
+          return;
+        }
+        // 否则让 Godot 重新挂起
+        json(res, 200, { type: "retry" });
+        return;
+      }
+
+      // ---- 回合会话：回传执行结果 ----
+      if (url.pathname.startsWith("/ai/turn/") && url.pathname.endsWith("/result")) {
+        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
+        const id = decodeURIComponent(url.pathname.slice("/ai/turn/".length, -"/result".length));
+        const session = turnStore.get(id);
+        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        const body = await parseJsonBody(req);
+        const seq = Number((body as Record<string, unknown>)?.seq);
+        if (!Number.isInteger(seq) || seq <= 0) {
+          json(res, 400, { error: "bad_schema", message: "seq required" });
+          return;
+        }
+        const payload = validateToolResult(body);
+        session.submitResult(seq, payload);
+        json(res, 200, { ok: true });
+        return;
+      }
+
+      // ---- 白兵战会话（独立 Agent / 提示词 / 工具） ----
+      if (url.pathname === "/ai/battle") {
+        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
+        const body = await parseJsonBody(req);
+        const request = validateBattleRequest(body);
+        const { session, budget } = startBattle(request, { mode: config.mode, config });
+        json(res, 200, {
+          battle_session_id: session.id,
+          idle_timeout_ms: budget.idle_timeout_ms,
+          poll_timeout_ms: Math.min(budget.idle_timeout_ms, 15000),
+        });
+        return;
+      }
+
+      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/pending")) {
+        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/pending".length));
+        const session = battleStore.get(id);
+        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        const cap = Number(url.searchParams.get("wait_ms") ?? 15000);
+        const wait = Math.max(0, Math.min(cap, session.idleRemaining()));
+        const r = await session.nextCommand(wait);
+        if (r.type === "error") { json(res, 200, r); battleStore.delete(id); return; }
+        if (r.type === "end_battle") { json(res, 200, r); battleStore.delete(id); return; }
+        if (r.type === "idle_timeout") {
+          if (session.idleRemaining() <= 0) {
+            session.fail(new ServiceError(504, "battle_idle_timeout", "白兵战 agent 空闲超时"));
+            json(res, 200, { type: "idle_timeout" });
+            battleStore.delete(id);
+            return;
+          }
+          json(res, 200, { type: "retry" });
+          return;
+        }
+        json(res, 200, r);
+        return;
+      }
+
+      // 引擎结算完毕、进入下一个战斗回合
+      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/resume")) {
+        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
+        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/resume".length));
+        const session = battleStore.get(id);
+        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        session.resumeNextTurn();
+        json(res, 200, { ok: true });
+        return;
+      }
+
+      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/result")) {
+        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
+        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/result".length));
+        const session = battleStore.get(id);
+        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        const body = await parseJsonBody(req);
+        const seq = Number((body as Record<string, unknown>)?.seq);
+        if (!Number.isInteger(seq) || seq <= 0) {
+          json(res, 400, { error: "bad_schema", message: "seq required" });
+          return;
+        }
+        const payload = validateBattleResult(body);
+        session.submitResult(seq, payload);
+        json(res, 200, { ok: true });
         return;
       }
 

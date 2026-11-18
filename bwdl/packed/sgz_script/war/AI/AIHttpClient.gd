@@ -21,9 +21,21 @@ func _init() -> void:
 func is_pending() -> bool:
 	return _pending
 
-func post(url: String, body_text: String, owner: Object, method: String, timeout_sec: int = 15) -> bool:
+func get_url(url: String, owner: Object, method: String, timeout_sec: int = 15) -> bool:
 	if _pending:
 		return false
+	if not _ensure_http(timeout_sec):
+		return false
+	_owner = owner
+	_owner_method = method
+	_pending = true
+	var err = _http.request(url, PoolStringArray(["Cache-Control: no-cache"]), true, HTTPClient.METHOD_GET, "")
+	if err != OK:
+		_fail(err)
+		return false
+	return true
+
+func _ensure_http(timeout_sec: int) -> bool:
 	if _http == null:
 		_http = HTTPRequest.new()
 		_http.connect("request_completed", self, "_on_completed")
@@ -33,6 +45,13 @@ func post(url: String, body_text: String, owner: Object, method: String, timeout
 	if not _http.is_inside_tree():
 		return false
 	_http.timeout = timeout_sec
+	return true
+
+func post(url: String, body_text: String, owner: Object, method: String, timeout_sec: int = 15) -> bool:
+	if _pending:
+		return false
+	if not _ensure_http(timeout_sec):
+		return false
 	_owner = owner
 	_owner_method = method
 	_pending = true

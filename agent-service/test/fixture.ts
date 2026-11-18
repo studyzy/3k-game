@@ -1,6 +1,6 @@
-import type { DecideRequest } from "../src/types.ts";
+import type { LegalAction, TurnRequest } from "../src/types.ts";
 
-export function sampleRequest(overrides: Partial<DecideRequest> = {}): DecideRequest {
+export function sampleRequest(overrides: Partial<TurnRequest> = {}): TurnRequest {
   return {
     state_version: 1,
     visibility: "omniscient",
@@ -28,7 +28,7 @@ export function sampleRequest(overrides: Partial<DecideRequest> = {}): DecideReq
       { id: "e0", tool: "end", actor: 12, cost: {} },
     ],
     ...overrides,
-  };
+  } as TurnRequest;
 }
 
 export const testConfig = {
@@ -45,3 +45,48 @@ export const testConfig = {
   llmContextWindow: 65536,
   llmMaxTokens: 8192,
 };
+
+/** 与 bwdl/packed/sgz_script/war/AI/War_AI_behavior_llm.gd 的空闲超时对齐（毫秒）。 */
+export const GODOT_IDLE_TIMEOUT_MS = 30000;
+
+/** 构造 Godot 回传的工具结果（执行后状态）。 */
+export function toolResult(
+  seq: number,
+  action: LegalAction | null,
+  units?: Array<Record<string, unknown>>,
+  legal?: LegalAction[],
+): Record<string, unknown> {
+  const base = sampleRequest();
+  return {
+    seq,
+    ok: true,
+    outcome: action ? `${action.tool} 执行完毕` : "无动作",
+    units: units ?? base.units,
+    legal_actions: legal ?? base.legal_actions,
+  };
+}
+
+/** 一个必定会返回动作的假 Godot 驱动：轮询 → 回传 → 直到 end。 */
+export async function driveTurn(
+  sessionId: string,
+  baseUrl: string,
+  opts: { maxActions?: number; onAction?: (a: any) => void } = {},
+): Promise<{ actions: any[]; endReason: string }> {
+  const max = opts.maxActions ?? 20;
+  const actions: any[] = [];
+  for (let i = 0; i < max; i++) {
+    const r = await fetch(`${baseUrl}/ai/turn/${sessionId}/pending?wait_ms=5000`).then((x) => x.json());
+    if (r.type === "end") return { actions, endReason: String(r.reason ?? "") };
+    if (r.type === "idle_timeout") return { actions, endReason: "__idle_timeout__" };
+    if (r.type === "error") return { actions, endReason: "__error__:" + r.message };
+    if (r.type === "retry") continue;
+    actions.push(r.action);
+    opts.onAction?.(r.action);
+    await fetch(`${baseUrl}/ai/turn/${sessionId}/result`, {
+      method: "POST",
+      headers: { "content-type": "text/plain" },
+      body: JSON.stringify(toolResult(r.action.seq, r.action.action)),
+    });
+  }
+  return { actions, endReason: "__max_reached__" };
+}

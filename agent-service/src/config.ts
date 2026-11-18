@@ -1,10 +1,19 @@
 // 配置与难度预算（对应设计文档 §6）
+//
+// 服务端驱动的逐步交互：一次 AI 回合 = 一个会话，会话内 LLM 可以连续执行多个动作。
+// 超时语义是「空闲超时」：每次 Godot 回传工具结果后开始计时，
+// idle_timeout_ms 内 Agent 没有产出下一个动作 → 判定 LLM 已死，Godot 回退 hard。
+//
+// 预算依据（真实端点 hai/deepseek-flash 实测）：整侧计划决策 3–4 轮、7–12 次工具调用、5.4–8.9s。
+// 回合内单动作决策推理量较小，max_turns/max_tool_calls 按「单次 LLM 请求」计。
 import type { Budget } from "./types.ts";
 
+const IDLE_TIMEOUT_MS = 30000;
+
 export const BUDGETS: Record<number, Budget> = {
-  2: { max_actions: 32, max_tokens: 512, max_turns: 2, max_tool_calls: 3, lookahead: 0, allow_memory: false, timeout_ms: 8000 },
-  3: { max_actions: 32, max_tokens: 1024, max_turns: 4, max_tool_calls: 6, lookahead: 1, allow_memory: false, timeout_ms: 15000 },
-  4: { max_actions: 32, max_tokens: 2048, max_turns: 8, max_tool_calls: 12, lookahead: 2, allow_memory: true, timeout_ms: 25000 },
+  2: { max_actions: 16, max_tokens: 512, max_turns: 4, max_tool_calls: 8, lookahead: 0, allow_memory: false, idle_timeout_ms: IDLE_TIMEOUT_MS },
+  3: { max_actions: 24, max_tokens: 1024, max_turns: 4, max_tool_calls: 8, lookahead: 1, allow_memory: false, idle_timeout_ms: IDLE_TIMEOUT_MS },
+  4: { max_actions: 32, max_tokens: 2048, max_turns: 5, max_tool_calls: 10, lookahead: 2, allow_memory: true, idle_timeout_ms: IDLE_TIMEOUT_MS },
 };
 
 export function budgetFor(diffculities: number, overrides?: Partial<Budget>): Budget {

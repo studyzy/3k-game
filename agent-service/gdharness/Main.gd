@@ -34,10 +34,15 @@ func _ready():
 
     var val = load("res://ai/ActionValidator.gd").new()
     var legal = payload["legal_actions"]
-    var good = [{"id": legal[0]["id"], "order": 1}]
-    print("AI_ACCEPT_GOOD=", val.accept_all(good, payload))
-    print("AI_REJECT_BAD=", not val.accept_all([{"id":"__bogus__","order":1}], payload))
-    print("AI_NORMALIZED=", to_json(val.normalize(good, payload)))
+    # 逐步交互：校验单个动作（含 history 去重）
+    var good_action = {"id": legal[0]["id"]}
+    var accepted = val.accept_action(good_action, payload, [])
+    print("AI_ACCEPT_GOOD=", not accepted.empty())
+    print("AI_REJECT_BAD=", val.accept_action({"id":"__bogus__"}, payload, []).empty())
+    # 已在 history 中成功执行过的动作应被拒绝
+    var dup_history = [{"id": legal[0]["id"], "ok": true}]
+    print("AI_REJECT_DUP=", val.accept_action(good_action, payload, dup_history).empty())
+    print("AI_NORMALIZED=", to_json(accepted))
 
     # 真实 GDScript HTTP 客户端 → 真实 Agent 服务
     var url = OS.get_environment("AI_HTTP_URL")
@@ -46,7 +51,7 @@ func _ready():
         get_tree().quit()
         return
     _client = load("res://ai/AIHttpClient.gd").new()
-    var ok = _client.post(url, to_json(payload), self, "_on_http_done", 5)
+    var ok = _client.post(url, to_json(payload), self, "_on_session_opened", 5)
     print("AI_HTTP_START=", ok)
     var timer = Timer.new()
     timer.wait_time = 10
@@ -56,9 +61,26 @@ func _ready():
     timer.start()
     return
 
-func _on_http_done(result, response_code, body):
+func _on_session_opened(result, response_code, body):
     print("AI_HTTP_RESULT=", result, "_", response_code)
     print("AI_HTTP_BODY=", body.get_string_from_utf8())
+    if result != 0 or response_code != 200:
+        _http_done = true
+        get_tree().quit()
+        return
+    var reply = parse_json(body.get_string_from_utf8())
+    if typeof(reply) != TYPE_DICTIONARY or not reply.has("session_id"):
+        _http_done = true
+        get_tree().quit()
+        return
+    # 长轮询取下一个动作（真实调用 /ai/turn/:id/pending）
+    var pending_url = "%s/%s/pending?wait_ms=2000" % [OS.get_environment("AI_HTTP_BASE"), reply["session_id"]]
+    _client.get_url(pending_url, self, "_on_polled", 5)
+    return
+
+func _on_polled(result, response_code, body):
+    print("AI_POLL_RESULT=", result, "_", response_code)
+    print("AI_POLL_BODY=", body.get_string_from_utf8())
     _http_done = true
     get_tree().quit()
     return

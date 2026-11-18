@@ -23,7 +23,23 @@ func _next_id(prefix: String) -> String:
 	_seq += 1
 	return "{0}{1}".format([prefix, _seq])
 
-# 生成 /ai/decide 请求体。wv 为当前 AI 方 War_Vstate。
+# 动作执行后重新投影工具结果（服务端驱动逐步交互的 D1/D2）：
+# Godot 负责计算执行后的真实状态，沙盒返回给服务端喂回 LLM。
+# 返回 {"ok", "outcome", "units", "legal_actions", "terrain", "economy"}
+func build_tool_result(wv, ok: bool, outcome: String) -> Dictionary:
+	var fresh = build(wv)
+	if fresh.empty():
+		return {"ok": ok, "outcome": outcome, "units": [], "legal_actions": []}
+	return {
+		"ok": ok,
+		"outcome": outcome,
+		"units": fresh["units"],
+		"legal_actions": fresh["legal_actions"],
+		"terrain": fresh["terrain"],
+		"economy": fresh["economy"],
+	}
+
+# 生成 /ai/turn 请求体。wv 为当前 AI 方 War_Vstate。
 func build(wv) -> Dictionary:
 	var wf = DataManager.get_current_war_fight()
 	if wf == null or wv == null:
@@ -115,15 +131,46 @@ func _append_move_actions(legal: Array, wa, map) -> void:
 			var cost = DataManager.get_move_cost(wa.actorId, pos)
 			if cost["机"] > wa.action_point or cost["点"] > wa.poker_point:
 				continue
+			# 路径必须逐格合法（只走上下左右，不能斜穿或飞越障碍）。
+			# 与 War_AI_behavior_new.gd:287 的 AI 常规移动一致：aStar 给出完整路径。
+			var path = _path_stepwise(wa, map, origin, pos)
+			if path.empty():
+				continue
 			legal.append({
 				"id": _next_id("m"), "tool": "move", "actor": wa.actorId,
 				"pos": [int(pos.x), int(pos.y)],
+				# 不含起点，路径的每一格都是合法的一步
+				"path": path,
 				"cost": {"ap": cost["机"], "poker": cost["点"]},
 			})
 			count += 1
 			if count >= MAX_MOVE_CANDIDATES:
 				return
 	return
+
+# 返回从 origin 到 target 的逐格路径（不含 origin，含 target）。
+# 只接受 4 邻域单步，确保没有斜向移动；任一步不合法则整条路径作废。
+func _path_stepwise(wa, map, origin: Vector2, target: Vector2) -> Array:
+	var route = map.aStar.get_path(origin, target)
+	if route.size() < 2:
+		return []
+	var out = []
+	var prev = origin
+	for i in range(1, route.size()):
+		var step = route[i]
+		var d = step - prev
+		# 必须恰好是上下左右中的一步
+		if abs(d.x) + abs(d.y) != 1:
+			return []
+		if not map.is_valid_position(step):
+			return []
+		if step != target and not wa.can_move_to_position(step):
+			return []
+		out.append([int(step.x), int(step.y)])
+		prev = step
+	if prev != target:
+		return []
+	return out
 
 # 不调用 IWar_Attack.get_can_attack_actors（会触发技能 20030 等副作用），
 # 只按攻击距离粗筛；最终合法性由 War_AI_behavior.gd:_attack 再次判定。

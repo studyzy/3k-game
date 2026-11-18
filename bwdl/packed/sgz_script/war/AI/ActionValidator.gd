@@ -1,12 +1,15 @@
 # ==============================================================================
 # 新增：AI Agent 接入（战争场景）
 # 文件：packed/sgz_script/war/AI/ActionValidator.gd
-# 说明：服务返回 plan 后的二次校验（设计文档 §3.6 / §4.3 双防线）。
-#       任一非法即整批拒绝，不做局部执行（plan 有顺序依赖）。
+# 说明：服务返回动作后的二次校验（设计文档 §3.6 / §4.3 双防线）。
+#       回合会话下每次只校验一个动作；任一非法即回退本地 hard 规则 AI。
+#       注意：end 不再是「动作工具」——它由服务端在 LLM 调用后直接结束会话，
+#       不会经由 pending 通道下发，因此这里只校验 move/attack/stratagem/retreat。
 # ==============================================================================
 extends Resource
 
 const MAX_ACTIONS: int = 32
+const ACT_TOOLS: Array = ["move", "attack", "stratagem", "retreat"]
 
 var _reason: String = ""
 
@@ -29,7 +32,50 @@ func _index_units(payload: Dictionary) -> Dictionary:
 		ret[u["id"]] = u
 	return ret
 
+# 逐步交互：校验服务返回的单个动作。
+# 返回补齐后的动作字典（可直接消费）；不合法返回空字典，原因用 get_reason() 读取。
+# history 用于拒绝「重复执行同一个动作」。
+func accept_action(reply_action, payload: Dictionary, history: Array) -> Dictionary:
+	_reason = ""
+	if typeof(reply_action) != TYPE_DICTIONARY or not reply_action.has("id"):
+		_reason = "bad_json"
+		return {}
+	var id = reply_action["id"]
+	if typeof(id) != TYPE_STRING:
+		_reason = "invalid_action"
+		return {}
+	var legal = _index_legal(payload)
+	if not legal.has(id):
+		_reason = "invalid_action"
+		return {}
+	var action = legal[id]
+	if not ACT_TOOLS.has(action["tool"]):
+		_reason = "invalid_action"
+		return {}
+	# 该演员是否已经有成功执行的同名动作（避免模型反复提交同一个动作）
+	for h in history:
+		if h["id"] == id and h["ok"]:
+			_reason = "duplicate_action"
+			return {}
+	var actor_id = action["actor"]
+	var units = _index_units(payload)
+	if not units.has(actor_id):
+		_reason = "invalid_action"
+		return {}
+	var unit = units[actor_id]
+	if unit["vstate"] != payload["controlled_vstate_id"] or unit["disabled"]:
+		_reason = "invalid_action"
+		return {}
+	var cost = action["cost"] if action.has("cost") else {}
+	var ap = cost["ap"] if cost.has("ap") else 0
+	var poker = cost["poker"] if cost.has("poker") else 0
+	if ap > unit["ap"] or poker > unit["poker"]:
+		_reason = "invalid_action"
+		return {}
+	return action.duplicate(true)
+
 # 返回 true 表示整批可接受；失败原因用 get_reason() 读取
+# （备份路径：若服务仍返回整批 plan，可按整批校验）
 func accept_all(reply_plan, payload: Dictionary) -> bool:
 	_reason = ""
 	if typeof(reply_plan) != TYPE_ARRAY:

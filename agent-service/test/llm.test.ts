@@ -4,8 +4,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { parseConfig } from "../src/config.ts";
 import { createCustomRuntime } from "../src/llm.ts";
-import { decide, ServiceError } from "../src/agent.ts";
-import { sampleRequest, testConfig } from "./fixture.ts";
+import { startTurn } from "../src/agent.ts";
+import { sampleRequest, testConfig, toolResult } from "./fixture.ts";
 
 test("parseConfig 读取 LLM_* 且密钥不进入 ServiceConfig", () => {
   const cfg = parseConfig([], {
@@ -42,10 +42,11 @@ test("pi 模式自定义端点缺少密钥时返回 503，不静默降级", asyn
   delete process.env.LLM_API_KEY;
   delete process.env.PI_API_KEY;
   try {
-    await assert.rejects(
-      () => decide(sampleRequest(), { mode: "pi", config: cfg }),
-      (e: unknown) => e instanceof ServiceError && e.status === 503 && e.code === "api_key_missing",
-    );
+    // 服务端驱动：startTurn 后台启动，缺密钥的错误在长轮询时以 type=error 返回
+    const { session } = startTurn(sampleRequest(), { mode: "pi", config: cfg });
+    const r = await session.nextAction(2000);
+    assert.equal(r.type, "error");
+    assert.match(String((r as any).message), /缺少 LLM_API_KEY/);
   } finally {
     if (savedKey !== undefined) process.env.LLM_API_KEY = savedKey;
     if (savedPi !== undefined) process.env.PI_API_KEY = savedPi;
@@ -65,7 +66,7 @@ test("真实端点端到端（仅当 LLM_BASE_URL + LLM_API_KEY 已在环境中�
     llmBaseUrl: base,
     llmModelId: process.env.LLM_MODEL ?? "hai/deepseek-flash",
   };
-  // 用最小候选集降低模型输出波动，仍能验证「端点 → tool calling → submit_plan → plan」整条链路
+  // 用最小候选集降低模型输出波动，仍能验证「端点 → tool calling → 单动作工具 → action」整条链路
   const req = sampleRequest({
     diffculities: 4,
     legal_actions: [
@@ -73,11 +74,19 @@ test("真实端点端到端（仅当 LLM_BASE_URL + LLM_API_KEY 已在环境中�
       { id: "e0", tool: "end", actor: 12, cost: {} },
     ],
   });
-  const res = await decide(req, { mode: "pi", config: cfg });
-  assert.equal(res.model, cfg.llmModelId);
-  assert.ok(res.plan.length > 0, "真实模型应提交非空 plan");
+  const { session } = startTurn(req, { mode: "pi", config: cfg });
+  const seen: string[] = [];
+  let endSeen = false;
+  // 每次回传都只保留最初的最小合法集，确保后续动作仍可被模型选中
+  for (let i = 0; i < 4; i++) {
+    const r = await session.nextAction(120000);
+    if (r.type === "end") { endSeen = true; break; }
+    if (r.type !== "action") { break; }
+    seen.push(String(r.action.tool));
+    session.submitResult(r.action.seq, toolResult(r.action.seq, r.action.action, req.units, req.legal_actions));
+  }
+  assert.ok(seen.length > 0 || endSeen, `真实模型应至少产出动作或直接 end，实际：${JSON.stringify(seen)}`);
+  // 产出的动作必须来自开场 legal_actions（本次回传保持同一集合）
   const ids = new Set(req.legal_actions.map((a) => a.id));
-  for (const p of res.plan) assert.ok(ids.has(p.id), `模型返回了非法 id: ${p.id}`);
-  assert.ok(res.budget_used.turns >= 1);
-  assert.ok(res.trace.some((x) => x.tool === "submit_plan"));
+  for (const a of session.actions) assert.ok(ids.has(a.id), `模型返回了非法 id: ${a.id}`);
 });

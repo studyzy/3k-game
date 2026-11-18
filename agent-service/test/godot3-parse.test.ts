@@ -30,8 +30,11 @@ test("Godot 3.6.3 headless 解析 AI Agent 脚本（无 Parse Error）", (t) => 
   const out = `${r.stdout ?? ""}\n${r.stderr ?? ""}`;
 
   assert.match(out, /AI_VALIDATE_RESULT=0/, `脚本 load 失败：\n${out.slice(-2000)}`);
+  // 统计个数跟随 ai_agent_validate.gd 的清单，避免新增脚本时此处漏改
+  const validateScript = fs.readFileSync(path.join(repo, "bwdl/test/ai_agent_validate.gd"), "utf8");
+  const expected = (validateScript.match(/"res:\/\/[^"]+\.gd"/g) ?? []).length;
   const okCount = (out.match(/AI_VALIDATE OK/g) ?? []).length;
-  assert.equal(okCount, 5, `期望 5 个脚本全部 load 成功，实际 ${okCount}`);
+  assert.equal(okCount, expected, `期望 ${expected} 个脚本全部 load 成功，实际 ${okCount}`);
 
   // load() 在存在 Parse Error 时仍可能返回 GDScript 对象，因此必须扫日志
   const parseErrors = out.split("\n").filter((line) => /SCRIPT ERROR: Parse Error|Parse Error:/.test(line));

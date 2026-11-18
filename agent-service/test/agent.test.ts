@@ -1,80 +1,99 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { decide, ServiceError } from "../src/agent.ts";
-import { buildTools, READ_ONLY_TOOL_NAMES } from "../src/tools.ts";
+import { startTurn, ServiceError } from "../src/agent.ts";
+import { buildTools, TOOL_NAMES, ACT_TOOL_NAMES } from "../src/tools.ts";
 import { budgetFor } from "../src/config.ts";
-import { sampleRequest, testConfig } from "./fixture.ts";
+import { TurnSession } from "../src/session.ts";
+import { sampleRequest, testConfig, GODOT_IDLE_TIMEOUT_MS, toolResult } from "./fixture.ts";
 
-test("mock ok 返回合法计划", async () => {
-  const req = sampleRequest();
-  const res = await decide(req, { mode: "mock", config: testConfig, mockCase: "ok" });
-  assert.ok(res.plan.length > 0);
-  const ids = new Set(req.legal_actions.map((a) => a.id));
-  for (const p of res.plan) assert.ok(ids.has(p.id));
+function sessionFor(req = sampleRequest()) {
+  const s = new TurnSession("t", req, GODOT_IDLE_TIMEOUT_MS);
+  const live = { units: req.units, terrain: req.terrain, economy: req.economy, legal_actions: req.legal_actions };
+  return { session: s, live, tools: buildTools(live, s, budgetFor(req.diffculities)) };
+}
+
+test("startTurn 立即返回会话 id（服务端驱动，不等 LLM）", async () => {
+  const { session, budget } = startTurn(sampleRequest(), { mode: "mock", config: testConfig });
+  assert.ok(session.id.length > 0);
+  assert.equal(budget.idle_timeout_ms, GODOT_IDLE_TIMEOUT_MS);
 });
 
-test("mock slow 延迟后仍返回合法计划", async () => {
-  const t0 = Date.now();
-  const res = await decide(sampleRequest(), { mode: "mock", config: testConfig, mockCase: "slow" });
-  assert.ok(Date.now() - t0 >= testConfig.mockSlowMs);
-  assert.ok(res.plan.length > 0);
+test("mock ok：产出动作后正常结束", async () => {
+  const { session } = startTurn(sampleRequest(), { mode: "mock", config: testConfig, mockCase: "ok" });
+  const r = await session.nextAction(2000);
+  assert.equal(r.type, "action");
+  session.submitResult(r.action.seq, toolResult(r.action.seq, r.action.action));
+  const done = await session.nextAction(2000);
+  assert.equal(done.type, "end");
 });
 
-test("mock error / budget_exhausted 抛 ServiceError", async () => {
+test("mock error：会话失败", async () => {
+  const { session } = startTurn(sampleRequest(), { mode: "mock", config: testConfig, mockCase: "error" });
+  const r = await session.nextAction(2000);
+  assert.equal(r.type, "error");
+});
+
+test("mock invalid：下发非法 id，供 Godot 侧校验拒绝", async () => {
+  const { session } = startTurn(sampleRequest(), { mode: "mock", config: testConfig, mockCase: "invalid" });
+  const r = await session.nextAction(2000);
+  assert.equal(r.type, "action");
+  assert.equal(r.action.id, "__invalid__");
+});
+
+test("mock timeout：不产出任何动作（模拟 LLM 卡死）", async () => {
+  const { session } = startTurn(sampleRequest(), { mode: "mock", config: testConfig, mockCase: "timeout" });
+  const r = await session.nextAction(150);
+  assert.equal(r.type, "idle_timeout");
+});
+
+test("工具注册表恰好 9 个：4 只读 + 4 动作 + end；无 read/write/edit/bash", () => {
+  const { tools } = sessionFor();
+  assert.deepEqual(tools.tools.map((t) => t.name), [...TOOL_NAMES]);
+  assert.equal(ACT_TOOL_NAMES.length, 4);
+  for (const forbidden of ["read", "write", "edit", "bash", "submit_plan"]) {
+    assert.ok(!tools.tools.some((t) => t.name === forbidden), `不得包含 ${forbidden}`);
+  }
+});
+
+test("动作工具：按自然参数在 legal_actions 中定位，不发明动作", async () => {
+  const { session, tools } = sessionFor();
+  const move: any = tools.tools.find((t) => t.name === "move");
+  const p = move.execute("c1", { actor: 12, pos: [8, 15], reasoning: "靠近" });
+  const got = await session.nextAction(1000);
+  assert.equal(got.type, "action");
+  assert.equal(got.action.id, "m3");
+
+  session.submitResult(got.action.seq, toolResult(got.action.seq, got.action.action));
+  const res = await p;
+  // 工具结果回给模型的是结构化摘要（含 Godot 的 outcome 与最新状态）
+  const body = JSON.parse((res.content[0] as any).text);
+  assert.match(body.outcome, /move 执行完毕/, "应包含 Godot 回传的执行结果");
+  assert.ok(Array.isArray(body.units), "应包含最新 units");
+  assert.ok(Array.isArray(body.legal_actions), "应包含最新 legal_actions");
+
+  // 不存在的坐标
   await assert.rejects(
-    () => decide(sampleRequest(), { mode: "mock", config: testConfig, mockCase: "error" }),
-    (e: unknown) => e instanceof ServiceError && e.status === 500 && e.code === "mock_error",
-  );
-  await assert.rejects(
-    () => decide(sampleRequest(), { mode: "mock", config: testConfig, mockCase: "budget_exhausted" }),
-    (e: unknown) => e instanceof ServiceError && e.status === 422 && e.code === "agent_budget_exhausted",
+    () => move.execute("c2", { actor: 12, pos: [0, 0], reasoning: "x" }),
+    /没有匹配该参数的合法 move 动作/,
   );
 });
 
-test("mock invalid 故意返回非法 id（供 Godot 侧 ActionValidator 整批拒绝）", async () => {
-  const res = await decide(sampleRequest(), { mode: "mock", config: testConfig, mockCase: "invalid" });
-  assert.equal(res.plan[0].id, "__invalid__");
+test("stub 模式：一个会话内连续执行动作后 end", async () => {
+  const { session } = startTurn(sampleRequest(), { mode: "stub", config: testConfig });
+  let guard = 0;
+  let endSeen = false;
+  while (guard++ < 10) {
+    const r = await session.nextAction(3000);
+    if (r.type === "end") { endSeen = true; break; }
+    if (r.type !== "action") break;
+    session.submitResult(r.action.seq, toolResult(r.action.seq, r.action.action));
+  }
+  assert.ok(endSeen, `会话应以 end 结束，实际 actions=${session.actions.length}`);
+  assert.ok(session.actions.length >= 1);
 });
 
-test("工具注册表只有 6 个只读工具，submit_plan 的 id 用本次 legal_actions 枚举限定", () => {
-  const req = sampleRequest();
-  const { tools } = buildTools(req, budgetFor(3));
-  assert.deepEqual(tools.map((t) => t.name), [...READ_ONLY_TOOL_NAMES]);
-  const submit: any = tools.find((t) => t.name === "submit_plan");
-  const enumIds = submit.parameters.properties.plan.items.properties.id.enum;
-  assert.deepEqual(enumIds, req.legal_actions.map((a) => a.id));
-});
-
-test("只读工具不写状态：estimate_plan 与 submit_plan 不修改请求", async () => {
-  const req = sampleRequest();
-  const snapshot = JSON.stringify(req);
-  const { tools, state } = buildTools(req, budgetFor(3));
-  const estimate: any = tools.find((t) => t.name === "estimate_plan");
-  const r = await estimate.execute("c1", { ids: ["m3", "a1"] });
-  assert.equal(r.details.over_budget.length, 0);
-  assert.equal(JSON.stringify(req), snapshot);
-  assert.equal(state.submitted, undefined);
-});
-
-test("submit_plan 非法 id 被 validatePlan 拒绝（服务侧预校验）", async () => {
-  const req = sampleRequest();
-  const { tools } = buildTools(req, budgetFor(3));
-  const submit: any = tools.find((t) => t.name === "submit_plan");
-  await assert.rejects(
-    () => submit.execute("c1", { plan: [{ id: "bogus", order: 1 }], intent: "x" }),
-    /unknown action id/,
-  );
-});
-
-test("stub 模式跑通 Pi agent loop：多步工具调用 + submit_plan 终止", async () => {
-  const req = sampleRequest();
-  const res = await decide(req, { mode: "stub", config: testConfig });
-  assert.equal(res.model, "faux-1");
-  assert.equal(res.budget_used.turns, 2);
-  assert.equal(res.budget_used.tool_calls, 2);
-  assert.deepEqual(res.trace.map((t) => t.tool), ["estimate_plan", "submit_plan"]);
-  const ids = new Set(req.legal_actions.map((a) => a.id));
-  for (const p of res.plan) assert.ok(ids.has(p.id));
-  assert.equal(res.plan[0].order, 1);
-  assert.ok(res.intent.length > 0);
+test("ServiceError 携带状态码与错误码", () => {
+  const e = new ServiceError(503, "api_key_missing", "x");
+  assert.equal(e.status, 503);
+  assert.equal(e.code, "api_key_missing");
 });

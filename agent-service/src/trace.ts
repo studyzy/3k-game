@@ -34,9 +34,8 @@ export interface DecisionTrace {
   system_prompt: string;
   user_message: string;
   events: TraceEvent[];
-  plan?: Array<{ id: string; order: number }>;
+  actions?: Array<{ seq: number; tool: string; actor: number; id: string; reasoning: string }>;
   intent?: string;
-  counterplay?: string;
 }
 
 export interface TraceSummary {

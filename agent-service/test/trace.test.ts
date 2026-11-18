@@ -4,7 +4,8 @@ import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
 import { TraceStore } from "../src/trace.ts";
 import { traceStore } from "../src/trace.ts";
-import { decide } from "../src/agent.ts";
+import { startTurn } from "../src/agent.ts";
+import { toolResult } from "./fixture.ts";
 import { createServer } from "../src/server.ts";
 import { sampleRequest, testConfig } from "./fixture.ts";
 
@@ -13,7 +14,7 @@ test("TraceStore 环形缓冲 / 事件序号 / 查询 / 清空", () => {
   const t1 = s.create({ mode: "mock", model: "m", turn_key: "a", diffculities: 4, controlled_vstate_id: 2, legal_actions_count: 1, system_prompt: "S", user_message: "U" });
   s.add(t1, "system", { text: "S" });
   s.add(t1, "final", { text: "done" });
-  s.finish(t1, { status: "ok", elapsed_ms: 12, plan: [{ id: "e0", order: 1 }], intent: "i" });
+  s.finish(t1, { status: "ok", elapsed_ms: 12, intent: "i" });
   assert.equal(t1.events.length, 2);
   assert.equal(t1.events[0].seq, 1);
   assert.equal(t1.events[1].seq, 2);
@@ -28,10 +29,16 @@ test("TraceStore 环形缓冲 / 事件序号 / 查询 / 清空", () => {
   assert.equal(s.size(), 0);
 });
 
-test("stub 决策产生完整对话事件（system/user/turn/assistant/tool_call/tool_result/final）", async () => {
+test("stub 回合产生完整对话事件（system/user/turn/assistant/tool_call/tool_result/final）", async () => {
   traceStore.clear();
   const req = sampleRequest({ diffculities: 4 });
-  await decide(req, { mode: "stub", config: testConfig });
+  const { session } = startTurn(req, { mode: "stub", config: testConfig });
+  for (let i = 0; i < 10; i++) {
+    const r = await session.nextAction(3000);
+    if (r.type !== "action") break;
+    session.submitResult(r.action.seq, toolResult(r.action.seq, r.action.action));
+  }
+  await new Promise((r) => setTimeout(r, 50));
   const list = traceStore.list();
   assert.equal(list.length, 1);
   const t = traceStore.get(list[0].id);
@@ -44,16 +51,18 @@ test("stub 决策产生完整对话事件（system/user/turn/assistant/tool_call
     assert.ok(types.has(k as never), `缺少事件类型 ${k}`);
   }
   const calls = t!.events.filter((e) => e.type === "tool_call");
-  assert.ok(calls.some((e) => e.tool === "submit_plan"));
+  assert.ok(calls.some((e) => e.tool === "move"), "应记录动作工具调用");
   const results = t!.events.filter((e) => e.type === "tool_result");
   assert.ok(results.length >= 1);
-  assert.ok(t!.plan && t!.plan.length > 0);
-  assert.ok(t!.intent);
+  assert.ok(Array.isArray(t!.actions), "轨迹应记录本回合的动作序列");
+  assert.ok(t!.intent !== undefined);
 });
 
-test("错误决策也被记录（status=error + error 事件）", async () => {
+test("错误回合也被记录（status=error + error 事件）", async () => {
   traceStore.clear();
-  await assert.rejects(() => decide(sampleRequest(), { mode: "mock", config: testConfig, mockCase: "error" }));
+  const { session } = startTurn(sampleRequest(), { mode: "mock", config: testConfig, mockCase: "error" });
+  await session.nextAction(2000);
+  await new Promise((r) => setTimeout(r, 50));
   const t = traceStore.get(traceStore.list()[0].id);
   assert.equal(t!.status, "error");
   assert.ok(t!.events.some((e) => e.type === "error"));
@@ -61,7 +70,13 @@ test("错误决策也被记录（status=error + error 事件）", async () => {
 
 test("调试面板 API：列表 / 详情 / 清空 / HTML", async () => {
   traceStore.clear();
-  await decide(sampleRequest(), { mode: "stub", config: testConfig });
+  const { session } = startTurn(sampleRequest(), { mode: "stub", config: testConfig });
+  for (let i = 0; i < 10; i++) {
+    const r = await session.nextAction(3000);
+    if (r.type !== "action") break;
+    session.submitResult(r.action.seq, toolResult(r.action.seq, r.action.action));
+  }
+  await new Promise((r) => setTimeout(r, 50));
 
   const server = createServer({ ...testConfig, port: 0, webDir: "dashboard" });
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));

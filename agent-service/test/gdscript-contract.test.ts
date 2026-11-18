@@ -9,11 +9,11 @@ import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
 import type { AddressInfo } from "node:net";
-import { validateRequest, validatePlan } from "../src/validate.ts";
-import { decide, ServiceError } from "../src/agent.ts";
+import { validateTurnRequest, validateAction } from "../src/validate.ts";
+import { startTurn } from "../src/agent.ts";
 import { budgetFor } from "../src/config.ts";
 import { createServer } from "../src/server.ts";
-import { sampleRequest, testConfig } from "./fixture.ts";
+import { sampleRequest, testConfig, toolResult } from "./fixture.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, "../..");
@@ -56,7 +56,8 @@ test("Godot 3.6.3 → HTTP → Agent 服务 全链路契约", async (t) => {
         env: {
           ...process.env,
           XDG_DATA_HOME: xdg,
-          AI_HTTP_URL: `http://127.0.0.1:${port}/ai/decide`,
+          AI_HTTP_URL: `http://127.0.0.1:${port}/ai/turn`,
+          AI_HTTP_BASE: `http://127.0.0.1:${port}/ai/turn`,
         },
         stdio: ["ignore", "pipe", "pipe"],
       });
@@ -70,11 +71,12 @@ test("Godot 3.6.3 → HTTP → Agent 服务 全链路契约", async (t) => {
 
     assert.equal(marker(out, "AI_ACCEPT_GOOD"), "True");
     assert.equal(marker(out, "AI_REJECT_BAD"), "True");
+    assert.equal(marker(out, "AI_REJECT_DUP"), "True", "已在 history 中执行过的动作应被拒绝");
     assert.equal(marker(out, "AI_HTTP_START"), "True");
     assert.equal(marker(out, "AI_HTTP_RESULT"), "0_200", `GDScript HTTP 调用失败：\n${out.slice(-1500)}`);
 
     const payload = JSON.parse(marker(out, "AI_PAYLOAD"));
-    const req = validateRequest(payload);
+    const req = validateTurnRequest(payload);
     assert.equal(req.visibility, "omniscient");
     assert.ok(req.legal_actions.length > 0);
     assert.equal(new Set(req.legal_actions.map((a) => a.id)).size, req.legal_actions.length);
@@ -82,32 +84,51 @@ test("Godot 3.6.3 → HTTP → Agent 服务 全链路契约", async (t) => {
       assert.ok(!(key in payload), `payload 不应包含 ${key}`);
     }
 
-    // Godot 侧 normalize 结果 → 服务侧 validatePlan
-    const normalized = JSON.parse(marker(out, "AI_NORMALIZED"));
-    assert.ok(normalized.length > 0);
+    // Godot 侧 accept_action 结果 → 服务侧 validateAction 同规则
+    const accepted = JSON.parse(marker(out, "AI_NORMALIZED"));
+    assert.ok(accepted.id, "Godot 侧应接受一个合法动作");
     assert.equal(
-      validatePlan(normalized.map((a: any) => ({ id: a.id, order: a.order })), req, budgetFor(req.diffculities)).length,
-      normalized.length,
+      validateAction(accepted.id, {
+        controlled_vstate_id: req.controlled_vstate_id,
+        units: req.units,
+        legal_actions: req.legal_actions,
+      }, budgetFor(req.diffculities)).id,
+      accepted.id,
     );
 
-    // 真实 HTTP 响应 → 服务侧 validatePlan
-    const body = JSON.parse(marker(out, "AI_HTTP_BODY"));
-    assert.ok(Array.isArray(body.plan) && body.plan.length > 0);
-    assert.equal(validatePlan(body.plan, req, budgetFor(req.diffculities)).length, body.plan.length);
+    // 真实 GDScript → 真实服务：开会话
+    const opened = JSON.parse(marker(out, "AI_HTTP_BODY"));
+    assert.ok(typeof opened.session_id === "string", "服务应返回 session_id");
 
-    // 同一 payload 交给 mock 决策也必须合法
-    const res = await decide(req, { mode: "mock", config: testConfig, mockCase: "ok" });
-    assert.equal(validatePlan(res.plan, req, budgetFor(req.diffculities)).length, res.plan.length);
+    // 真实 GDScript 长轮询拿到动作
+    assert.equal(marker(out, "AI_POLL_RESULT"), "0_200", `GDScript 长轮询失败：\n${out.slice(-1500)}`);
+    const pending = JSON.parse(marker(out, "AI_POLL_BODY"));
+    assert.equal(pending.type, "action", `长轮询应返回动作，实际 ${JSON.stringify(pending)}`);
+    assert.ok(pending.action && typeof pending.action.id === "string");
+
+    // 该动作能被服务侧同规则校验
+    assert.equal(
+      validateAction(pending.action.id, {
+        controlled_vstate_id: req.controlled_vstate_id,
+        units: req.units,
+        legal_actions: req.legal_actions,
+      }, budgetFor(req.diffculities)).id,
+      pending.action.id,
+    );
+
+    // 同一 payload 交给服务端会话也必须产出合法动作
+    const { session } = startTurn(req, { mode: "mock", config: testConfig, mockCase: "ok" });
+    const produced = await session.nextAction(3000);
+    assert.equal(produced.type, "action");
+    assert.ok(
+      validateAction(produced.action.id, {
+        controlled_vstate_id: req.controlled_vstate_id,
+        units: req.units,
+        legal_actions: req.legal_actions,
+      }, budgetFor(req.diffculities)),
+    );
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
     fs.rmSync(xdg, { recursive: true, force: true });
   }
-});
-
-test("pi 模式在模型不可解析时返回 503，不会静默降级", async () => {
-  const badConfig = { ...testConfig, provider: "__none__", modelId: "__none__" };
-  await assert.rejects(
-    () => decide(sampleRequest(), { mode: "pi", config: badConfig }),
-    (e: unknown) => e instanceof ServiceError && e.status === 503 && e.code === "model_unavailable",
-  );
 });

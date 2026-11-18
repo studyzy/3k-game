@@ -4,6 +4,48 @@
 
 只接入**战争场景**（`bwdl/packed/sgz_script/war/`）：从内政发起攻击一座城市后进入的大战场，布阵完成后的逐武将移动 / 攻击 / 用计 / 撤退。内政、单挑、白兵战不接入；布阵保持规则实现。
 
+## 决策模型：服务端驱动的回合会话
+
+**一个 AI 回合 = 一个服务端会话**。LLM 在一个会话里连续指挥多个武将，直到自己调用 `end`：
+
+```
+Godot                             服务端
+  POST /ai/turn  ───────────────→  创建 TurnSession，后台启动 agent loop
+                                    LLM: move(12, [8,15])
+  ←──── GET /ai/turn/:id/pending    取到动作（工具 execute 挂起等 Godot）
+  执行移动 → 重算 units/legal_actions
+  POST /ai/turn/:id/result ──────→  唤醒工具，把最新状态喂回 LLM
+                                    LLM: attack(12 → 31)   ← 看到移动结果后决策
+  ←──── GET .../pending             取到攻击
+  执行攻击 → 战斗结算（胜负不确定）
+  POST .../result ───────────────→  LLM 看到战斗结果
+                                    LLM: attack(13 → 31)   ← 据实调整
+  ...
+  ←──── GET .../pending            {type:"end"} ← LLM 判定都动完了
+  AI_end，回合结束
+```
+
+要点：
+
+- **`end` 是唯一终止工具**，结束整个回合。游戏里没有「让单个武将结束行动」——某个武将机动力耗尽不影响其他人，LLM 会继续指挥还有机动力的人。
+- **Godot 只提供「工具实现」**：执行动作、计算执行后状态、回传；决策全在服务端循环里。
+- **战斗的胜负不确定结果**会随结果回传给 LLM，由它决定继续攻击还是改做别的。
+- **空闲超时 30s**：每次回传结果后开始计时，30s 内 Agent 没产出下一个动作 → 判定 LLM 已死，本回合剩余全部回退 `hard` 规则 AI。
+- 等待期间显示「敌方思考中……」。
+
+### 白兵战（两军对垒）
+
+`attack` 触发白兵战时，Godot 主动开一个**独立的战斗会话**：新提示词、新场景数据、新工具。
+
+| 工具 | 说明 |
+|---|---|
+| `inspect_battlefield` | 查看双方武将/兵力/战术值/各兵种血量与命令 |
+| `set_order` | 给**一个**兵种下命令：`前进` / `待机` / `后退` |
+| `use_tactic` | 用计：咒缚/挑衅/强弩/士气向上/火矢（消耗战术值） |
+| `end_turn` | 结束**本战斗回合**的决策，交还引擎结算 |
+
+**整场战斗是一个会话**（跨多个战斗回合），每回合 `end_turn` 后由引擎推进，Godot 调 `/resume` 继续问 LLM。主回合会话在此期间挂起——等待 Godot 执行不计入 Agent 空闲超时。
+
 ## 运行环境
 
 - Node.js **≥ 22.19**（Pi 硬要求），本机实测 v24.11.1
@@ -26,7 +68,13 @@ node src/server.ts --mode stub --port 8060 --web-dir ../bwdl/build/web
 |---|---|
 | `GET /` | 静态托管 `bwdl/build/web/`（`index.html` / `.js` / `.wasm` / `.pck`，MIME 正确） |
 | `GET /ai/health` | 探活 + 返回难度预算表 |
-| `POST /ai/decide` | 决策；`Content-Type: text/plain`（CORS 安全列表，无预检） |
+| `POST /ai/turn` | 开启一个 AI 回合会话，返回 `session_id` |
+| `GET /ai/turn/:id/pending` | 长轮询取下一个待执行动作 / `end` / `idle_timeout` |
+| `POST /ai/turn/:id/result` | 回传执行结果（最新 `units` + `legal_actions`） |
+| `POST /ai/battle` | 白兵战：开启战斗会话（独立 Agent / 提示词 / 工具） |
+| `GET /ai/battle/:id/pending` | 白兵战：长轮询取指令（`order`/`tactic`/`end_turn`） |
+| `POST /ai/battle/:id/result` | 白兵战：回传执行后的战斗态势 |
+| `POST /ai/battle/:id/resume` | 白兵战：引擎推进到下一战斗回合 |
 
 `make serve` 的 `python3 -m http.server` 保留作纯离线对照；`make web` 导出产物由本服务托管即可同源。
 
@@ -34,8 +82,8 @@ node src/server.ts --mode stub --port 8060 --web-dir ../bwdl/build/web
 
 | `--mode` | 说明 | 是否需要 LLM key |
 |---|---|---|
-| `mock`（默认） | P0′ 确定性五态响应，验证 Godot 等待态与回退链路 | 否 |
-| `stub` | **真实 `pi-agent-core` agent loop** + Pi 官方 `fauxProvider` 脚本 LLM，验证工具注册表 / `submit_plan` 终止 / 预算 | 否 |
+| `mock`（默认） | P0′ 确定性五态响应，验证会话驱动与回退链路 | 否 |
+| `stub` | **真实 `pi-agent-core` agent loop** + Pi 官方 `fauxProvider` 脚本 LLM，验证工具注册表 / 会话内多动作 / `end` 终止 | 否 |
 | `pi` | 真实模型：优先自定义 OpenAI 兼容端点（`LLM_BASE_URL`），否则回退 `pi-ai` `builtinModels()` | 是 |
 
 ## 配置真实 LLM（自定义 OpenAI 兼容端点）
@@ -59,7 +107,7 @@ node --env-file=.env src/server.ts
 
 未设 `LLM_BASE_URL` 时回退到 Pi 内置 provider 目录（`PI_PROVIDER` + `PI_MODEL` + `${PROVIDER}_API_KEY`）。缺密钥时 `pi` 模式返回 503 `api_key_missing`，**不静默降级**。
 
-> 端点必须支持 `tools` / `tool_calls`——`pi-agent-core` 的 agent loop 依赖模型主动调用 `submit_plan` 终止。
+> 端点必须支持 `tools` / `tool_calls`——`pi-agent-core` 的 agent loop 依赖模型主动调用工具；**只有 `end` 会终止回合**。
 
 其他环境变量：
 
@@ -82,10 +130,12 @@ OPENAI_API_KEY=...               # 仅回退路径，或 PI_API_KEY
 
 | 文件 | 职责 |
 |---|---|
-| `War_AI_behavior_llm.gd` | `wab` 实现：请求 / 消费 plan / 回退 `hard` |
+| `War_AI_behavior_llm.gd` | `wab` 实现：开会话 / 长轮询 / 执行 / 回传 / 回退 `hard` |
+| `battle/AI/BattleProjection.gd` | 白兵战态势投影（兵种/命令/计策） |
+| `battle/AI/BattleAgent.gd` | 白兵战会话驱动（开战会话 / 长轮询 / 执行指令 / 回传） |
 | `StateProjection.gd` | 全知去噪状态 + `legal_actions` |
 | `AIHttpClient.gd` | `HTTPRequest` 异步封装 |
-| `ActionValidator.gd` | plan 二次校验（双防线） |
+| `ActionValidator.gd` | 单动作二次校验（双防线） |
 
 `war/AI_control.gd` 仅在 `DataManager.ai_agent_mode == true` 时加载 LLM `wab`。该标记由**标题界面新增的「大模型」难度**设置（[scene_title.gd](../bwdl/scene/scene_title/scene_title.gd) / [scene_title.tscn](../bwdl/scene/scene_title/scene_title.tscn)），并随存档持久化（[Data_Manager.gd](../bwdl/script/Data_Manager.gd)）。选其他难度一律零网络请求。
 
@@ -111,7 +161,7 @@ OPENAI_API_KEY=...               # 仅回退路径，或 PI_API_KEY
 ## 测试
 
 ```bash
-npm test        # 39 项：服务契约 / 校验 / Pi agent loop / 自定义 LLM 接线 / 决策轨迹面板 / 会话记忆 / HTTP 五态 / GDScript 静态引用 / Godot 3.6.3 运行时解析 / 跨语言端到端契约
+npm test        # 79 项：单元 + 集成（agent loop 场景矩阵 / 服务契约 / 难度预算对齐 / pi 端点 / 并发）/ GDScript 静态引用 / Godot 3.6.3 运行时解析 / 跨语言端到端契约
 
 # 带真实端点跑（最后一项端到端测试仅在 LLM_BASE_URL + LLM_API_KEY 存在时启用，否则 skip）
 LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=... npm test
@@ -119,11 +169,40 @@ LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=... npm test
 
 覆盖：
 
-- 服务侧 `validateRequest` / `validatePlan` 与 Godot 侧 `ActionValidator` 同规则
-- 只读工具注册表恰好 6 个工具，`submit_plan` 的 `plan[].id` 用本次 `legal_actions` 枚举限定
-- `stub` 模式端到端跑通 `pi-agent-core`：`estimate_plan` → `submit_plan` 终止，2 turns / 2 tool calls
+- 服务侧 `validateTurnRequest` / `validateAction` / `validateToolResult` 与 Godot 侧 `ActionValidator.accept_action` 同规则
+- 工具注册表恰好 9 个：4 只读 + 4 动作 + `end`；**不含 read/write/edit/bash**，有回归断言
+- 白兵战工具表恰好 4 个，与战役工具完全不重叠；`set_order` 按兵种单独设置
+- 白兵战多回合：3 个战斗回合连续下命令，会话全程存活（防 `max_tool_calls` 跨回合累加回归）
+- `move` 路径：`legal_actions` 带逐格 `path`，服务端与 Godot 双侧校验无斜向移动
+- `stub` 模式端到端跑通 `pi-agent-core`：会话内读动作 → 执行 → `end`
 - HTTP 五态（ok / error / budget_exhausted / invalid / 静态路径穿越）
 - GDScript 静态校验：项目单例引用、flow 绑定、继承目标、`wab` 接口方法、注释标注
+
+### 集成测试（`test/agent-loop.test.ts` / `test/scenarios.test.ts`）
+
+`test/harness.ts` 提供脚本化模型：注入 `decide({ runtime })` 后，**agent loop、工具、钩子、预算、校验、轨迹全是生产代码**，只有「模型输出」这一层被替换，因此不需要真实端点或外网就能复现各种 agent 行为。
+
+| 场景 | 断言要点 |
+|---|---|
+| 首轮直接给动作 | 1 turn / 1 tool call，动作工具之后不再请求模型 |
+| 多轮工具 | 后一轮模型能看到前一轮 `tool_result` |
+| 非法动作自纠错 | 拒绝原因回传给模型，模型改给合法动作后成功 |
+| 只回文本不给动作 | 422 `agent_budget_exhausted`，轨迹记为 error |
+| 死循环（永远回只读工具） | 恰好在 `max_turns`（难度 4 = 4，难度 2 = 3）处收敛 |
+| 推理中模型报错 | 不产生伪成功动作，`status=error` |
+| `max_tool_calls` | 超出那次被 `beforeToolCall` 拦下（`ok:false`），成功执行数等于预算 |
+| 跨回合记忆 | 难度 4 第二次请求带上上一回合 `intent` / `turns` |
+| 多侧并发 | 两个决策同时进行，`action` / `intent` / 会话记忆互不串线 |
+| `history` 回灌 | 上一轮动作与结果进入本次 user message，模型据实调整 |
+| 难度预算 × Godot 超时 | 服务端 `timeout_ms`（30s）严格早于 Godot `TIMEOUT_SEC`（32s），两侧常量同步 |
+| 端点挂起 | 服务端在 `budget.timeout_ms` 内返回 504 `agent_timeout`（不挂到连接超时） |
+| pi 端点故障 / 缺密钥 | 非 200 且不带 `action`；缺密钥 503 `api_key_missing`，不静默降级 |
+| pi 端点端到端 | 假 `/v1/chat/completions` 走真实 `createCustomRuntime`，校验 9 个工具声明与 `tool` 消息回灌 |
+| 用户可编辑文本注入 | 指令注入载荷不改变决策，面板不内联轨迹 |
+
+**逐步交互的预算**：每次决策只定一个动作，推理量远小于整侧计划，故三档统一为 `max_turns` 3/3/4、`max_tool_calls` 6/6/8；超时是**每动作独立 30s**（不是回合总预算），Godot 客户端 32s，服务端恒早 2s 返回 `504 agent_timeout`。回合内动作序列由 Godot 用 `history` 回传，服务端无状态。
+
+> 两侧超时常量必须同步修改：`agent-service/src/config.ts` 的 `BUDGETS` 与 `bwdl/packed/sgz_script/war/AI/War_AI_behavior_llm.gd` 的 `TIMEOUT_SEC`，`test/scenarios.test.ts` 会断言两者差 ≥1s。
 
 ## Godot 3.6.3 运行时校验
 
@@ -176,8 +255,8 @@ docker run --rm --read-only --tmpfs /tmp -p 8060:8060 \
 
 | 待定项 | 结论 |
 |---|---|
-| `pi-agent-core` 能否只挂自定义工具、完全禁用内置工具 | ✅ 包内不含任何内置工具（内置文件/命令工具在 `pi-coding-agent`，本服务不安装）；`initialState.tools` 完全由调用方提供，实测只有 6 个只读工具 |
-| `submit_plan` 的 JSON Schema 能否枚举限定 `plan[].id` | ✅ `AgentTool.parameters` 接受任意 JSON Schema，实测 `enum` 生效；另由服务 `validatePlan` + Godot `ActionValidator` 双重兜底 |
+| `pi-agent-core` 能否只挂自定义工具、完全禁用内置工具 | ✅ `pi-agent-core` 包内不含任何内置工具（read/write/edit/bash 在 `pi-durable/dist/tools/`，本服务未导入）；`initialState.tools` 完全由调用方提供，实测只有 4 个只读 + 5 个动作工具 |
+| 动作工具能否限定到本次 `legal_actions` | ✅ 按 `{actor,pos/target}` 在 `legal_actions` 中查找，找不到即抛错回灌模型自纠错；另由服务 `validateAction` + Godot `ActionValidator.accept_action` 双重兜底 |
 | Godot 3.6.3 headless 能否解析新增脚本 | ✅ `make check` + `load()` 校验通过，零 Parse Error；修复 1 处 `HTTPRequest.request` 参数顺序错误 |
 
 ## 边界
