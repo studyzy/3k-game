@@ -45,11 +45,8 @@ func _ensure_helpers() -> void:
 	return
 
 func _base_url() -> String:
-	if OS.has_feature("HTML5"):
-		var origin = String(JavaScript.eval("window.location.origin", true))
-		if origin != "" and origin != "null":
-			return origin + "/ai/turn"
-	return "http://127.0.0.1:8060/ai/turn"
+	# 修改：AI Agent 接入——服务地址可配置（DataManager.ai_agent_base_url），空则按平台回落
+	return DataManager.resolve_ai_agent_url("/ai/turn")
 
 # wab 接口：AI_control.gd 回合开始
 func turn_start() -> void:

@@ -46,6 +46,19 @@ Godot                             服务端
 
 **整场战斗是一个会话**（跨多个战斗回合），每回合 `end_turn` 后由引擎推进，Godot 调 `/resume` 继续问 LLM。主回合会话在此期间挂起——等待 Godot 执行不计入 Agent 空闲超时。
 
+## 服务地址配置
+
+游戏端连接 Agent 服务的地址**可配置**，优先级从高到低：
+
+| 方式 | 说明 |
+|---|---|
+| 环境变量 `K3G_AI_AGENT_URL` | 例如 `export K3G_AI_AGENT_URL=https://ai.example.com` |
+| 配置文件 `user://ai_agent.cfg` | 一行纯文本地址；代码中可调 `DataManager.save_ai_agent_config(url)` |
+| 平台默认 | Web 端用当前站点 origin（同源免预检）；桌面端 `http://127.0.0.1:8060` |
+
+地址末尾有无 `/` 都可以，会自动规范化后再拼 `/ai/turn`、`/ai/battle`。
+战争场景与白兵战共用同一份配置（`DataManager.resolve_ai_agent_url()`）。
+
 ## 运行环境
 
 - Node.js **≥ 22.19**（Pi 硬要求），本机实测 v24.11.1
@@ -161,7 +174,7 @@ OPENAI_API_KEY=...               # 仅回退路径，或 PI_API_KEY
 ## 测试
 
 ```bash
-npm test        # 79 项：单元 + 集成（agent loop 场景矩阵 / 服务契约 / 难度预算对齐 / pi 端点 / 并发）/ GDScript 静态引用 / Godot 3.6.3 运行时解析 / 跨语言端到端契约
+npm test        # 81 项：单元 + 集成（agent loop 场景矩阵 / 服务契约 / 难度预算对齐 / pi 端点 / 并发）/ GDScript 静态引用 / Godot 3.6.3 运行时解析 / 跨语言端到端契约
 
 # 带真实端点跑（最后一项端到端测试仅在 LLM_BASE_URL + LLM_API_KEY 存在时启用，否则 skip）
 LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=... npm test

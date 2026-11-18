@@ -19,6 +19,12 @@ func _ready():
     DataManager.war_actor = mine
     Global.iTactic = load("res://stubs/ITacticStub.gd").new()
 
+    # 允许测试通过环境变量指定服务地址，验证「可配置」生效
+    var env_url = OS.get_environment("K3G_AI_URL")
+    if env_url != "":
+        DataManager.ai_agent_base_url = env_url
+    print("BATTLE_BASE=", DataManager.resolve_ai_agent_url("/ai/battle"))
+
     var proj = load("res://BattleProjection.gd").new()
     var payload = proj.build(_bf, 12)
     print("BATTLE_PAYLOAD=", to_json(payload))

@@ -44,13 +44,20 @@ test("Godot BattleProjection / BattleAgent → 真实服务端白兵战会话", 
   const server = createServer({ ...testConfig, port: 0, mode: "stub", webDir: harnessDir });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const port = (server.address() as AddressInfo).port;
+  // 用可配置的服务地址指向本测试的临时端口（带尾斜杠，验证规范化）
+  const configuredUrl = `http://127.0.0.1:${port}/`;
   const xdg = fs.mkdtempSync(path.join(os.tmpdir(), "3k-bg-"));
 
   try {
     const out = await new Promise<string>((resolve, reject) => {
       const child = spawn(bin, ["--no-window", "--path", harnessDir], {
         cwd: repo,
-        env: { ...process.env, XDG_DATA_HOME: xdg, XDG_CONFIG_HOME: xdg },
+        env: {
+          ...process.env,
+          XDG_DATA_HOME: xdg,
+          XDG_CONFIG_HOME: xdg,
+          K3G_AI_URL: configuredUrl,
+        },
         stdio: ["ignore", "pipe", "pipe"],
       });
       let buf = "";
@@ -60,6 +67,13 @@ test("Godot BattleProjection / BattleAgent → 真实服务端白兵战会话", 
       child.on("error", (e) => { clearTimeout(timer); reject(e); });
       child.on("close", () => { clearTimeout(timer); resolve(buf); });
     });
+
+    // 可配置的服务地址生效，且尾斜杠被规范化
+    assert.equal(
+      marker(out, "BATTLE_BASE").trim(),
+      `http://127.0.0.1:${port}/ai/battle`,
+      "DataManager.ai_agent_base_url 应决定实际请求地址",
+    );
 
     // Godot 侧投影合法
     const payload = JSON.parse(marker(out, "BATTLE_PAYLOAD"));

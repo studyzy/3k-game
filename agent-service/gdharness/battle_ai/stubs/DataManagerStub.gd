@@ -12,3 +12,11 @@ func set_env(k, v): pass
 func unset_env(k): pass
 func get_env_int(k, d=0): return d
 func battle_unit_type_hp(actorId, type): return 300
+var ai_agent_base_url = ""
+func resolve_ai_agent_url(path):
+	var base = ai_agent_base_url
+	if base == "":
+		base = "http://127.0.0.1:8060"
+	if base.ends_with("/"):
+		base = base.substr(0, base.length() - 1)
+	return base + path

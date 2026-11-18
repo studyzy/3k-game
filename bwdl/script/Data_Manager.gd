@@ -105,6 +105,11 @@ var diffculities: int = 0;
 # 修改：AI Agent 接入——仅「大模型」难度为 true，控制战争层是否使用远程决策器
 var ai_agent_mode: bool = false;
 
+# 修改：AI Agent 接入——远程服务地址，可配置并持久化到 user://ai_agent.cfg
+# 空字符串表示「自动」：Web 端用当前站点 origin，桌面端用本机 8060
+var ai_agent_base_url: String = "";
+const AI_AGENT_CFG_PATH = "user://ai_agent.cfg"
+
 var game_mode: int = 0;
 
 var game_mode2: int = 0;
@@ -221,7 +226,41 @@ func _init() -> void :
 
 func _ready() -> void :
 	loading_version_resource(DEFAULT_MOD_PATH)
+	load_ai_agent_config()
 	return
+
+# 修改：AI Agent 接入——远程服务地址的读取与保存
+# 优先级：环境变量 K3G_AI_AGENT_URL > user://ai_agent.cfg > 平台默认（见 resolve_ai_agent_url）
+func load_ai_agent_config() -> void:
+	var env_url = OS.get_environment("K3G_AI_AGENT_URL")
+	if env_url != "":
+		ai_agent_base_url = env_url.strip_edges()
+		return
+	var text = Global.get_file_text(AI_AGENT_CFG_PATH)
+	if text == "":
+		return
+	ai_agent_base_url = text.strip_edges()
+	return
+
+func save_ai_agent_config(url: String) -> bool:
+	ai_agent_base_url = url.strip_edges()
+	return Global.save_file_text(AI_AGENT_CFG_PATH, ai_agent_base_url)
+
+# 解析出实际使用的服务地址；空配置时按平台回落到默认值。
+# Web 端用当前站点（同源，天然免 CORS 预检），桌面端用本机 8060。
+func resolve_ai_agent_url(path: String) -> String:
+	var base = ai_agent_base_url
+	if base == "":
+		if OS.has_feature("HTML5"):
+			var origin = String(JavaScript.eval("window.location.origin", true))
+			if origin != "" and origin != "null":
+				base = origin
+		if base == "":
+			base = "http://127.0.0.1:8060"
+	base = base.strip_edges()
+	if base.ends_with("/"):
+		base = base.substr(0, base.length() - 1)
+	return base + path
 
 func _reset_data():
 	history_version = [];
