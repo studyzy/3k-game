@@ -1,0 +1,23 @@
+[Unit]
+Description=3k war AI agent service (Godot web + /ai/decide)
+Documentation=https://github.com/studyzy/3k-game
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=__PROJECT_ROOT__/agent-service
+# 密钥等配置在 .env（600），不入库
+EnvironmentFile=__PROJECT_ROOT__/agent-service/.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node --env-file=__PROJECT_ROOT__/agent-service/.env src/server.ts --port 8060 --mode pi
+Restart=always
+RestartSec=3
+# 只绑本机由 Caddy 反代，避免 8060 直接暴露
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
