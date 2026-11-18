@@ -1338,6 +1338,11 @@ func get_common_path():
 	var player_machine_name = OS.get_name();
 	if player_machine_name == "Android":
 		common_save_path = OS.get_system_dir(0) + "/sgz/";
+	elif player_machine_name == "HTML5":
+		# 网页版没有可执行文件目录：web 平台 get_executable_path() 拿不到真实路径
+		#（实测返回页面名，如 index），拼出来的 "index/sgz/" 只是浏览器内存文件系统，刷新即丢。
+		# 改用 user://，Godot 3 web 会把它映射到 IDBFS(/userfs)，持久化进浏览器 IndexedDB。
+		common_save_path = "user://sgz/";
 	else:
 		common_save_path = OS.get_executable_path();
 		var index = common_save_path.find_last("/");
