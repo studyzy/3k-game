@@ -31,10 +31,15 @@ var last_anim_track_url: String = ""
 
 var anim_playing: bool = false
 
+# 网页版渐进加载：资源包挂载前请求的 BGM，挂载完成后重放
+var _pending_bgm_url: String = ""
+
 
 func _ready() -> void :
 	var db = get_sound_set()
 	update_volume()
+	if WebAssets != null:
+		WebAssets.connect("assets_ready", self, "_on_web_assets_ready")
 	
 	pause_mode = PAUSE_MODE_PROCESS
 	return
@@ -101,6 +106,9 @@ func load_bgm(track_url: String = "") -> bool:
 		track = get_default_track()
 	track = load(track_url);
 	if track == null:
+		# 网页版渐进加载：音频还在 assets.pck 里，等挂载完成再重放
+		if WebAssets != null and not WebAssets.is_ready():
+			_pending_bgm_url = track_url
 		bgm.stop();
 		return false
 	bgm.stream = track;
@@ -153,8 +161,12 @@ func play_anim_bgm(track_url: String = ""):
 	anim_playing = true
 	last_anim_track_url = track_url
 	anim.stream = load(track_url);
+	if anim.stream == null:
+		# 网页版：音频还在后台资源包里，静默跳过
+		anim_playing = false
+		return
 	anim.stream.set("loop", false);
-	anim.play();
+	anim.play()
 	return
 
 func play_se(track_url: String = "", _sign_se_obj = null, _sign_se_method: String = "", hasAnimation: bool = false):
@@ -170,8 +182,11 @@ func play_se(track_url: String = "", _sign_se_obj = null, _sign_se_method: Strin
 			_on_se_finished()
 	else:
 		se.stream = load(track_url);
+		if se.stream == null:
+			# 网页版：音频还在后台资源包里，静默跳过
+			return
 		se.stream.set("loop", false);
-		se.play();
+		se.play()
 	return
 
 
@@ -182,6 +197,9 @@ func play_se2(track_url: String, offset: float = 0.0, callbackObject = null, cal
 			Global.wait(waits, callbackObject, callback, callbackBinds)
 			return
 	se2.stream = load(track_url)
+	if se2.stream == null:
+		# 网页版：音频还在后台资源包里，静默跳过
+		return
 	se2.stream.set("loop", false)
 	if callbackObject != null:
 		se2.connect("finished", callbackObject, callback, callbackBinds, CONNECT_REFERENCE_COUNTED)
@@ -190,6 +208,15 @@ func play_se2(track_url: String, offset: float = 0.0, callbackObject = null, cal
 
 func is_se_playing():
 	return se.playing
+
+
+func _on_web_assets_ready() -> void:
+	# 资源包挂载完成：补播之前因为缺音频而失败的 BGM
+	if _pending_bgm_url != "":
+		var url = _pending_bgm_url
+		_pending_bgm_url = ""
+		last_track_url = ""
+		play_bgm(url)
 
 func is_se2_playing():
 	return se.playing

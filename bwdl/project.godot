@@ -215,6 +215,7 @@ config/windows_native_icon="res://icon.ico"
 
 [autoload]
 
+WebAssets="*res://script/WebAssets.gd"
 SkillInfo="*res://info/skill_info.gd"
 clAes="*res://script/objects/clAES.gd"
 AutoLoad="*res://script/AutoLoad.gd"

@@ -142,8 +142,22 @@ func update_playerNo():
 	lblPlayerNo.show();
 
 
+func _is_menu_scene(path: String) -> bool:
+	# 菜单/标题/剧本选择这类场景不依赖资源包，不用挡
+	for key in ["scene_open", "scene_title", "scene_pick", "scene_net", "scene_set", "scene_mod", "scene_demo"]:
+		if path.find(key) >= 0:
+			return true
+	return false
+
+
 func _defered_go_to_scene(path: String):
 	Global.clearNode(scene_layer);
+	# 网页版渐进加载：战斗/战争大图还没下载完时，先挡在这里（菜单场景不受影响）
+	if WebAssets != null and not WebAssets.is_ready() and not _is_menu_scene(path):
+		WebAssets.show_waiting_overlay()
+		while not WebAssets.is_ready():
+			yield(WebAssets, "assets_ready")
+		WebAssets.hide_waiting_overlay()
 	
 	var scene_node: Node = load(next_scene_path).instance();
 	scene_node.name = scene_name;
