@@ -43,7 +43,7 @@ func effect_20423_3():
 	var scheme = target[0]
 	var ap = Global.intval(target[1].replace(")", ""))
 	ske.disable_scheme(actorId, scheme, 99999)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.change_actor_ap(actorId, ap)
 	ske.war_report()
 
@@ -61,4 +61,8 @@ func effect_20423_4():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

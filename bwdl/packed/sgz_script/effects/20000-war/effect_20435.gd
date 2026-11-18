@@ -44,7 +44,7 @@ func on_view_model_2001() -> void:
 
 func effect_20435_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
-	ske.cost_war_cd(99999)
+	perform_cost()
 	var buffed = ske.get_war_skill_val_dic()
 	if SkillHelper.actor_has_skills(targetId, [TARGET_SKILL]):
 		ske.change_war_courage(targetId, BUFFED)
@@ -75,4 +75,8 @@ func on_view_model_2003() -> void:
 
 func effect_20435_report() -> void:
 	report_skill_result_message(ske, 2003)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

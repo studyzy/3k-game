@@ -3,8 +3,6 @@ extends "effect_20000.gd"
 #天妒效果实现
 #【天妒】大战场，锁定技。只在战争中，你的体力上限-10，伤兵类计策命中率+10%，每次计策随机减少所需机动力，最多减少原消耗的1/3。
 
-const EFFECT_ID = 20100
-
 func on_trigger_20006() -> bool:
 	var settings = DataManager.get_env_int_array("计策.扣减")
 	var cost = settings[0]

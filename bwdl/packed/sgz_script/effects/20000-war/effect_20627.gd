@@ -73,7 +73,7 @@ func effect_20627_result() -> void:
 		return
 	positions.shuffle()
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.change_war_actor_position(targetId, positions[0])
 	ske.war_report()
 
@@ -95,3 +95,7 @@ func _get_available_targets() -> PoolIntArray:
 				canMoveTargetIds.append(targetId)
 				break
 	return canMoveTargetIds
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	return

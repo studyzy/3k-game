@@ -52,8 +52,7 @@ func on_view_model_2001():
 
 # 执行
 func effect_20358_3():
-	ske.cost_ap(COST_AP, true)
-	ske.cost_war_cd(1)
+	perform_cost()
 	var targetId = DataManager.get_env_int("目标")
 	var msg = "{0}播乱天下\n汝何能独存？".format([
 		DataManager.get_actor_self_title(actorId),
@@ -70,4 +69,9 @@ func effect_20358_4():
 	var targetId = DataManager.get_env_int("目标")
 	map.next_shrink_actors = []
 	start_battle_and_finish(actorId, targetId)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(1)
 	return

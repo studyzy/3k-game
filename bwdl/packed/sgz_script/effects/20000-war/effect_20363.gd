@@ -84,7 +84,7 @@ func effect_20363_4():
 	var mySkill = get_env_str("目标项")
 	var targetSkill = get_env_str("技能.影咒.目标")
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	if not ske.ban_war_skill(actorId, mySkill, 1):
 		play_dialog(actorId, "【{0}】不可交换！".format([mySkill]), 2, 2005)
 		return
@@ -114,3 +114,6 @@ func on_view_model_2009():
 	wait_for_skill_result_confirmation()
 	return
 
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	return

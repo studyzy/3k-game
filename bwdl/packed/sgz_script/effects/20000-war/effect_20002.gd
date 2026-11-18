@@ -58,8 +58,7 @@ func effect_20002_3():
 	return
 
 func effect_20002_4():
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	var targets = get_env_int_array("智局目标")
 	ske.swap_war_actor_positions(targets[0], targets[1])
 	var msg = "{0}与{1}位置交换成功!".format([
@@ -68,4 +67,9 @@ func effect_20002_4():
 	])
 	ske.war_report()
 	play_dialog(actorId, msg, 1, 2003)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

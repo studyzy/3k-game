@@ -27,8 +27,8 @@ func effect_10071_confirmed() -> void:
 	actor.set_exp(actor.get_exp() - COST_EXP)
 
 	for swaping in [["知", "武"], ["统", "政"]]:
-		var current = actor._get_attr_int(swaping[0])
-		actor._set_attr_int(swaping[0], actor._get_attr_int(swaping[1]))
+		var current = actor._get_attr_int_original(swaping[0])
+		actor._set_attr_int(swaping[0], actor._get_attr_int_original(swaping[1]))
 		actor._set_attr_int(swaping[1], current)
 	
 	var msg = "丹转如意，妙法自然\n（经验减少{0}\n（现为{1}".format([

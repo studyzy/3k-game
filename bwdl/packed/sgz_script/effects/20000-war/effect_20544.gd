@@ -50,7 +50,7 @@ func on_view_model_2001() -> void:
 func effect_20544_3() -> void:
 	var targetId = DataManager.get_env_int("目标")
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.change_actor_hp(targetId, -COST_HP)
 	ske.remove_war_buff(targetId, "定止")
 	ske.war_report()
@@ -67,4 +67,8 @@ func on_view_model_2002():
 
 func effect_20544_report():
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

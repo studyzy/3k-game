@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：windows/children/actor_row.gd
-# 说明：武将行子控件。列表中的一行武将。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 tool
 extends Control
 
@@ -34,7 +27,7 @@ func set_actor() -> void :
 		$name.text = "结束"
 		return
 	var actor = ActorHelper.actor(actorId)
-	set_lord_name(actor.get_name())
+	$name.text = actor.get_name()
 	$name.set("custom_colors/font_color", Color.black)
 	if mixed and actor.is_status_captured():
 		$name.set("custom_colors/font_color", StaticManager.COLOR_CAPTURED)
@@ -105,17 +98,6 @@ func set_actor() -> void :
 			else:
 				color = Color.black
 		node.set("custom_colors/font_color", color)
-	return
-
-# 名字超过 4 个字时按可用宽度（约 140px）等比缩小字号，字越多字号越小
-func set_lord_name(text: String) -> void :
-	var name_label: Label = get_node("name")
-	name_label.text = text;
-	var length = text.length();
-	if (length > 4):
-		var font: DynamicFont = name_label.get_font("font").duplicate();
-		font.size = max(15, int(140.0 / length));
-		name_label.add_font_override("font", font);
 	return
 
 func set_sodiers(sodiers: int):

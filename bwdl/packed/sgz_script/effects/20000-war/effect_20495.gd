@@ -41,7 +41,7 @@ func effect_20495_go()->void:
 	var ap = DataManager.get_env_int("数值")
 	ske.change_actor_ap(actorId, -ap)
 	ske.add_skill_flags(20000, ske.effect_Id, FLAG_NAME, ap, 99)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.war_report()
 	var msg = "不动如山，其威自见\n（机动力 -{0}\n（「威」标记 +{0}".format([ap])
 	play_dialog(actorId, msg, 2, 2999)
@@ -49,4 +49,8 @@ func effect_20495_go()->void:
 
 func on_view_model_2999()->void:
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

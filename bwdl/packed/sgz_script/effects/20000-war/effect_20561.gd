@@ -33,7 +33,7 @@ func effect_20561_2() -> void:
 	var skill = DataManager.get_env_str("目标项")
 	ske.add_war_skill(actorId, skill, 1, true)
 	history.append(skill)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.set_war_skill_val(history)
 	ske.war_report()
 
@@ -44,4 +44,8 @@ func effect_20561_2() -> void:
 		if attached != "":
 			msg += "\n（【策书】解锁【{0}】".format([attached])
 	play_dialog(actorId, msg, 0, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

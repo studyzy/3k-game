@@ -44,7 +44,7 @@ func effect_20638_confirmed() -> void:
 	var limit = DataManager.get_actor_max_soldiers(targetId)
 	var changed = limit - current
 	ske.change_actor_soldiers(targetId, changed - current)
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.war_report()
 
 	map.draw_actors()
@@ -54,4 +54,8 @@ func effect_20638_confirmed() -> void:
 		wa.get_name(), wa.get_soldiers()
 	])
 	play_dialog(actorId, msg, 0, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

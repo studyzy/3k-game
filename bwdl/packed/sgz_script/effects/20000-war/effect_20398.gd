@@ -52,14 +52,8 @@ func on_view_model_2000() -> void:
 	return
 
 func effect_20398_confirm() -> void:
-	var wv = me.war_vstate()
-	var cost = int(wv.rice * COST_RICE_RATE / 100)
-
-	# 设置技能冷却
-	ske.cost_war_cd(COST_CD)
-
-	# 扣除米粮
-	cost = ske.cost_wv_rice(cost)
+	# 扣除代价
+	perform_cost()
 
 	# 设置速进效果（供触发器使用）
 	ske.set_war_skill_val(1, 1)
@@ -81,4 +75,11 @@ func on_view_model_2001() -> void:
 
 func effect_20398_report() -> void:
 	report_skill_result_message(ske, 2001)
+	return
+
+func perform_cost() -> void:
+	var wv = me.war_vstate()
+	var cost = int(wv.rice * COST_RICE_RATE / 100)
+	ske.cost_war_cd(COST_CD)
+	ske.cost_wv_rice(cost)
 	return

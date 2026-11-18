@@ -51,7 +51,7 @@ func effect_20730_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var skill = DataManager.get_env_str("目标项")
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	var learned = ske.get_war_skill_val_str()
 	if learned != "":
 		ske.remove_war_skill(actorId, learned)
@@ -83,3 +83,7 @@ func get_valid_skills(targetId:int) -> PoolStringArray:
 				ret.erase(skillName)
 				break
 	return ret
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
+	return

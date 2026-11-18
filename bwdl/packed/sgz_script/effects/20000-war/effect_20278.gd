@@ -44,8 +44,7 @@ func effect_20278_3():
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
 
-	ske.cost_war_cd(COST_CD)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.set_war_buff(targetId, "激励", 1)
 	var ret = ske.reduce_actor_skill_cd(targetId, CD_REDUCE, [20000, 30000, 40000])
 	ske.war_report()
@@ -69,4 +68,9 @@ func effect_20278_3():
 		me.attach_free_dialog(msg, 1, 20000, targetId)
 	skill_end_clear()
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(COST_CD)
+	ske.cost_ap(COST_AP, true)
 	return

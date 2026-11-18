@@ -56,10 +56,14 @@ func effect_20704_confirmed() -> void:
 	var targetWA = DataManager.get_war_actor(targetId)
 	var pos = targetWA.position * 2 - me.position
 	map.show_color_block_by_position([])
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.change_war_actor_position(actorId, pos)
 	ske.war_report()
 	map.draw_actors()
 	var msg = "踏破虚空，千仞一线！"
 	play_dialog(actorId, msg, 0, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

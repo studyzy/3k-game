@@ -263,8 +263,8 @@ func _process(delta:float)->void:
 			var nextFlow = DataManager.get_env_str("战争.AI.等待对话流程")
 			if nextFlow == "":
 				nextFlow = "AI_before_ready"
-			DataManager.unset_env("战争.AI.等待对话流程")
-			Global.wait_for_confirmation(nextFlow, view_model_name)
+			if Global.wait_for_confirmation(nextFlow, view_model_name):
+				DataManager.unset_env("战争.AI.等待对话流程")
 	return
 
 #检查空闲对白

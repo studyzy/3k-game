@@ -23,7 +23,7 @@ func effect_20293_start():
 
 func effect_20293_2():
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	var leaderName = "敌将"
 	var wv = me.war_vstate()
 	var enemyWV = wv.get_enemy_vstate()
@@ -39,4 +39,8 @@ func effect_20293_2():
 	# 仅记录日志
 	ske.war_report()
 	play_dialog(actorId, msg, 0, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

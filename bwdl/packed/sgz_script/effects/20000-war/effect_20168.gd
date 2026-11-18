@@ -81,8 +81,7 @@ func effect_20168_4():
 	var targetId = get_env_int("目标")
 	var targetActor = ActorHelper.actor(targetId)
 
-	ske.cost_war_limited_times(3)
-	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, FLAG_COST)
+	perform_cost()
 	var exp_gain = EXP_GAIN + 5 * targetActor.get_level()
 	exp_gain = ske.change_actor_exp(targetId, exp_gain)
 
@@ -103,3 +102,7 @@ func effect_20168_5():
 	FlowManager.add_flow(FLOW_BASE + "_start")
 	return
 
+func perform_cost() -> void:
+	ske.cost_war_limited_times(3)
+	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, FLAG_COST)
+	return

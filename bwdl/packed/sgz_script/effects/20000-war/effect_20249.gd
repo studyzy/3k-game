@@ -46,7 +46,7 @@ func effect_20249_3():
 	var targetId = get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	for skill in SkillHelper.get_actor_skill_names(targetId):
 		if not ske.ban_war_skill(targetId, skill, 1):
 			continue
@@ -57,4 +57,8 @@ func effect_20249_3():
 
 func effect_20249_4():
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

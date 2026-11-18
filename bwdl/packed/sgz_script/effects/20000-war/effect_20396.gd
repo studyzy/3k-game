@@ -56,8 +56,7 @@ func on_view_model_2001():
 func effect_20396_3():
 	var targetId = get_env_int("目标")
 
-	ske.cost_war_cd(1)
-	ske.cost_wv_rice(RICE_COST)
+	perform_cost()
 	ske.change_actor_ap(targetId, -AP_COST)
 	ske.change_actor_hp(targetId, HP_RECOVER)
 	ske.add_actor_soldiers(targetId, SOLDIERS_RECOVER, 2500)
@@ -78,4 +77,9 @@ func effect_20396_4():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_wv_rice(RICE_COST)
 	return

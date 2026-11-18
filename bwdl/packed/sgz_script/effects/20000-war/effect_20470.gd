@@ -63,8 +63,7 @@ func effect_20470_4():
 	var targetWA = DataManager.get_war_actor(targetId)
 	var schemeName = DataManager.get_env_str("目标项")
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	var turns = 1
 	if me.is_defender():
 		turns = 2
@@ -79,4 +78,9 @@ func effect_20470_4():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

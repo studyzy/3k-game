@@ -19,7 +19,7 @@ func on_view_model_2000():
 
 func effect_20376_2():
 	var targetId = get_env_int("目标")
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.set_war_skill_val(targetId, 99999, PASSIVE_EFFECT_ID)
 	var msg = "已将支援目标设定为{0}".format([
 		ActorHelper.actor(targetId).get_name(),
@@ -30,4 +30,8 @@ func effect_20376_2():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

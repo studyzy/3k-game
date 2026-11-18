@@ -30,6 +30,10 @@ func on_trigger_20019()->bool:
 		return false
 	return wv.money >= get_gold_cost(x)
 
+func effect_20526_AI_start() -> void:
+	goto_step("start")
+	return
+
 func effect_20526_start() -> void:
 	var msg = "大战又至，须赖众将之力\n当重金延医诊治，必求无咎"
 	play_dialog(actorId, msg, 0, 2000)
@@ -40,7 +44,6 @@ func on_view_model_2000() -> void:
 	return
 
 func effect_20526_2() -> void:
-
 	ske.cost_war_cd(99999)
 	var wv = me.war_vstate()
 	var x = 0

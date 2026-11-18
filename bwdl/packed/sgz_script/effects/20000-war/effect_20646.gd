@@ -67,8 +67,7 @@ func on_view_model_2001() -> void:
 	return
 
 func effect_20646_fight() -> void:
-	ske.cost_ap(COST_AP, true)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.war_report()
 
 	var targetId = DataManager.get_env_int("目标")
@@ -77,4 +76,9 @@ func effect_20646_fight() -> void:
 	])
 	me.attach_free_dialog(msg, 0)
 	start_battle_and_finish(actorId, targetId)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(1)
 	return

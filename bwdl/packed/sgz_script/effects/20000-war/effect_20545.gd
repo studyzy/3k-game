@@ -19,7 +19,7 @@ func on_view_model_2000() -> void:
 	return
 
 func effect_20545_2() -> void:
-	ske.cost_war_cd(99999)
+	perform_cost()
 	var banned = 0
 	for wa in me.get_enemy_war_actors():
 		var basics = SkillHelper.get_actor_unlocked_skill_names(wa.actorId).values()
@@ -47,4 +47,8 @@ func on_view_model_2001():
 
 func effect_20545_report():
 	report_skill_result_message(ske, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

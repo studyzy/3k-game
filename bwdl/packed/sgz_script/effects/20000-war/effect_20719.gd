@@ -26,11 +26,7 @@ func on_trigger_20012() -> bool:
 	if wa != me and not me.is_teammate(wa):
 		return false
 
-	# 检查是否已经使用过（同方所有人的同名技能都不能重复使用）
-	var key = "COMMONCD.{0}.{1}.{2}".format([
-		ske.skill_name, wf.date, me.vstate().id
-	])
-	if wf.get_env_int(key) > 0:
+	if ske.is_war_common_cd():
 		return false
 
 	return true
@@ -57,11 +53,7 @@ func on_view_model_2000() -> void:
 func effect_20719_recover() -> void:
 	# 设置技能CD（每回合限1次）
 	ske.cost_war_cd(1)
-	# 同时设置全局标记
-	var key = "COMMONCD.{0}.{1}.{2}".format([
-		ske.skill_name, wf.date, me.vstate().id
-	])
-	wf.set_env(key, 1)
+	ske.set_war_common_cd(true)
 
 	# 获取计策消耗的机动力
 	var se = DataManager.get_current_stratagem_execution()

@@ -51,8 +51,7 @@ func effect_20230_2():
 func effect_20230_3():
 	var targetId = get_env_int("目标")
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.set_war_buff(targetId, BUFF_NAME, 1)
 	var msg = "多设疑兵，{0}必不敢速进".format([
 		DataManager.get_actor_naughty_title(targetId, ske.skill_actorId),
@@ -62,4 +61,9 @@ func effect_20230_3():
 
 func effect_20230_4():
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

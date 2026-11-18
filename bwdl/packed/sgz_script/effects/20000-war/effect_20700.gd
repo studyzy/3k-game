@@ -40,8 +40,7 @@ func on_view_model_2001() -> void:
 func effect_20700_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var targetActor = ActorHelper.actor(targetId)
-	ske.cost_war_limited_times(2)
-	ske.cost_wv_gold(COST_GOLD)
+	perform_cost()
 	ske.change_actor_hp(targetId, targetActor.get_max_hp() - targetActor.get_hp())
 	ske.set_war_buff(targetId, BUFF_NAME, 2)
 	ske.war_report()
@@ -65,4 +64,9 @@ func effect_20700_response() -> void:
 		BUFF_NAME,
 	])
 	play_dialog(targetId, msg, 2, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_limited_times(2)
+	ske.cost_wv_gold(COST_GOLD)
 	return

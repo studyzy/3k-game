@@ -17,15 +17,15 @@ func on_view_model_2000()->void:
 
 func effect_20507_go()->void:
 	var wf = DataManager.get_current_war_fight()
-	ske.cost_war_cd(99999)
+	perform_cost()
 	for x in map.cell_columns:
 		for y in map.cell_rows - 1:
 			var pos = Vector2(x, y)
-			var lf = map.get_blockCN_by_position(pos + Vector2.LEFT) in ["树林", "河流", "山地", "沼泽"]
-			var rf = map.get_blockCN_by_position(pos + Vector2.RIGHT) in ["树林", "河流", "山地", "沼泽"]
-			var uf = map.get_blockCN_by_position(pos + Vector2.UP) in ["树林", "河流", "山地", "沼泽"]
-			var df = map.get_blockCN_by_position(pos + Vector2.DOWN) in ["树林", "河流", "山地", "沼泽"]
-			if map.get_blockCN_by_position(pos) == "平原":
+			var lf = map.get_blockCN_by_position(pos + Vector2.LEFT, true) in ["树林", "河流", "山地", "沼泽"]
+			var rf = map.get_blockCN_by_position(pos + Vector2.RIGHT, true) in ["树林", "河流", "山地", "沼泽"]
+			var uf = map.get_blockCN_by_position(pos + Vector2.UP, true) in ["树林", "河流", "山地", "沼泽"]
+			var df = map.get_blockCN_by_position(pos + Vector2.DOWN, true) in ["树林", "河流", "山地", "沼泽"]
+			if map.get_blockCN_by_position(pos, true) == "平原":
 				var b = "desert_1"
 				if lf and uf:
 					b = "desert_106"
@@ -57,4 +57,8 @@ func effect_20507_go()->void:
 
 func on_view_model_2999()->void:
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

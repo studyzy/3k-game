@@ -27,7 +27,7 @@ func on_view_model_2001() -> void:
 
 func effect_20643_go():
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.set_war_buff(actorId, "围困", 1)
 	# 仅记录日志
 	ske.war_report()
@@ -36,4 +36,8 @@ func effect_20643_go():
 	LoadControl.end_script()
 	FlowManager.add_flow("load_script|war/player_move.gd")
 	FlowManager.add_flow("actor_move_start")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

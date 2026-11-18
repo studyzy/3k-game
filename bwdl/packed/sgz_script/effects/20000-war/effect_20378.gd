@@ -34,7 +34,7 @@ func effect_20378_start():
 
 func effect_20378_2():
 	var wf = DataManager.get_current_war_fight()
-	ske.cost_war_cd(99999)
+	perform_cost()
 	me.dic_other_variable["临知公式"] = "int(<WARDAY> < {0}) * <SOLDIERS> / 160".format([
 		wf.date + 3
 	])
@@ -44,4 +44,8 @@ func effect_20378_2():
 	if me.get_controlNo() < 0:
 		msg += "\n（{0}发动【{1}】".format([me.get_name(), ske.skill_name])
 	play_dialog(actorId, msg, 1, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

@@ -54,13 +54,17 @@ func effect_20559_3() -> void:
 	targetActor.set_hp(hp)
 	var maxHP = targetActor.get_max_hp()
 
-	ske.cost_ap(COST_AP, true)
-	ske.cost_wv_gold(COST_GOLD)
-	ske.cost_war_cd(2)
+	perform_cost()
 	ske.change_actor_hp(targetId, maxHP - hp)
 	ske.war_report()
 	var msg = "息甲养锐，九脉回春\n（{0}体力完全恢复".format([
 		targetActor.get_name(),
 	])
 	play_dialog(actorId, msg, 1, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_wv_gold(COST_GOLD)
+	ske.cost_war_cd(2)
 	return

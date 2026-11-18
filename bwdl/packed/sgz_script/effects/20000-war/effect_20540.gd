@@ -31,7 +31,7 @@ func on_view_model_2000() -> void:
 func effect_20540_2() -> void:
 	var targetId = DataManager.get_env_int("目标")
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	for skillName in SkillHelper.get_actor_locked_skill_names(targetId).values():
 		ske.add_war_skill(targetId, skillName, 1)
 	ske.war_report()
@@ -56,4 +56,8 @@ func on_view_model_2002():
 
 func effect_20540_report():
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

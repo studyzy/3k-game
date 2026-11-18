@@ -31,8 +31,7 @@ func on_trigger_20018()->bool:
 
 func effect_20281_start():
 	# 替代用计
-	ske.cost_war_limited_times(LIMIT)
-	ske.cost_ap(COST_AP)
+	perform_cost()
 	ske.war_report()
 	var se = DataManager.get_current_stratagem_execution()
 	se.set_replaced_actioner(actorId, ske.skill_name)
@@ -47,4 +46,9 @@ func effect_20281_start():
 	# 防止回退
 	se.goback_disabled = 1
 	skill_end_clear()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_limited_times(LIMIT)
+	ske.cost_ap(COST_AP)
 	return

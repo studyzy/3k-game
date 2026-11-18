@@ -19,7 +19,7 @@ func on_view_model_2000():
 
 func effect_20043_2():
 	ske.set_war_skill_val(1, 1, PASSIVE_EFFECT_ID)
-	ske.cost_war_cd(3)
+	perform_cost()
 	ske.set_war_buff(actorId, "诱敌", 1)
 	ske.war_report()
 	var msg = "不入虎穴，焉得虎子！"
@@ -28,4 +28,8 @@ func effect_20043_2():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(3)
 	return

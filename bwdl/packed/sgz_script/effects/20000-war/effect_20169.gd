@@ -107,8 +107,7 @@ func effect_20169_3():
 	var targetWA = DataManager.get_war_actor(targetId)
 	var targetActor = ActorHelper.actor(targetId)
 
-	ske.cost_ap(COST_AP, true)
-	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, COST_FLAG)
+	perform_cost()
 	ske.change_actor_exp(ske.skill_actorId, EXP_GAIN)
 	ske.change_actor_hp(targetId, 30)
 
@@ -148,4 +147,9 @@ func effect_20169_5():
 	if not wait_choose_actors(targets, "选择队友发动【急救】", true):
 		return
 	LoadControl.set_view_model(2000)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, COST_FLAG)
 	return

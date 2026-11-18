@@ -1,18 +1,6 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/objects/clSoloFight.gd
-# 说明：单挑结算对象（核心战斗逻辑）。计算单挑（武将一对一决斗）的过程与结果。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Resource
 
-# 单挑「劝降」结果查找表：
-# 三维数组 [a][b][c] -> 结果值
-#  - a：进攻方「智力+魅力」档次（<180 或 <130 分别 +1）
-#  - b：防守方「忠诚」档次（<80 或 <50 分别 +1）
-#  - c：防守方「体力」档次（<65 或 <40 分别 +1）
-# 结果值含义：1=失败，2=动摇，3=成功，4=大成功（详见 persuade_result()）
+
 const PERSUADE_RESULTS: Array = [
 	
 	[
@@ -110,26 +98,27 @@ const PERSUADE_RESULTS: Array = [
 class_name SoloFight
 
 
-# 单挑状态机：status 0=未开始，1=进行中，2=已结束
+
+
 var status: int = 0
 
-# 已进行的回合数
+
 var turns: int = 0
 
-# 左侧单挑者 ID
+
 var leftId: int = - 1
 
-# 右侧单挑者 ID
+
 var rightId: int = - 1
 
-# 当前行动方 ID
+
 var currentId: int = - 1
 
-# 起始顺序（0=左先手，1=右先手）
+
 var fromIdx: int = 0
 
 
-# 单挑过程中的临时环境变量
+
 var env: Dictionary = {}
 
 func _init(_leftId: int, _rightId: int):
@@ -226,7 +215,6 @@ func get_env_dict(key: String) -> Dictionary:
 func running() -> bool:
 	return status == 1
 
-# 单挑开始：回合归零、置为进行中，并触发双方「单挑开始」类技能（40010）
 func prepare() -> void :
 	turns = 0
 	status = 1
@@ -234,7 +222,6 @@ func prepare() -> void :
 	SkillHelper.auto_trigger_skill(rightId, 40010)
 	return
 
-# 单挑结束：置为已结束，清除双方的单挑类 Buff 与白兵标记
 func finish() -> void :
 	status = 2
 
@@ -273,18 +260,17 @@ func opponent(actorId: int) -> War_Actor:
 	return current()
 
 
-# 一次行动结束：扣除当前方单挑 Buff，交换行动权，一轮双方都行动过后进入下一回合
 func end_action() -> void :
 	var wa = current()
 	wa.decrease_buff_by_where("单挑")
 
-	# 交换行动权
+	
 	if currentId == leftId:
 		currentId = rightId
 	else:
 		currentId = leftId
 
-	# 回到先手方说明一轮结束，进入下一回合
+	
 	if currentId == get_actor_ids()[0]:
 		next_turn()
 	return
@@ -296,38 +282,30 @@ func next_turn() -> void :
 
 
 
-# 计算「劝降」结果：
-# 根据进攻方「智力+魅力」、防守方「忠诚」、防守方「体力」三档查表（见 PERSUADE_RESULTS）。
-# 忠诚 100 的武将无法被劝降成功（结果 3/4 会被降级为 1=失败）。
 func persuade_result() -> int:
 	var fromActor = current().actor()
 	var targetActor = target().actor()
-	# 进攻方实力 = 智力 + 魅力，按阈值分档
 	var d12 = fromActor.get_wisdom() + fromActor.get_moral()
 	var a = 0
 	if d12 < 180:
 		a += 1
 	if d12 < 130:
 		a += 1
-	# 防守方忠诚分档
 	var b = 0
 	var loy = targetActor.get_loyalty()
 	if loy < 80:
 		b += 1
 	if loy < 50:
 		b += 1
-	# 防守方体力分档
 	var c = 0
 	var hp = targetActor.get_hp()
 	if hp < 65:
 		c += 1
 	if hp < 40:
 		c += 1
-	# 查表得到候选结果并随机抽取一个
 	var results = Array(PERSUADE_RESULTS[a][b][c]).duplicate()
 	results.shuffle()
 	var result = results[0]
-	# 忠诚满值的武将绝不投降
 	if targetActor.get_loyalty() == 100 and result in [3, 4]:
 		result = 1
 	return result

@@ -46,11 +46,15 @@ func effect_20678_response() -> void:
 	var msg = "既如此 …… 暂缓用兵\n{0}早日率众反正！".format([
 		DataManager.get_actor_honored_title(actorId, enemyLeader.actorId),
 	])
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.set_war_skill_val(1, 99999, PASSIVE_EFFECT_ID)
 	ske.set_war_buff(enemyLeader.actorId, "罢兵", 2)
 	for wa in enemyLeader.get_teammates(false, true):
 		ske.set_war_buff(wa.actorId, "罢兵", 2)
 	ske.war_report()
 	play_dialog(enemyLeader.actorId, msg, 0, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

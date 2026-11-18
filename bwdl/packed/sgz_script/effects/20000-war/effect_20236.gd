@@ -58,7 +58,7 @@ func effect_20236_2():
 func effect_20236_3():
 	var targetId = get_env_int("目标")
 
-	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, COST_FLAG)
+	perform_cost()
 	ske.change_actor_hp(targetId, -COST_HP)
 	ske.change_actor_exp(ske.skill_actorId, EXP_GAIN)
 	var wa = DataManager.get_war_actor(targetId)
@@ -73,4 +73,9 @@ func effect_20236_3():
 
 func effect_20236_4():
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, COST_FLAG)
 	return

@@ -69,8 +69,7 @@ func on_view_model_2001():
 func effect_20173_3():
 	var targetId = get_env_int("目标")
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(me.action_point, true)
+	perform_cost()
 	ske.change_actor_exp(me.actorId, EXP_GAIN)
 
 	var title = "孤"
@@ -86,4 +85,9 @@ func effect_20173_3():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(me.action_point, true)
 	return

@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/War_Character.gd
-# 说明：战争角色基类。定义战争地图上武将/中立角色的公共属性。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends "clEnvBase.gd"
 
 class_name War_Character
@@ -145,6 +138,14 @@ func has_position():
 	
 func battle_init(simulation = false):
 	return
+
+func cleanup() -> void :
+	dic_skill_cd = {}
+	dic_buffs = {}
+	dic_areas = {}
+	dic_other_variable = {}
+	return
+
 
 static func get_five_phases_string(phase: int) -> String:
 	match phase:

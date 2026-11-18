@@ -19,7 +19,8 @@
       "ap": 6
     },
     "impact": {
-      "soldier": "(a.知*random(9,13)/10+(a.等级-1)*10+30)*min(1,max(0.1,a.兵力/1000.0))"
+      "soldier": "(a.知*random(9,13)/10+(a.等级-1)*10+30)*min(1,max(0.1,a.兵力/1000.0))",
+      "range": ["flame_over"]
     },
     "targeting": {
       "range": 6,
@@ -862,11 +863,12 @@
       "ap": 8
     },
     "impact": {
+      "range": ["blow"],
       "specialEffect": "随机位移"
     },
     "targeting": {
       "range": 6,
-      "targetTerrian": "平原、沙漠、树林、山地、河流、沼泽",
+      "targetTerrian": "平原、沙漠、树林、山地、河流、沼泽、火原",
       "rangeType": "矩形",
       "rangeRadius": 2,
       "rangeIncluded": 1,
@@ -900,11 +902,12 @@
       "buff": {
         "name": "迟滞",
         "formula": "min(1,max(0,random(-1,3)))"
-      }
+      },
+      "range": ["rain"]
     },
     "targeting": {
       "range": 6,
-      "targetTerrian": "平原、沙漠、树林、山地、河流、沼泽、太守府、城门、城墙",
+      "targetTerrian": "平原、沙漠、树林、山地、河流、沼泽、太守府、城门、城墙、火原",
       "rangeType": "矩形",
       "rangeRadius": 2,
       "rangeIncluded": 1,

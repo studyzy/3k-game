@@ -85,8 +85,12 @@ func on_view_model_2999()->void:
 func effect_20492_end()->void:
 	var steps = DataManager.get_env_int("战争.战令步数")
 	if steps < STEPS:
-		ske.cost_war_cd(1)
+		perform_cost()
 	ske.war_report()
 	skill_end_clear()
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

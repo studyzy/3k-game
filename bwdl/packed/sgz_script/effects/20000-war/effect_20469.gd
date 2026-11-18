@@ -94,11 +94,15 @@ func effect_20469_4():
 	var pos = Vector2(int(target["x"]), int(target["y"]))
 	ske.change_war_actor_position(actorId, pos)
 	var msg = "某虽不才，不堕先父威名！"
-	ske.cost_war_cd(2)
+	perform_cost()
 	ske.war_report()
 	play_dialog(actorId, msg, 0, 2999)
 	return
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(2)
 	return

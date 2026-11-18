@@ -49,8 +49,7 @@ func effect_20468_3():
 	var targetWA = DataManager.get_war_actor(targetId)
 	var x = actor.get_level()
 	var point = max(0, targetWA.poker_point - x)
-	ske.cost_war_cd(99999)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.change_actor_five_phases(targetId, targetWA.five_phases, point)
 	var msg = "{0}其人，究竟无行之辈\n（{1}点数变为{2}\n（且不可刷新".format([
 		DataManager.get_actor_honored_title(targetId, actorId),
@@ -62,4 +61,9 @@ func effect_20468_3():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
+	ske.cost_ap(COST_AP, true)
 	return

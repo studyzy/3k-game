@@ -23,7 +23,7 @@ func on_view_model_2000() -> void:
 
 func effect_20606_confirmed() -> void:
 	var msg = "衣带诏在此\n诸公师出无名\n何以兴汉！"
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.set_war_skill_val(me.poker_point)
 	play_dialog(actorId, msg, 0, 2001)
 	return
@@ -103,4 +103,8 @@ func effect_20606_end() -> void:
 	ske.war_report()
 	skill_end_clear()
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

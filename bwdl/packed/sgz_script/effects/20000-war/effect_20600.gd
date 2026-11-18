@@ -46,7 +46,7 @@ func effect_20600_confirmed() -> void:
 
 	ske.set_war_skill_val(targetIds)
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.war_report()
 
 	var msg = "江表群英，群集于此\n诸公，腾蛟一跃，更待何日！"
@@ -59,4 +59,8 @@ func on_view_model_2001()->void:
 
 func effect_20600_report():
 	report_skill_result_message(ske, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

@@ -80,7 +80,7 @@ func effect_20195_4():
 	var firstWA = DataManager.get_war_actor(first)
 	var secondWA = DataManager.get_war_actor(second)
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	var ap1 = firstWA.action_point
 	var ap2 = secondWA.action_point
 	ske.change_actor_ap(first, -ap1)
@@ -91,4 +91,8 @@ func effect_20195_4():
 
 	var msg = "人主之道，静退以为宝"
 	play_dialog(actorId, msg, 2, 2009)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

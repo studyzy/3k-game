@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/War_Actor.gd
-# 说明：战争武将对象（继承 War_Character）。代表战争地图上的武将单位。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends War_Character
 
 class_name War_Actor
@@ -562,7 +555,10 @@ func get_max_action_ap() -> int:
 	var actor = actor()
 	
 	var base = max(actor.get_power(), actor.get_wisdom())
-	base += min(1000, actor.get_soldiers()) / 5
+	var soldiers = actor.get_soldiers()
+	if soldiers < 1000 and actor.get_equip_feature_max("机动力上限不受低兵力影响") > 0:
+		soldiers = 1000
+	base += min(1000, soldiers) / 5
 	
 	var limit = int((base + actor.get_steed_power()) / 16)
 	
@@ -630,6 +626,30 @@ func after_move(forward: bool = true) -> bool:
 			set_ext_variable("次日机动力恢复", current)
 
 	var map = SceneManager.current_scene().war_map
+
+	
+	
+	var terrain = map.get_blockCN_by_position(position)
+	if terrain == "火原":
+		var damage = onfire()
+		map.update_ap()
+		map.draw_actors()
+		if actor().get_hp() <= 0:
+			dead("余烬")
+			var msg = "火伤过重，{0}阵亡！".format([
+				get_name()
+			])
+			LoadControl._error(msg)
+			return true
+		var msg = "火势太盛！\n（体力 -{0}，现为 {1}".format([
+			damage[0], actor().get_hp(), 
+		])
+		if damage[1] > 0:
+			msg += "\n（兵力 -{0}，现为 {1}".format([
+				damage[1], get_soldiers()
+			])
+		DataManager.set_env("对白", msg)
+
 	
 	var nextFlow = "actor_move_stop"
 	if get_controlNo() < 0:
@@ -1602,3 +1622,16 @@ func is_defender() -> bool:
 	if wv == null:
 		return false
 	return wv.is_defender()
+
+
+func onfire(stay: bool = false) -> PoolIntArray:
+	var hpDamage = 2
+	var soldierDamage = 30
+	if stay:
+		hpDamage *= 4
+		soldierDamage *= 4
+	hpDamage = DataManager.war_damage_hp( - 1, actorId, hpDamage)
+	soldierDamage = DataManager.damage_sodiers( - 1, actorId, soldierDamage)
+	if stay:
+		set_buff("疲兵", 1, - 1)
+	return PoolIntArray([hpDamage, soldierDamage])

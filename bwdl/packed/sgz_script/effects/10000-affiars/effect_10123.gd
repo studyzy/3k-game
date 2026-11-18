@@ -20,6 +20,9 @@ func on_trigger_10012() -> bool:
 	var added = ske.change_actor_exp(actorId, EXP_GAIN)
 	if added <= 0:
 		return false
+	# 非玩家武将不触发对话
+	if DataManager.get_scene_actor_control(actorId) < 0:
+		return false
 	var cityId = get_working_city_id()
 	var city = clCity.city(cityId)
 	var msg = "也算是一番历练 … …\n（【{0}】经验 +{1}".format([

@@ -52,7 +52,7 @@ func effect_20525_3() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var skillName = DataManager.get_env_str("目标项")
 
-	ske.cost_war_cd(COST_CD)
+	perform_cost()
 	# 去除旧的，if any
 	var old = ske.get_war_skill_val_str()
 	if old != "":
@@ -91,4 +91,8 @@ func effect_20525_report() -> void:
 
 func on_view_model_2003() -> void:
 	wait_for_pending_message(FLOW_BASE + "_report")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(COST_CD)
 	return

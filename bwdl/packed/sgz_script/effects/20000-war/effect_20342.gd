@@ -53,7 +53,7 @@ func effect_20342_3():
 	var limit = DataManager.get_actor_max_soldiers(targetId) - targetActor.get_soldiers()
 	soldiers = min(flags, soldiers)
 	soldiers = min(limit, soldiers)
-	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, soldiers)
+	perform_cost(soldiers)
 	soldiers = ske.change_actor_soldiers(targetId, soldiers)
 	set_env("数值", soldiers)
 	
@@ -80,4 +80,8 @@ func on_view_model_2003():
 
 func effect_20342_5():
 	report_skill_result_message(ske, 2003)
+	return
+
+func perform_cost(soldiers:int=0) -> void:
+	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, soldiers)
 	return

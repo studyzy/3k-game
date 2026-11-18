@@ -55,8 +55,7 @@ func on_view_model_2001():
 
 func effect_20460_3():
 	var targetId = DataManager.get_env_int("目标")
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.set_war_skill_val(1, 1)
 	ske.war_report()
 	var msg = "{0}迫近，刀斧手齐上！".format([
@@ -72,4 +71,9 @@ func on_view_model_2002():
 func effect_20460_4():
 	var targetId = DataManager.get_env_int("目标")
 	start_battle_and_finish(actorId, targetId)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

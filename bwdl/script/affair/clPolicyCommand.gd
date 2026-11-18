@@ -1,59 +1,53 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/affair/clPolicyCommand.gd
-# 说明：「政策」内政命令。处理国家政策的颁布、执行与效果结算。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Resource
 
-# 政策命令：共六种外交/政治策略
-#  - 离间：降低敌方武将忠诚度
-#  - 招揽：拉拢敌方武将投靠
-#  - 策反：策动敌方武将自立为王
-#  - 同盟：与势力结盟
-#  - 亲善：改善与势力的关系
-#  - 交涉：赎回被俘武将或交换人质
 
 class_name PolicyCommand
 
-# 执行政策的城市 / 武将
+
 var cityId: int = - 1
+
 
 var actionId: int = - 1
 
-# 政策类型
+
 var type: String = ""
 
-# 执行武将的政治 / 道德
+
 var actionPolitics: int = 0
+
 
 var actionMoral: int = 0
 
-# 目标城市 / 目标武将 / 目标势力
+
 var targetCityId: int = - 1
+
 
 var targetActorId: int = - 1
 
+
 var targetVstateId: int = - 1
 
-# 基础成功率 / 最终成功率
+
 var basicRate: int = 0
+
 
 var rate: int = 0
 
-# 花费（金 / 米）
+
 var costGold: int = 0
+
 
 var costRice: int = 0
 
-# 结果：0=失败 1=成功
+
 var result: int = 0
+
 
 var status: int = 0
 
-# 技能附加效果 / 变更记录
+
 var extraEffects: Dictionary = {}
+
 
 var changes: Dictionary = {}
 
@@ -162,7 +156,6 @@ func load_from_save_data(dic: Dictionary) -> void :
 	return
 
 
-# 准备阶段：按政策类型预计算成功率
 func prepare() -> void :
 	basicRate = 0
 	rate = 0
@@ -182,7 +175,6 @@ func prepare() -> void :
 	return
 
 
-# 执行阶段：按政策类型结算结果
 func execute() -> void :
 	if status > 0:
 		
@@ -253,7 +245,6 @@ func append_result_messages(msgs: Array, mood: int, _actorId: int = - 1, _cityId
 	return
 
 
-# 计算「离间」成功率：忠诚度先被相性距离修正，再按 政治+道德 与 (98-忠诚) 计算
 func wedge_rate() -> void :
 	var actioner = actioner()
 	var target = target_actor()
@@ -261,7 +252,7 @@ func wedge_rate() -> void :
 	SkillHelper.auto_trigger_skill(actioner.actorId, 10004, "")
 	SkillHelper.auto_trigger_skill(target.actorId, 10014, "")
 
-	# 相性距离会压低目标的等效忠诚（距离越远越难离间）
+	
 	var loyalty = target_actor().get_loyalty()
 	
 	var distance = target.personality_distance(actioner)
@@ -617,8 +608,6 @@ func ally_effect() -> void :
 	return
 
 
-# 「亲善」执行：花费金/米改善两势力关系
-# 关系变化 = 基础值 + 政治道德加成 + 相性距离加成（越亲近加成越高）
 func envoy_effect() -> void :
 	
 	result = 1
@@ -626,11 +615,14 @@ func envoy_effect() -> void :
 	var mood = 1
 	SkillHelper.auto_trigger_skill(targetActorId, 10016, "")
 
-	# 扣除花费
+	
 	city().add_gold( - costGold)
 	city().add_rice( - costRice)
 
-	# 按花费总额计算效果倍率（花费越多效果越好，封顶 200%）
+	
+	
+	
+	
 	var effectRate = 100
 	var total = costRice + costGold
 	if total >= 200:
@@ -639,11 +631,10 @@ func envoy_effect() -> void :
 		effectRate = int(100 * 0.5 * (200 - total) / 100.0)
 	effectRate = max(50, effectRate)
 	effectRate = min(200, effectRate)
-	# 基础关系值
 	var basicVal = int(10.0 * effectRate / 100.0)
-	# 政治+道德 加成
+	
 	var extraVal = int(5.0 * (actionPolitics + actionMoral) / 200)
-	# 相性距离加成
+	
 	var targetLord = target_actor()
 	var distance = targetLord.personality_distance(actioner())
 	var lord = ActorHelper.actor(vstate().get_lord_id())
@@ -655,7 +646,6 @@ func envoy_effect() -> void :
 		distanceVal = 5
 	elif distance >= 50:
 		distanceVal = - 5
-	# 汇总关系变化（限制在 1~20）
 	var change = basicVal + extraVal + distanceVal
 	change = max(1, change)
 	change = min(20, change)
@@ -687,11 +677,8 @@ func append_extra_effect(source: String, actorId: int, val: int) -> void :
 	return
 
 
-# 通用「招揽/离间」成功率公式：
-# 忠诚经相性距离修正后，落入不同阈值档位，按 (政治*道德 + 系数) 除以 分母 得出成功率。
 static func get_canvass_rate(fromActorId: int, targetActorId: int, fromActorPolitics: int, fromActorMoral: int, fromActorLevel: int) -> int:
 	
-	# 忠诚阈值档位 与 对应的 [分子系数, 分母]
 	var thresholds = [30, 40, 50, 60, 70]
 	var params = [[5000, 250], [4000, 450], [3000, 900], [2000, 1300], [1000, 2000]]
 	var rate = 0
@@ -702,7 +689,6 @@ static func get_canvass_rate(fromActorId: int, targetActorId: int, fromActorPoli
 	
 	var fromActor = ActorHelper.actor(fromActorId)
 	var distance = ta.personality_distance(fromActor)
-	# 相性距离修正等效忠诚
 	loy -= int((35 - distance) / 4)
 	for i in thresholds.size():
 		if loy <= thresholds[i]:

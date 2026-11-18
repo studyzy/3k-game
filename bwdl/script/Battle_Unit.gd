@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/Battle_Unit.gd
-# 说明：战斗单位基类。定义 HP、兵种、行动次数、伤害率、攻击距离、Buff 等战斗核心属性与方法。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends "clEnvBase.gd"
 class_name Battle_Unit
 
@@ -577,38 +570,35 @@ func enemy_leaderId():
 	return - 1;
 
 
-# 核心：计算攻击单位对本单位造成的伤害。
-# 流程：基础伤害(calc_classic_damage) -> 刀/枪/剑类修正 -> 触发技能 -> 最终修正 -> 扣血。
-# 附带：斧头攻击加成、格挡、步兵伤停、重伤、射箭抑制、攻击回血等特殊效果。
 func count_hurt_by(attackUnit: Battle_Unit):
 	var isFarAttak = attackUnit.last_action_name in ["射箭", "投掷"]
 
-	# 城门是特殊单位：近战 5 点、远程 1 点、象兵 15 点伤害
+	
 	if get_unit_type() == "城门":
 		var doorDamage = 5
 		if isFarAttak:
 			doorDamage = 1
-		elif attackUnit.get_unit_type() == "象":
+		elif attackUnit.Type in ["象", "将(象)"]:
 			doorDamage = 15
 		doorDamage += attackUnit.get_extra_buff_val("城门增伤")
 		set_hp(get_hp() - doorDamage)
 		return
 
-	# 基础伤害（由 mod 可覆盖的 IBattle_Damage 接口计算）
+	
 	var damage = ibd.calc_classic_damage(attackUnit, self)
 
-	# 刀类目标：按受影响的刀兵数量加成伤害
+	
 	var bladed = DataManager.get_env_int_array("白兵.刀类影响目标")
 	if unitId in bladed:
 		
 		damage = int(damage * attackUnit.get_blade_damage_rate(bladed.size()))
 
-	# 枪类目标：按枪兵伤害率修正
+	
 	if unitId in DataManager.get_env_int_array("白兵.枪类影响目标"):
 		
 		damage = int(damage * attackUnit.get_spear_damage_rate())
 
-	# 剑类目标：伤害减半（「大斩」技能可保持全额）
+	
 	if DataManager.check_env(["白兵.剑类影响目标"]):
 		
 		var rate: float = 0.5
@@ -617,7 +607,6 @@ func count_hurt_by(attackUnit: Battle_Unit):
 			rate = 1.0
 		damage = int(damage * rate)
 
-	# 设置临时伤害环境变量，供技能系统进一步修正
 	DataManager.set_env("白兵伤害.来源", attackUnit.unitId)
 	DataManager.set_env("白兵伤害.单位", unitId)
 	DataManager.set_env("白兵伤害.伤害", damage)
@@ -629,29 +618,25 @@ func count_hurt_by(attackUnit: Battle_Unit):
 	if damage <= 0:
 		return
 	
-	# 最终伤害修正（护甲/地形/技能等）
 	var finalDamage = final_adjust_damage(damage)
 	
-	# 斧兵近战额外附加攻击力
 	if attackUnit.get_unit_equip().has("斧") and attackUnit.last_action_name == "攻击":
 		finalDamage += attackUnit.actor().get_equip_attr_total("攻击力")
 
-	# 被格挡则伤害归零
 	if Global.dic_val(attackUnit.dic_other_variable, "被格挡", 0) > 0:
 		finalDamage = 0
 
-	# 记录受伤次数
+	
 	if finalDamage > 0:
 		var hits = get_tmp_variable("受伤次数", 0)
 		set_tmp_variable("受伤次数", hits + 1)
 
 	var type = get_unit_type()
 	if type != "将":
-		# 普通单位伤害折算为士兵损失
+		
 		var expFactor = max(1, SkillRangeBuff.max_val_for_actor("小战场经验倍率", attackUnit.leaderId))
 		DataManager.damage_sodiers(attackUnit.leaderId, leaderId, finalDamage, expFactor)
 
-	# 步兵伤停：步兵被打可让攻击单位禁动
 	if type == "步" and actor().get_equip_feature_max("步兵伤停") > 0:
 		
 		if attackUnit.get_unit_type() != "将":

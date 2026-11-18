@@ -35,8 +35,7 @@ func check_AI_perform_20000()->bool:
 func effect_20015_AI_start():
 	var targetId = DataManager.get_env_int("目标")
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.set_war_skill_val(1, 1)
 	ske.war_report()
 
@@ -73,8 +72,7 @@ func on_view_model_2001():
 
 func effect_20015_3():
 	var targetId = DataManager.get_env_int("目标")
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.set_war_skill_val(1, 1)
 	ske.war_report()
 	var msg = "夜袭{0}，挫其锐气!".format([
@@ -90,4 +88,9 @@ func on_view_model_2002():
 func effect_20015_4():
 	var targetId = DataManager.get_env_int("目标")
 	start_battle_and_finish(actorId, targetId)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

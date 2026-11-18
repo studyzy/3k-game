@@ -1,18 +1,9 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/objects/clBattleFight.gd
-# 说明：战斗结算对象（核心战斗逻辑）。计算白兵战中的伤害、回合、胜负判定。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Resource
 
 class_name BattleFight
 
-# 动态加载的战争攻击接口脚本（mod 可覆盖）
 var iwa = Global.load_script(DataManager.mod_path + "sgz_script/war/IWar_Attack.gd")
 
-# 战斗结果枚举：未败 / 失去斗志 / 阵亡 / 撤退 / 投降
 enum ResultEnum{
 	
 	NotLose, 
@@ -27,22 +18,20 @@ enum ResultEnum{
 }
 
 
-# 进攻方 ID / 防守方 ID
+
+
 var fromId: int = - 1
 
 var targetId: int = - 1
 
-# 进攻方地形 / 当前地形
 var fromTerrian: String = ""
 
 var terrian: String = ""
 
-# 战斗发生位置（地图坐标）
 var locationX: int = - 1
 
 var locationY: int = - 1
 
-# 攻击者 / 防御者 / 胜者 / 败者
 var attackerId: int = - 1
 
 var defenderId: int = - 1
@@ -51,35 +40,28 @@ var winnerId: int = - 1
 
 var loserId: int = - 1
 
-# 败因
 var lostType: int = ResultEnum.NotLose
 
-# 撤退损失：米 / 士兵 / 体力
 var lostRice: int = 0
 
 var retreatLostSoldier: int = 0
 
 var retreatLostHP: int = 0
 
-# 双方初始兵力
 var attackerSoldiers: int = 0
 
 var defenderSoldiers: int = 0
 
-# 双方剩余兵力
 var attackerRemaining: int = 9999
 
 var defenderRemaining: int = 9999
 
-# 行动点
 var ap: int = 0
 
-# 战斗状态：0=未开始 1=进行中
 var status: int = 0
 
 var battle_log: Array = []
 
-# 双方兵种类型 / 状态
 var attacker_unit_types = []
 
 var defender_unit_types = []
@@ -88,7 +70,6 @@ var attacker_state = {}
 
 var defender_state = {}
 
-# 阵型（-1 表示未设置）
 var presetAttackerFormation: int = - 1
 var attacker_formation: int = - 1
 
@@ -97,7 +78,7 @@ var defender_formation: int = - 1
 
 var source: String = ""
 
-# 战斗临时环境变量
+
 var env: Dictionary = {}
 
 func _init(_fromId: int):
@@ -290,7 +271,7 @@ func cost_ap() -> bool:
 
 
 func get_from_terrian() -> String:
-	if fromTerrian == "":
+	if fromTerrian in ["", "flame"]:
 		fromTerrian = "land"
 	return fromTerrian
 
@@ -306,7 +287,7 @@ func get_terrian() -> String:
 	terrian = map.get_blockEN_by_CN(blockCN)
 	if not terrian in StaticManager.BLOCKS_EN_CN:
 		terrian = "land"
-	elif terrian in ["rice", "hospital", "equip"]:
+	elif terrian in ["rice", "hospital", "equip", "flame"]:
 		terrian = "land"
 	return terrian
 
@@ -346,9 +327,6 @@ func check_battle_should_over() -> bool:
 		status = 1
 	return ret
 
-# 检查战斗是否结束：
-# 主将单位阵亡/被俘/投降/HP归零、或主将单位越出战场边界（撤退）均判负；
-# 双方均无主将单位时判「失去斗志」。
 func _check_battle_should_over() -> bool:
 	var scene_battle = SceneManager.current_scene()
 	
@@ -391,7 +369,6 @@ func _check_battle_should_over() -> bool:
 	return false
 
 
-# 撤退损失米粮：按当前米粮的 10% 扣除（夹在 10~500 之间）
 func retreat_cost_rice(wa: War_Actor) -> void :
 	if DataManager.diffculities >= 3:
 		if get_terrian_cn() in StaticManager.CITY_BLOCKS_CN and wa.actorId == get_attacker_id():
@@ -406,7 +383,6 @@ func retreat_cost_rice(wa: War_Actor) -> void :
 	return
 
 
-# 撤退损失士兵：按败方各兵种的撤退损失率，对所有存活单位扣除对应兵力
 func retreat_cost_soldiers() -> void :
 	var loser = get_loser()
 	if loser == null:

@@ -7,19 +7,7 @@ const EFFECT_ID = 20209
 const FLAG_NAME = "俭"
 const FLOW_BASE = "effect_" + str(EFFECT_ID)
 
-func on_view_model_2000():
-	wait_for_choose_actor(FLOW_BASE + "_2")
-	return
-
-func on_view_model_2001():
-	wait_for_yesno(FLOW_BASE + "_3")
-	return
-
-func on_view_model_2002():
-	wait_for_skill_result_confirmation()
-	return
-
-func effect_20209_start():
+func effect_20209_start() -> void:
 	if not assert_flag_count(me.actorId, 20000, EFFECT_ID, FLAG_NAME, 1):
 		return
 	var targets = get_teammate_targets(me)
@@ -31,25 +19,33 @@ func effect_20209_start():
 	LoadControl.set_view_model(2000)
 	return
 
-func effect_20209_2():
-	var targetId = get_env_int("目标")
-	var flag = SkillHelper.get_skill_flags_number(20000, EFFECT_ID, me.actorId, FLAG_NAME)
+func on_view_model_2000() -> void:
+	wait_for_choose_actor(FLOW_BASE + "_selected")
+	return
+
+func effect_20209_selected() -> void:
+	var targetId = DataManager.get_env_int("目标")
+	var flag = ske.get_skill_flags(20000, EFFECT_ID, FLAG_NAME)
 	var msg = "将 {1}个[{0}]\n转化为{2}的机动力\n可否？".format([
 		FLAG_NAME, flag, ActorHelper.actor(targetId).get_name()
 	])
 	play_dialog(actorId, msg, 2, 2001, true)
 	return
 
-func effect_20209_3():
-	var targetId = get_env_int("目标")
-	var flags = SkillHelper.get_skill_flags_number(20000, EFFECT_ID, me.actorId, FLAG_NAME)
-	ske.cost_skill_flags(20000, EFFECT_ID, FLAG_NAME, flags)
+func on_view_model_2001() -> void:
+	wait_for_yesno(FLOW_BASE + "_confirmed")
+	return
+
+func effect_20209_confirmed() -> void:
+	var targetId = DataManager.get_env_int("目标")
+	var flags = ske.get_skill_flags(20000, EFFECT_ID, FLAG_NAME)
+	perform_cost()
 	ske.change_actor_ap(targetId, flags)
 	ske.war_report()
 	var msg = "把握战机，只在点滴之间\n（{0}机动力增加{1}".format([
 		ActorHelper.actor(targetId).get_name(), flags,
 	])
-	play_dialog(actorId, msg, 2, 2002)
+	play_dialog(actorId, msg, 2, 2999)
 	return
 
 # 锁定技部分
@@ -58,7 +54,11 @@ func on_trigger_20013() -> bool:
 	var apOverflow = get_env_int(exceededKey)
 	if apOverflow <= 0:
 		return false
-	var flag = SkillHelper.get_skill_flags_number(20000, EFFECT_ID, me.actorId, FLAG_NAME)
-	flag = min(actor.get_level() + 2, flag + apOverflow)
-	SkillHelper.set_skill_flags(20000, EFFECT_ID, me.actorId, FLAG_NAME, flag)
+	ske.add_skill_flags(20000, EFFECT_ID, FLAG_NAME, apOverflow, actor.get_level() + 2)
+	ske.war_report()
 	return false
+
+func perform_cost() -> void:
+	var flags = ske.get_skill_flags(20000, EFFECT_ID, FLAG_NAME)
+	ske.cost_skill_flags(20000, EFFECT_ID, FLAG_NAME, flags)
+	return

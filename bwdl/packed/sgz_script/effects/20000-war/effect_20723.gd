@@ -49,11 +49,15 @@ func effect_20723_3():
 	var idx = DataManager.get_env_int("目标项")
 	var ap = AP_OPTIONS[idx]
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.change_actor_ap(actorId, ap)
 	ske.set_war_skill_val(idx + 1)
 	ske.war_report()
 
 	var msg = "无以疏旷，何彰武才！\n（获得{0}机动力".format([ap])
 	play_dialog(actorId, msg, 0, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

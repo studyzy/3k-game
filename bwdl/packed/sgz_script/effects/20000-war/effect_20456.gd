@@ -71,7 +71,7 @@ func effect_20456_recover()->void:
 		return
 	ske.set_war_skill_val(-1, 99999, SILUE_EFFECT_ID)
 	ske.change_actor_ap(actorId, limit - me.action_point)
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.war_report()
 	var msg = "{0}这厮势竭，没油水啦\n（机动力回满".format([
 		ActorHelper.actor(targetId).get_name(),
@@ -86,7 +86,7 @@ func effect_20456_drain()->void:
 	var ap = wa.action_point
 	ske.change_actor_ap(wa.actorId, -ap)
 	ske.change_actor_ap(actorId, ap)
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.war_report()
 	var msg = "{0}这厮运衰，刮个干尽\n（夺取{0} {1}机动力".format([
 		ActorHelper.actor(targetId).get_name(), ap
@@ -96,4 +96,8 @@ func effect_20456_drain()->void:
 
 func on_view_model_2999()->void:
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

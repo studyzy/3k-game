@@ -63,8 +63,7 @@ func effect_20102_confirmed() -> void:
 	var teammateId = DataManager.get_env_int("邀斗.队友")
 	var enemyId = DataManager.get_env_int("邀斗.对手")
 
-	ske.cost_war_cd(2)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.war_report()
 
 	map.cursor.hide()
@@ -99,6 +98,11 @@ func effect_20102_fight() -> void:
 	var enemyId = DataManager.get_env_int("邀斗.对手")
 	DataManager.clear_common_variable(["邀斗"])
 	start_battle_and_finish(enemyId, teammateId)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(2)
+	ske.cost_ap(COST_AP, true)
 	return
 
 func _get_teammate_targets() -> PoolIntArray:

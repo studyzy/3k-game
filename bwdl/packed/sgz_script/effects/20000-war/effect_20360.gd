@@ -38,7 +38,7 @@ func effect_20360_start():
 func effect_20360_2():
 	var se = DataManager.get_current_stratagem_execution()
 
-	ske.cost_ap(COST_AP)
+	perform_cost()
 	ske.war_report()
 	se.goback_disabled = 1
 	se.set_fixed_distance(1, ske)
@@ -68,3 +68,7 @@ func on_trigger_20018()->bool:
 		return false
 	var disv = target.position - me.position
 	return max(abs(disv.x), abs(disv.y)) > 1
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP)
+	return

@@ -11,7 +11,7 @@ func effect_20487_start()->void:
 	for wa in wv.get_war_actors(false, true):
 		for skillName in SkillHelper.get_actor_locked_skill_names(wa.actorId).values():
 			ske.add_war_skill(wa.actorId, skillName, 1)
-	ske.cost_war_cd(3)
+	perform_cost()
 	var msg = "循规蹈矩，庸人尔\n我就是规矩！\n（【{0}】暂时解锁众将技能".format([ske.skill_name])
 	ske.war_report()
 	play_dialog(actorId, msg, 1, 2999)
@@ -19,4 +19,8 @@ func effect_20487_start()->void:
 
 func on_view_model_2999()->void:
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(3)
 	return

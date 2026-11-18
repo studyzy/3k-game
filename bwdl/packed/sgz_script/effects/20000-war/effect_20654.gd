@@ -100,7 +100,7 @@ func effect_20654_confirmed() -> void:
 	var pos = targetWA.position + dir
 	var x = Global.get_distance(pos, me.position)
 	ske.set_war_skill_val(x, 1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.change_war_actor_position(actorId, pos)
 	ske.add_war_skill(actorId, "画戟", 99999)
 	ske.war_report()
@@ -142,3 +142,7 @@ func _get_available_perform_targets(me:War_Actor) -> Array:
 				break
 	targetIds = check_combat_targets(targetIds)
 	return [targetIds, blockingPositions]
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	return

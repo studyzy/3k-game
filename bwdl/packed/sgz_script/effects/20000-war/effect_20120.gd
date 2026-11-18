@@ -26,8 +26,7 @@ func effect_20120_2():
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.change_actor_scheme_chance(targetId, targetWA.poker_point)
 	ske.war_report()
 
@@ -41,4 +40,9 @@ func on_view_model_2001()->void:
 
 func effect_20120_3()->void:
 	report_skill_result_message(ske, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

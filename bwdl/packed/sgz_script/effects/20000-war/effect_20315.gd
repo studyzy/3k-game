@@ -100,7 +100,7 @@ func on_view_model_2001() -> void:
 func effect_20315_perform() -> void:
 	var selected = DataManager.get_env_int_array(EFFECT_CHOOSE_NAME)
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	var soldiers = 0
 	for targetId in selected:
 		ske.war_camp_in(targetId)
@@ -139,4 +139,8 @@ func effect_20315_report() -> void:
 func _update_select_color(targetIds:PoolIntArray) -> void:
 	var selected = DataManager.get_env_int_array(EFFECT_CHOOSE_NAME)
 	map.show_can_choose_actors(targetIds, -1, selected)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

@@ -44,8 +44,8 @@ func effect_20607_confirmed() -> void:
 	se.set_target(targetId)
 	se.perform_to_targets([targetId])
 	se.report()
-	
-	ske.cost_war_cd(99999)
+
+	perform_cost()
 	ske.set_war_skill_val([se.targetId, se.succeeded])
 	ske.war_report()
 
@@ -59,4 +59,8 @@ func on_view_model_2002() -> void:
 func effect_20607_report() -> void:
 	var se = DataManager.get_current_stratagem_execution()
 	report_stratagem_result_message(se, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

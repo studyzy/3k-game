@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/War_Vstate.gd
-# 说明：战争状态对象。维护一场战争中各势力/单位的实时状态。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Resource
 class_name War_Vstate
 
@@ -214,23 +207,22 @@ func turn_end_event(actorIds: PoolIntArray = []):
 	
 	embattled = 0
 	var wf = DataManager.get_current_war_fight()
+	var map = SceneManager.current_scene().war_map
 
 	var msgs = ["==== <y{0}>军行动结束 ====".format([
 		get_leader_name(), 
 	])]
 
+	if actorIds.empty():
+		for wa in get_war_actors(false):
+			actorIds.append(wa.actorId)
+
 	
 	msgs.append_array(decrease_scene_skill(actorIds))
-
-	var pendingActorIds = []
-	for wa in get_war_actors(false):
-		pendingActorIds.append(wa.actorId)
 	
-	SkillHelper.decrease_ban_actor_skill(20000, pendingActorIds)
+	SkillHelper.decrease_ban_actor_skill(20000, actorIds)
 
 	for wa in wf.get_war_actors():
-		if not actorIds.empty() and not wa.actorId in actorIds:
-			continue
 		
 		wa.clear_tmp_variables()
 		var current_turn_name = ["任意"]
@@ -295,6 +287,32 @@ func turn_end_event(actorIds: PoolIntArray = []):
 				if area.has("影响坐标"):
 					var pos = Vector2(int(area["影响坐标"]["x"]), int(area["影响坐标"]["y"]))
 					SceneManager.current_scene().war_map.mark_area_trapped(false, pos, 2)
+
+		
+		if wa.actorId in actorIds:
+			var terrain = map.get_blockCN_by_position(wa.position)
+			if terrain == "火原":
+				var damage = wa.onfire(true)
+				var msg = "- <r余烬>令<y{0}>体力-<r{1}> -> {2}".format([
+					wa.get_name(), damage[0], wa.actor().get_hp(), 
+				])
+				DataManager.record_war_log(msg)
+				msg = "- <r余烬>令<y{0}>兵力-<r{1}> -> {2}".format([
+					wa.get_name(), damage[1], wa.get_soldiers(), 
+				])
+				DataManager.record_war_log(msg)
+				if wa.actor().get_hp() <= 0:
+					msg = "火伤过重，{0}阵亡！".format([
+						wa.get_name()
+					])
+					var mood = 0
+					var reporter = wa.get_leader()
+					if reporter.actorId == wa.actorId:
+						
+						reporter = wa.get_enemy_leader()
+						mood = 1
+					wa.dead("余烬")
+					reporter.attach_free_dialog(msg, mood)
 
 	DataManager.record_war_log("\n".join(msgs))
 	return
@@ -839,14 +857,13 @@ func get_all_retreat_city_ids() -> PoolIntArray:
 	var ret = []
 	var wf = DataManager.get_current_war_fight()
 	ret.append_array(wf.target_city().get_connected_city_ids([vstate().id, - 1]))
-	if is_attacker():
-		for extraCityId in wf.get_env_int_array("额外可撤退城市"):
-			if extraCityId in ret:
-				continue
-			var extraCity = clCity.city(extraCityId)
-			if not extraCity.get_vstate_id() in [vstateId, - 1]:
-				continue
-			ret.append(extraCityId)
+	for extraCityId in wf.get_env_int_array("额外可撤退城市"):
+		if extraCityId in ret:
+			continue
+		var extraCity = clCity.city(extraCityId)
+		if not extraCity.get_vstate_id() in [vstateId, - 1]:
+			continue
+		ret.append(extraCityId)
 	
 	if from_cityId in ret:
 		ret.erase(from_cityId)

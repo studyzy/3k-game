@@ -41,7 +41,7 @@ func effect_20711_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
 	ske.change_actor_five_phases(targetId, -1, -1)
-	ske.cost_war_cd(1)
+	perform_cost()
 	var msg = "（{0}五行现为：{1} {2}".format([
 		targetWA.get_name(), targetWA.get_five_phases_str(),
 		targetWA.poker_point,
@@ -59,4 +59,8 @@ func effect_20711_confirmed() -> void:
 			targetWA.get_name(), soldiers,
 		])
 	play_dialog(actorId, msg, 1, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

@@ -34,8 +34,12 @@ func effect_20267_2():
 
 func effect_20267_3():
 	var mainId = me.get_main_actor_id()
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.set_war_skill_val(mainId, 1, PASSIVE_EFFECT_ID)
 	map.next_shrink_actors = []
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

@@ -35,6 +35,7 @@ func _init() -> void:
 	FlowManager.bind_import_flow("solo_run_end", self)
 	FlowManager.bind_import_flow("solo_init_say", self)
 	FlowManager.bind_import_flow("solo_turn_end", self)
+	
 	return
 
 #单挑开始
@@ -53,6 +54,7 @@ func solo_run_start() -> void:
 
 	var scene_solo = SceneManager.current_scene()
 	scene_solo.init_data()
+	set_current_step(-1)
 	set_next_step(0)
 	return
 

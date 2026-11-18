@@ -23,14 +23,14 @@ func on_view_model_2000() -> void:
 	return
 
 func effect_20728_confirmed() -> void:
-	ske.cost_war_cd(1)
-	actor.set_exp(actor.get_exp() - COST_EXP)
+	perform_cost()
 
 	for swaping in [["知", "武"], ["统", "政"]]:
-		var current = actor._get_attr_int(swaping[0])
-		actor._set_attr_int(swaping[0], actor._get_attr_int(swaping[1]))
+		var current = actor._get_attr_int_original(swaping[0])
+		actor._set_attr_int(swaping[0], actor._get_attr_int_original(swaping[1]))
 		actor._set_attr_int(swaping[1], current)
-	
+	ske.war_report()
+
 	var msg = "丹转如意，妙法自然\n（经验减少{0}\n（现为{1}".format([
 		COST_EXP, actor.get_exp(),
 	])
@@ -44,4 +44,9 @@ func on_view_model_2001() -> void:
 func effect_20728_done() -> void:
 	SceneManager.show_actor_info(actor.actorId, true, "功行圆满，属性转换完成")
 	LoadControl.set_view_model(2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_exp(COST_EXP)
+	ske.cost_war_cd(1)
 	return

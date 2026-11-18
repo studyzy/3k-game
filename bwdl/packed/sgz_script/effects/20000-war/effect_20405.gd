@@ -29,7 +29,7 @@ func on_view_model_2000():
 
 func effect_20405_2():
 	var expCost = 0
-	ske.cost_war_cd(99999)
+	perform_cost()
 	if ske.affair_get_skill_val_int() <= 0:
 		expCost = -actor.add_exp(-COST_EXP)
 		ske.append_message("经验减少<r{0}> -> <y{1}>".format([expCost, actor.get_exp()]))
@@ -64,4 +64,8 @@ func effect_20405_3():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

@@ -134,7 +134,7 @@ func effect_20375_execute() -> void:
 	var ap = target.action_point
 	var pos = target.position
 	
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.war_camp_in(targetId)
 	ske.war_camp_out(withId)
 
@@ -151,4 +151,8 @@ func effect_20375_execute() -> void:
 	map.show_can_choose_actors([withId])
 	# 操控焦点转移，对 AI 发动无影响
 	DataManager.player_choose_actor = withId
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

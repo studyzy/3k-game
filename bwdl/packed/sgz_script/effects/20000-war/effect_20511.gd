@@ -46,7 +46,7 @@ func effect_20511_3():
 	var scheme = target[0]
 	var ap = Global.intval(target[1].replace(")", ""))
 	me.dic_skill_cd[scheme] = 99999
-	ske.cost_war_limited_times(3)
+	perform_cost()
 	ske.change_actor_hp(actorId, ap)
 	ske.war_report()
 
@@ -60,4 +60,8 @@ func on_view_model_2002():
 
 func effect_20511_4():
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_limited_times(3)
 	return

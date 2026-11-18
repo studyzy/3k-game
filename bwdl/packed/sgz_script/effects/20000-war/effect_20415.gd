@@ -1,10 +1,12 @@
 extends "effect_20000.gd"
 
 #强记主动技 #附加装备
-#【强记】大战场，主动技。你的道具栏始终视为装备“XXX”（书名）。（初始为兵书）你有相邻武将时，你发动后，选择相邻武将之一，将其道具栏的书，默背强记到你的心中；你没有相邻武将时，你发动后，可以选择你背过的一本书，你视为装备它。（相邻武将，不论敌我都行，对方的书就复制到自己的专属装备库）。
+#【强记】大战场，主动技。你的道具栏始终视为装备「<varjewelry:0:-1>」。你有相邻武将时，你发动后，选择相邻武将之一，将其道具栏的书，默背强记到你的心中，保留最近记忆的四本；你没有相邻武将时，你发动后，可以选择你背过的一本书，你视为装备它。
 
 const EFFECT_ID = 20415
 const FLOW_BASE = "effect_" + str(EFFECT_ID)
+
+const LIMIT = 4
 
 func effect_20415_start()->void:
 	var had = Global.intarrval(ske.get_skill_val(10000))
@@ -44,7 +46,9 @@ func effect_20415_copy()->void:
 	var had = Global.intarrval(ske.get_skill_val(10000))
 	while book.id in had:
 		had.erase(book.id)
-	had.append(book.id)
+	had.insert(0, book.id)
+	if had.size() > LIMIT:
+		had = had.slice(0, LIMIT - 1)
 	ske.set_skill_val(had, 99999, -1, 10000)
 	var skillInfo = "已默背{0}的「{1}」".format([
 		wa.get_name(), book.name(), 
@@ -60,7 +64,7 @@ func effect_20415_copy()->void:
 	return
 
 func effect_20415_recall()->void:
-	var had = Global.intarrval(ske.get_skill_val(10000))
+	var had = get_remembered()
 	if had.empty():
 		play_dialog(actorId, "尚未默背任何典籍", 3, 2999)
 		return
@@ -97,6 +101,9 @@ func effect_20415_selected()->void:
 	play_dialog(actorId, msg, 2, 2999)
 	return
 
-func on_view_model_2999()->void:
-	wait_for_skill_result_confirmation()
-	return
+func get_remembered() -> PoolIntArray:
+	var ret = Global.intarrval(ske.get_skill_val(10000))
+	if ret.size() > LIMIT:
+		ret = ret.slice(0, LIMIT - 1)
+	return ret
+

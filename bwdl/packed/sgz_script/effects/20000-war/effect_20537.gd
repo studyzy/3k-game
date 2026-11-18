@@ -44,7 +44,7 @@ func on_view_model_2000() -> void:
 func effect_20537_2():
 	var targetId = DataManager.get_env_int("目标")
 
-	ske.cost_war_cd(1)
+	perform_cost()
 
 	var msg = "{1}小儿，可敢一战！\n（{0}对{1}发动【{2}】".format([
 		me.get_name(), ActorHelper.actor(targetId).get_name(),
@@ -102,4 +102,8 @@ func effect_20537_report() -> void:
 
 func on_view_model_2003() -> void:
 	wait_for_pending_message(FLOW_BASE + "_report")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

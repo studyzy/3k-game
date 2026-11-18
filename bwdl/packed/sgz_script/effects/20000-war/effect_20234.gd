@@ -120,7 +120,11 @@ func _get_available_targets(me:War_Actor) -> Array:
 	return ret
 
 func _perform_skill(targetId:int)->bool:
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	if not Global.get_rate_result(75):
 		return false
 	return ske.set_war_buff(targetId, BUFF_NAME, 1) > 0
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	return

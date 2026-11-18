@@ -252,6 +252,7 @@ android=false
 export=false
 locale=false
 font=false
+rcedit=true
 
 [gui]
 

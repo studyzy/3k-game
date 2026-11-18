@@ -12,7 +12,7 @@ func effect_20555_start() -> void:
 		goto_step("end")
 		return
 	ske.set_war_skill_val(ap, 2)
-	ske.cost_war_cd(2)
+	perform_cost()
 	ske.change_actor_ap(actorId, -ap)
 	ske.war_report()
 
@@ -28,4 +28,8 @@ func on_view_model_2000() -> void:
 
 func effect_20555_end() -> void:
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(2)
 	return

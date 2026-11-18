@@ -13,6 +13,8 @@ func check_AI_perform_20000() -> bool:
 	stratagems.erase("虚兵")
 	stratagems.erase("要击")
 	stratagems.erase("乱水")
+	# 提前 CD
+	ske.cost_war_cd(1)
 	return stratagems.size() > 0
 
 func effect_20669_AI_start() -> void:
@@ -38,7 +40,7 @@ func effect_20669_start() -> void:
 	var msg = "发动【{0}】，展示可用计策\n令{1}任选一个禁用\n获得对应机动力，可否？".format([
 		ske.skill_name, me.get_war_enemy_leader().get_name(),
 	])
-	play_dialog(actorId, msg, 2, 2000)
+	play_dialog(actorId, msg, 2, 2000, true)
 	return
 
 func on_view_model_2000() -> void:
@@ -87,7 +89,7 @@ func effect_20669_selected() -> void:
 	me.dic_skill_cd[scheme.name] = 99999
 	var info = "选择禁用<y{0}>的<y{1}>".format([actor.get_name(), scheme.name])
 	ske.append_message(info, enemyLeader.actorId)
-	ske.cost_war_cd(1)
+	perform_cost()
 	var ap = ske.change_actor_ap(actorId, scheme.get_cost_ap(actorId))
 	ske.war_report()
 
@@ -104,4 +106,8 @@ func on_view_model_2002() -> void:
 
 func effect_20669_report() -> void:
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

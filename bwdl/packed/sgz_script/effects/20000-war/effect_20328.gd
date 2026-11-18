@@ -38,7 +38,7 @@ func effect_20328_2():
 func effect_20328_3():
 	var targetId = get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
-	ske.cost_war_cd(1)
+	perform_cost()
 	me.refresh_poker_random()
 	targetWA.refresh_poker_random()
 	var mood = 2
@@ -58,4 +58,8 @@ func effect_20328_3():
 		me.get_name(), targetWA.get_name(),
 	])
 	play_dialog(actorId, msg, mood, 2009)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

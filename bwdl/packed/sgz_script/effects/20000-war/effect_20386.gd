@@ -68,7 +68,7 @@ func on_trigger_20009()->bool:
 	if se.get_action_id(me.actorId) != me.actorId:
 		return false
 	me.dic_skill_cd[se.name] = 99999
-	ske.cost_war_cd(1)
+	perform_cost()
 	return false
 
 func on_trigger_20010()->bool:
@@ -84,3 +84,8 @@ func on_trigger_20010()->bool:
 		se.set_must_success(me.actorId, ske.skill_name)
 	ske.war_report()
 	return false
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	return
+

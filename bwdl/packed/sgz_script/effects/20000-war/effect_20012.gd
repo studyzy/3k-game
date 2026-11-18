@@ -6,22 +6,12 @@ extends "effect_20000.gd"
 const EFFECT_ID = 20012
 const XIAOYONG_EFFECT_ID = 20013
 
-func check_trigger_correct()->bool:
-	match self.triggerId:
-		20003: #移动
-			_mark_move_history()
-		20020: #白兵结束
-			_battle_over()
-	return false
-
 #记录历史移动
-func _mark_move_history()->bool:
-	var dic = SkillHelper.get_skill_variable(20000, EFFECT_ID, self.actorId)["value"]
+func on_trigger_20003() -> bool:
+	var dic = ske.get_war_skill_val_dic()
 	var move_type = DataManager.get_env_int("移动")
-	var move_history = get_env_array("历史移动记录")
+	var move_history = DataManager.get_env_array("历史移动记录")
 	
-	if dic == null:
-		dic = {}
 	var move_record:Array = []
 	if dic.has("骁勇-历史坐标"):
 		move_record = dic["骁勇-历史坐标"]
@@ -40,22 +30,21 @@ func _mark_move_history()->bool:
 		move_record = move_record.slice(move_record.size()-10, move_record.size()-1)
 	
 	dic["骁勇-历史坐标"] = move_record
-	SkillHelper.set_skill_variable(20000, EFFECT_ID, self.actorId, dic, 99999)
-	
+	ske.set_war_skill_val(dic)
 	return false
 
 # 白兵结束，清除沉默状态和可能的骁勇标记
-func _battle_over()->bool:
+func on_trigger_20020() -> bool:
 	var enemy = me.get_battle_enemy_war_actor()
 
-	var flag = get_skill_triggered_times(self.actorId, XIAOYONG_EFFECT_ID)
+	var flag = get_skill_triggered_times(actorId, XIAOYONG_EFFECT_ID)
 	# 无条件清除骁勇标记
-	clear_skill_triggered_times(self.actorId, XIAOYONG_EFFECT_ID)
+	clear_skill_triggered_times(actorId, XIAOYONG_EFFECT_ID)
 	if flag <= 0:
 		return false
 	# 如果有骁勇标记，战斗结束，解除沉默效果
 	var buff = enemy.get_buff("沉默")
-	if buff["回合数"] > 0 and buff["来源武将"] == me.actorId:
+	if buff["回合数"] > 0 and buff["来源武将"] == actorId:
 		ske.remove_war_buff(enemy.actorId, "沉默")
 		ske.war_report()
 	return false

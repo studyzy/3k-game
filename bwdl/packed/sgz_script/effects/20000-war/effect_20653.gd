@@ -255,7 +255,7 @@ func _perform_skill(isAI:bool, nextViewModel:int=-1)->void:
 
 	var dir = pos - me.position
 	for p in covered:
-		var terrian = map.get_blockCN_by_position(p)
+		var terrian = map.get_blockCN_by_position(p, true)
 		if not terrian in ["平原", "河流"]:
 			continue
 		map.set_temp_block(p, "river_94", 2)
@@ -354,8 +354,7 @@ func _perform_skill(isAI:bool, nextViewModel:int=-1)->void:
 		ske.set_war_buff(wa.actorId, "疲兵", 1 + randi() % 2)
 
 	map.aStar.update_map_for_actor(me)
-	ske.cost_war_cd(99999)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 
 	if isAI:
 		report_skill_result_message(ske, nextViewModel)
@@ -363,4 +362,9 @@ func _perform_skill(isAI:bool, nextViewModel:int=-1)->void:
 
 	var msg = "掘开堤防，洪流无情！"
 	ske.play_war_animation(ANIM, nextViewModel, -1, msg, 2)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
+	ske.cost_ap(COST_AP, true)
 	return

@@ -17,7 +17,7 @@ func effect_20482_start()->void:
 	map.set_temp_block(me.position, "wall_3")
 	var posInfo = {"x": me.position.x, "y": me.position.y}
 	ske.set_war_skill_val(posInfo, 99999, PASSIVE_EFFECT_ID)
-	ske.cost_war_cd(3)
+	perform_cost()
 	ske.war_report()
 	var msg = "筑墙扎寨，步步为营"
 	play_dialog(actorId, msg, 2, 2999)
@@ -25,4 +25,8 @@ func effect_20482_start()->void:
 
 func on_view_model_2999()->void:
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(3)
 	return

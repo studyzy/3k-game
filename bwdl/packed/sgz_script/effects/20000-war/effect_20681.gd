@@ -37,7 +37,11 @@ func on_view_model_2001() -> void:
 func effect_20681_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	ske.set_war_skill_val(targetId)
+	perform_cost()
+	start_battle_and_finish(actorId, targetId)
+	return
+
+func perform_cost() -> void:
 	ske.cost_ap(me.action_point, true)
 	ske.cost_war_cd(99999)
-	start_battle_and_finish(actorId, targetId)
 	return

@@ -53,7 +53,7 @@ func effect_20356_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	var buffNames = Array(targetWA.get_war_debuffs())
 	buffNames.shuffle()
 	var buffName = buffNames.pop_front()
@@ -73,4 +73,8 @@ func on_view_model_2002() -> void:
 
 func effect_20356_report() -> void:
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

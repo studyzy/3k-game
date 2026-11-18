@@ -18,11 +18,16 @@ func _init()->void:
 	FlowManager.bind_import_flow("wh_equip_drop", self)
 	FlowManager.bind_import_flow("equip_finish", self)
 	FlowManager.bind_import_flow("go_study", self)
+
+	FlowManager.bind_import_flow("mark_equip_check", self)
+	FlowManager.bind_import_flow("confirm_force_equip", self)
+	FlowManager.bind_import_flow("cancel_force_equip", self)
 	return
 
 func _input_key(delta:float):
 	var top = SceneManager.lsc_menu_top
 	var bottom = SceneManager.lsc_menu
+	var city = clCity.city(DataManager.player_choose_city)
 	match LoadControl.get_view_model():
 		329:
 			wait_for_confirmation("wh_equip_menu", "equip_finish")
@@ -57,16 +62,11 @@ func _input_key(delta:float):
 				else:
 					FlowManager.add_flow("wh_equip_menu")
 				return
-			if not equip.actor_can_use(actorId):
-				SceneManager.actorlist.speak("{0}尚无法运用{1}".format([
-					ActorHelper.actor(actorId).get_name(), equip.name(),
-				]))
-				return
-			if int(item["装备库数量"]) == 1:
-				DataManager.set_env("装备武将", [actorId])
-				FlowManager.add_flow("wh_equip_confirm_gave")
-				return
-			SceneManager.actorlist.set_actor_picked(actorId, int(item["装备库数量"]))
+			LoadControl.set_view_model(-1)
+			DataManager.set_env("装备选定武将", actorId)
+			FlowManager.add_flow("mark_equip_check")
+		333:
+			wait_for_yesno("confirm_force_equip", "cancel_force_equip")
 		335:
 			wait_for_confirmation("wh_equip_menu")
 		336:
@@ -215,6 +215,16 @@ func wh_equip_confirm_gave():
 			fromActor.get_name(), fromActor.get_equip(equip.type).name(),
 			equip.type,
 		])
+	else:
+		var cost = 0
+		var marked = DataManager.get_env_dict("内政.MONTHLY.强行装备")
+		for actorId in actorIds:
+			var key = str(actorId)
+			if key in marked:
+				cost += int(marked[key])
+		if cost > 0:
+			msg += "\n将额外花费{0}金".format([cost])
+
 	SceneManager.show_yn_dialog(msg)
 	_bind_menu(vstateId)
 	LoadControl.set_view_model(341)
@@ -225,6 +235,7 @@ func wh_equip_animation():
 	var sceneId = DataManager.get_current_scene_id()
 	var vstateId = get_current_vstate_id()
 	var vstate = clVState.vstate(vstateId)
+	var city = clCity.city(DataManager.player_choose_city)
 	var actorIds = DataManager.get_env_int_array("装备武将")
 	var dic = DataManager.get_env_dict("选定装备")
 	var equip = clEquip.equip(int(dic["ID"]), dic["类型"])
@@ -252,6 +263,13 @@ func wh_equip_animation():
 		])
 	else:
 		# 分支：装备分配
+		var cost = 0
+		var marked = DataManager.get_env_dict("内政.MONTHLY.强行装备")
+		for actorId in actorIds:
+			var key = str(actorId)
+			if key in marked:
+				cost += int(marked[key])
+				marked[str(actorId)] = 0
 		var currentEquipped = null
 		for actorId in actorIds:
 			var actor = ActorHelper.actor(actorId)
@@ -270,6 +288,10 @@ func wh_equip_animation():
 			msg += "\n{0}置入装备库".format([
 				currentEquipped.name()
 			])
+		if cost > 0:
+			city.add_gold(-cost)
+			DataManager.set_env("内政.MONTHLY.强行装备", marked)
+			msg += "\n强制装备额外花费{0}金".format([cost])
 	if DataManager.get_current_scene_id() == 10000 \
 		and actorIds.size() == 1 \
 		and equip.id == StaticManager.JEWELRY_ID_JIEZISHU \
@@ -348,4 +370,70 @@ func get_current_vstate_id()->int:
 func go_study():
 	FlowManager.add_flow("load_script|affiars/fair_school.gd")
 	FlowManager.add_flow("school_2")
+	return
+
+func mark_equip_check() -> void:
+	var city = clCity.city(DataManager.player_choose_city)
+	var item = DataManager.get_env_dict("选定装备")
+	var equip = clEquip.equip(int(item["ID"]), item["类型"])
+	var actorId = DataManager.get_env_int("装备选定武将")
+	var marked = DataManager.get_env_dict("内政.MONTHLY.强行装备")
+	var cost = 0
+	for key in marked:
+		cost += marked[key]
+
+	if str(actorId) in marked or equip.actor_can_use(actorId):
+		if int(item["装备库数量"]) == 1:
+			DataManager.set_env("装备武将", [actorId])
+			FlowManager.add_flow("wh_equip_confirm_gave")
+			return
+		LoadControl.set_view_model(332)
+		SceneManager.actorlist.set_actor_picked(actorId, int(item["装备库数量"]))
+		return
+
+	var msg = "{0}尚无法运用{1}".format([
+		ActorHelper.actor(actorId).get_name(), equip.name(),
+	])
+	for srb in SkillRangeBuff.find_for_city("无视装备条件", city.ID):
+		var goldRequired = srb.effectTagVal
+		if goldRequired > 0 and city.get_gold() >= goldRequired + cost:
+			var leader = city.get_leader()
+			msg += "\n是否花费{0}金\n【{1}】强行装备？".format([
+				goldRequired, srb.skillName
+			])
+			SceneManager.show_yn_dialog(msg, leader.actorId)
+			SceneManager.actorlist.show()
+			var parent = SceneManager.actor_dialog.get_parent()
+			parent.move_child(SceneManager.actor_dialog, parent.get_child_count() - 1)
+			DataManager.set_env("内政.强行装备确认", [actorId, goldRequired])
+			LoadControl.set_view_model(333)
+			return
+
+	SceneManager.actorlist.speak(msg)
+	LoadControl.set_view_model(332)
+	return
+
+func confirm_force_equip() -> void:
+	var confirming = DataManager.get_env_int_array("内政.强行装备确认")
+	var actorId = confirming[0]
+	var cost = confirming[1]
+	var item = DataManager.get_env_dict("选定装备")
+
+	var marked = DataManager.get_env_dict("内政.MONTHLY.强行装备")
+	marked[str(actorId)] = cost
+	DataManager.set_env("内政.MONTHLY.强行装备", marked)
+	SceneManager.actor_dialog.hide()
+
+	if int(item["装备库数量"]) == 1:
+		DataManager.set_env("装备武将", [actorId])
+		FlowManager.add_flow("wh_equip_confirm_gave")
+		return
+
+	SceneManager.actorlist.set_actor_picked(actorId, int(item["装备库数量"]))
+	LoadControl.set_view_model(332)
+	return
+
+func cancel_force_equip() -> void:
+	SceneManager.actor_dialog.hide()
+	LoadControl.set_view_model(332)
 	return

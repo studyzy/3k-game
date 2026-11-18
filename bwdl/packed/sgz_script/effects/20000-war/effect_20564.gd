@@ -31,6 +31,7 @@ func effect_20564_start() -> void:
 	var limits = [gold, rice]
 	ske.set_war_skill_val([0, 0])
 	SceneManager.show_input_numbers(msg, props, limits)
+	SceneManager.input_numbers.show_actor(actorId)
 	LoadControl.set_view_model(2000)
 	return
 
@@ -81,7 +82,7 @@ func effect_20564_confirmed() -> void:
 	rice = -ske.change_city_property(city.ID, "米", -rice)
 	gold = ske.change_wv_gold(gold)
 	rice = ske.change_wv_rice(rice)
-	ske.cost_war_cd(3)
+	perform_cost()
 	ske.war_report()
 
 	var msg = "战势瞬息万变\n军资自当足备"
@@ -94,4 +95,8 @@ func on_view_model_2002() -> void:
 
 func effect_20564_report() -> void:
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(3)
 	return

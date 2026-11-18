@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/Static_Manager.gd
-# 说明：静态数据表（自动加载，体量最大）。集中加载兵种、技能、地形、城市等静态配置数据，供全局查询。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Node
 
 const EFFECT_PATH_ROOTS = [
@@ -144,6 +137,7 @@ const PATCH_ATTRS = [
 const EQUIP_TAG_MAPPING = {
 	"附加胆": "胆 +{0}", 
 	"附加德": "德 +{0}", 
+	"附加统": "统 +{0}", 
 	"白兵免伤": "白刃战，武将免伤：+{0}%", 
 	"攻击距离": "攻击距离至少为{0}", 
 	"附加体上限": "体力上限 +{0}", 
@@ -239,7 +233,13 @@ const EQUIP_TAG_MAPPING = {
 	"技能无视等级限制": "无视等级限制，解锁未习得的技能", 
 	"视为装备道具": "视为装备道具{1}", 
 	"首次道术返还机动力": "每日首次发动道术，返还 {0}% 机动力", 
-	"神策体力消耗减半": "发动上古神策，所需体力减半"
+	"神策体力消耗减半": "发动上古神策，所需体力减半", 
+	"河流火计": "大战场，可以对河流地形发动火计", 
+	"计策伤害不受低兵力影响": "计策伤害始终按1000兵以上计算", 
+	"计策用体": "机动力不足以使用计策时，扣减体力替代。每回合限{0}次，可触发阵亡", 
+	"计策相邻增伤": "计策对与你相邻的敌人造成伤兵时，伤害提升{0}%", 
+	"斜角劫火": "发动劫火时，敌方斜角相邻也算相连", 
+	"机动力上限不受低兵力影响": "机动力上限始终按1000兵以上计算", 
 }
 
 
@@ -780,13 +780,15 @@ class Skill extends Resource:
 				continue
 			var vals = vars.duplicate()
 			if actorId >= 0:
-				var sceneId = effect.id - effect.id % 10000
+				var sceneId = Global.dic_val_int(effect.data, "动态变量场景")
+				if sceneId < 0:
+					sceneId = effect.id - effect.id % 10000
 				vals = SkillHelper.get_skill_variable_int_array(sceneId, effect.id, actorId)
 				if vals.empty() and vars.size() == 1:
 					vals = [SkillHelper.get_skill_variable_int(sceneId, effect.id, actorId)]
 					if vals[0] < 0:
 						vals = vars
-				elif vals.size() != vars.size():
+				elif vals.size() < vars.size():
 					vals = vars
 			for i in vars.size():
 				if true:
@@ -806,6 +808,12 @@ class Skill extends Resource:
 					var replacement = "你"
 					if vals[i] >= 0:
 						replacement = prefix + ActorHelper.actor(vals[i]).get_name() + suffix
+					ret = ret.replace(original, replacement)
+				if true:
+					var original = "<varjewelry:{0}:{1}>".format([i, vars[i]])
+					var replacement = "[color=grey]未指定[/color]"
+					if vals[i] >= 0:
+						replacement = prefix + clEquip.equip(vals[i], "道具").name() + suffix
 					ret = ret.replace(original, replacement)
 		if actorId < 0:
 			return ret
@@ -1052,6 +1060,7 @@ const STEED_HANXUE = 3
 const STEED_DILU = 4
 const STEED_SILUNCHE = 8
 const STEED_LIFEISHA = 11
+const STEED_ZIXIN = 12
 
 const HEBEI_4_BACKBONES = [
 	ACTOR_ID_ZHANGHE, 
@@ -1129,6 +1138,7 @@ const WAR_BUFF_STATUSES = {
 	"探明": "明", 
 	"激励": "励", 
 	"借露": "露", 
+	"余烬": "烬", 
 }
 
 const BLOCKS_EN_CN = {
@@ -1145,6 +1155,7 @@ const BLOCKS_EN_CN = {
 	"river": "河流", 
 	"swamp": "沼泽", 
 	"wallcity": "太守府", 
+	"flame": "火原", 
 }
 
 const KEY_SETTING_PATH = "user://keyboard_set.json"
@@ -1302,7 +1313,7 @@ var mod_info_cache: Dictionary = {}
 var wiki_items: Dictionary = {}
 
 
-var face_x_sheet = null
+var basic_avatars: Array = []
 
 
 var special_avatars: Dictionary = {}
@@ -1418,6 +1429,8 @@ func reload(mod_path: String, drama_name: String = ""):
 	
 	
 	actor_skills = parse_json(_get_file_content(mod_path, drama_name, "actor_skills.json"))
+	if DataManager.is_beta_version():
+		actor_skills = parse_json(_get_file_content(mod_path, drama_name, "actor_skills_full.json"))
 
 	stratagems = _load_stratagems(_get_file_content(mod_path, "", "skill_system/stratagem.json"))
 	stratagemDic = {}
@@ -1507,8 +1520,8 @@ func reload(mod_path: String, drama_name: String = ""):
 	get_mod_info(mod_path)
 
 	
-	if face_x_sheet == null:
-		face_x_sheet = Global.load_pic_with_cache("res://resource/images/actor/face/face-X.png")
+	if basic_avatars.empty():
+		basic_avatars = preload_basic_avatars()
 	
 	if special_avatars.empty():
 		special_avatars = preload_special_avatars()
@@ -1815,6 +1828,15 @@ func get_hide_key_setting() -> Dictionary:
 	return ret
 
 const HANZI = {
+	"猇": [
+		"xiao"
+	], 
+	"烬": [
+		"jin"
+	], 
+	"阮": [
+		"ruan"
+	], 
 	"氏": [
 		"shi"
 	], 
@@ -2746,6 +2768,13 @@ const HANZI = {
 	"#": [], 
 	"虞": [
 		"yu"
+	], 
+	"旸": [
+		"yang"
+	], 
+	"玚": [
+		"yang", 
+		"chang"
 	], 
 	"玩": [
 		"wan"
@@ -7171,6 +7200,18 @@ func pinyin(msg: String) -> PoolStringArray:
 			brief = extendedBrief
 	var ret = full
 	ret.append_array(brief)
+	return ret
+
+func preload_basic_avatars() -> Array:
+	var ret = []
+	DataManager.grouped_trace("")
+	for page in 8:
+		var img = Global.load_pic_with_cache("res://resource/images/actor/face/face-{0}.png".format([page]))
+		ret.append(img)
+		DataManager.grouped_trace("AV-BSC")
+	var img = Global.load_pic_with_cache("res://resource/images/actor/face/face-X.png")
+	DataManager.grouped_trace("AV-BSC")
+	ret.append(img)
 	return ret
 
 func preload_special_avatars() -> Dictionary:

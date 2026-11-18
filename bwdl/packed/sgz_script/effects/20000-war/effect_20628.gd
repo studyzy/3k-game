@@ -64,7 +64,7 @@ func effect_20628_change() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var wa = DataManager.get_war_actor(targetId)
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	me.war_vstate().main_actorId = targetId
 	var x = 9 - int(wa.actor().get_moral() / 10)
 	x = max(1, x)
@@ -88,4 +88,8 @@ func on_view_model_2003() -> void:
 
 func effect_20628_report() -> void:
 	report_skill_result_message(ske, 2003)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

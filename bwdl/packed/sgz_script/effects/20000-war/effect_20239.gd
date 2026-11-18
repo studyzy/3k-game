@@ -89,8 +89,7 @@ func on_view_model_2002():
 func effect_20239_4():
 	var targetId = DataManager.get_env_int("目标")
 	var pos = DataManager.get_target_position()
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.change_war_actor_position(targetId, pos)
 	ske.war_report()
 	map.update_ap()
@@ -150,3 +149,8 @@ func get_avaible_target_ids()->PoolIntArray:
 			ret.append(targetId)
 			break
 	return ret
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
+	return

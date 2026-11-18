@@ -42,7 +42,7 @@ func effect_20119_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	var diff = me.get_poker_point_diff(targetWA)
 	var msgs = ["抚奏一曲，为君平心正念"]
 
@@ -65,4 +65,8 @@ func effect_20119_confirmed() -> void:
 
 	ske.war_report()
 	play_dialog(actorId, "\n".join(msgs), 1, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

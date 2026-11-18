@@ -1,37 +1,15 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/Flow_Manager.gd
-# 说明：游戏流程调度器（自动加载）。用「流程字符串」驱动场景切换、动画播放、数据存取等状态机流转。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Node
 
-# ------------------------------------------------------------------------------
-# 流程系统核心说明：
-# 本游戏用「流程字符串」驱动所有状态切换，字符串格式为 "流程名|参数1|参数2|..."。
-# 例如 "go_to_scene|scene_war" 表示切换到战争场景。
-#  - flow_array / pre_flow_array：待执行流程队列（pre 为预加载阶段队列）
-#  - dic_method：流程名 -> 对象方法的绑定表（由各 UI/场景注册）
-#  - _translate()：解析并分发流程字符串
-# ------------------------------------------------------------------------------
-
-# 是否允许添加新流程（加载/黑屏期间会暂时关闭，转而进入 pending 队列）
 var enable_add = true;
 
-# 当前拥有控制权的玩家编号（多人联机用）
 remote var controlNo = 0;
 
-# 主流程队列
 var flow_array = [];
 
-# 预加载流程队列（用于读档等需要先暂停画面的场景）
 var pre_flow_array = [];
 
-# 暂缓执行的流程队列（enable_add 关闭期间收集）
 var pending_flows = []
 
-# 各玩家流程完成标记（联机同步用）
 var player_flow_end = {};
 var dic_method: Dictionary = {};
 var _next_flow = ""
@@ -252,11 +230,8 @@ func add_history(flow: String):
 	return
 
 
-# 流程分发核心：解析 "流程名|参数1|参数2|..." 并执行对应动作。
-# is_pre=true 表示处于预加载流程（读档等），执行前会先做临时存档/读档。
 remote func _translate(next_flow: String, is_pre: bool):
 	SceneManager.update_runtime_info({"flow": next_flow})
-	# 取流程名（第一个 | 之前的部分）
 	var type = next_flow.split("|")[0];
 	var parms = [];
 	for s in next_flow.split("|"):
@@ -275,7 +250,6 @@ remote func _translate(next_flow: String, is_pre: bool):
 		
 		_clear_temp_data()
 	match type:
-		# 播放内政动画：参数 = [动画名, 后续流程, 是否自动BGM, 消息, 说话人, 情绪]
 		"play_affiars_animation":
 			var anim = str(parms[0])
 			var nextFlow = str(parms[1])
@@ -292,7 +266,6 @@ remote func _translate(next_flow: String, is_pre: bool):
 				anim, nextFlow, bgmauto, 
 				withMessage, withSpeaker, withMood
 			)
-		# 播放战争动画：参数 = [动画名, 目标ID, 后续流程, 消息, 说话人, 情绪]
 		"play_war_animation":
 			var anim = str(parms[0])
 			var targetId = int(parms[1])
@@ -319,7 +292,6 @@ remote func _translate(next_flow: String, is_pre: bool):
 			SceneManager.show_confirm_dialog(parms[0], int(parms[1]), int(parms[2]));
 			if (str(parms[3]).to_lower() == "true"):
 				SceneManager.show_cityInfo(true);
-		# 切换到目标场景：参数 = [场景路径]，切换前先释放所有输入
 		"go_to_scene":
 			
 			Input.action_release("ANALOG_LEFT")
@@ -342,7 +314,6 @@ remote func _translate(next_flow: String, is_pre: bool):
 					pre_flow_array.append("open_process");
 				else:
 					flow_array.append("open_process");
-		# 读取存档：参数 = [存档槽位]，读档后恢复流程历史并跳转到存档场景
 		"load_game_data":
 			
 			var saveSlot = DataManager.get_env_str("saveSlot")
@@ -363,7 +334,6 @@ remote func _translate(next_flow: String, is_pre: bool):
 			if wf != null and wf.status == 1:
 				flows_list.append("draw_actors")
 			FlowManager.add_pre_flows(flows_list)
-		# 恢复流程添加能力：黑屏结束，重新启用输入
 		"enable_add":
 			enable_add = true;
 			SceneManager.black.hide();
@@ -376,10 +346,8 @@ remote func _translate(next_flow: String, is_pre: bool):
 				SceneManager.war_intro.show_war_intro(wf, "")
 			else:
 				SceneManager.black.hide()
-		# 切换控制权玩家：参数 = [玩家编号]
 		"controlNo":
 			controlNo = int(parms[0]);
-		# 开启处理：场景加载完成后更新技能Buff、恢复运行、冲刷暂缓流程
 		"open_process":
 			SkillHelper.update_all_skill_buff("OPEN")
 			_temp_save_data(true)
@@ -389,11 +357,9 @@ remote func _translate(next_flow: String, is_pre: bool):
 			while not pending_flows.empty():
 				var flow = pending_flows.pop_front()
 				add_flow(flow)
-		# 加载脚本：参数 = [脚本路径]
 		"load_script":
 			LoadControl.load_script(str(parms[0]));
 		_:
-			# 默认分支：查找是否绑定了对应流程名的对象方法，找到则延迟调用
 			var pieces = next_flow.split("|")
 			next_flow = pieces[0]
 			if next_flow in dic_method.keys():

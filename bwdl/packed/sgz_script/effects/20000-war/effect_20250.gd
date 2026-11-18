@@ -64,7 +64,7 @@ func effect_20250_3():
 
 	if _set_buffed_actor(targetId):
 		ske.add_war_skill(targetId, TARGET_SKILL, 2)
-	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, FLAG_COST)
+	perform_cost()
 
 	var msg = "得{0}之助，如虎添翼！\n必破敌以报".format([
 		DataManager.get_actor_honored_title(me.actorId, targetId),
@@ -94,3 +94,7 @@ func _set_buffed_actor(targetId:int)->bool:
 	buffed.append(targetId)
 	ske.set_war_skill_val(buffed, 1)
 	return true
+
+func perform_cost() -> void:
+	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, FLAG_COST)
+	return

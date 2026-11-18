@@ -36,7 +36,7 @@ func effect_20291_2():
 
 func effect_20291_3():
 	var targetId = get_env_int("目标")
-	ske.cost_war_cd(3)
+	perform_cost()
 	ske.set_war_skill_val(targetId, 1, PASSIVE_EFFECT_ID)
 	ske.war_report()
 
@@ -44,4 +44,8 @@ func effect_20291_3():
 		ActorHelper.actor(targetId).get_name(),
 	])
 	play_dialog(actorId, msg, 0, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(3)
 	return

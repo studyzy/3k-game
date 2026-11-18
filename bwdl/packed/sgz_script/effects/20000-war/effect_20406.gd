@@ -24,7 +24,7 @@ func on_view_model_2000():
 	return
 
 func effect_20406_2():
-	ske.cost_war_cd(99999)
+	perform_cost()
 	var side = actor.get_side()
 	me.set_war_side("")
 	ske.append_message("解除<y{0}>面".format([side]))
@@ -38,6 +38,10 @@ func effect_20406_2():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return
 
 func on_trigger_20016()->bool:

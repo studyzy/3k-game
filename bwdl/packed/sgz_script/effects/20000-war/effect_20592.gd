@@ -50,7 +50,7 @@ func effect_20592_confirmed() -> void:
 	map.clear_can_choose_actors()
 	map.show_color_block_by_position([])
 
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.set_war_skill_val(ske.get_war_skill_val_int() + 1)
 	ske.change_war_actor_position(actorId, pos)
 	ske.war_report()
@@ -59,6 +59,10 @@ func effect_20592_confirmed() -> void:
 		actor.get_short_name()
 	])
 	play_dialog(actorId, msg, 1, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
 	return
 
 func get_possible_positions() -> PoolVector2Array:

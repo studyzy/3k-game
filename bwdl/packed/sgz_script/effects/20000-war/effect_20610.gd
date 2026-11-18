@@ -59,8 +59,7 @@ func effect_20610_confirmed() -> void:
 	var pos = DataManager.get_target_position()
 	var wa = DataManager.get_war_actor_by_position(pos)
 
-	ske.cost_ap(me.action_point, true)
-	ske.cost_war_cd(1)
+	perform_cost()
 
 	map.show_color_block_by_position([])
 	if wa == null or wa.disabled:
@@ -88,4 +87,9 @@ func effect_20610_fight() -> void:
 	ske.set_war_skill_val(val, 1)
 	map.next_shrink_actors = []
 	start_battle_and_finish(actorId, wa.actorId)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(me.action_point, true)
+	ske.cost_war_cd(1)
 	return

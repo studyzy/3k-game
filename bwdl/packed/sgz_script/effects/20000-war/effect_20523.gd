@@ -21,7 +21,7 @@ func on_view_model_2000() -> void:
 func effect_20523_2() -> void:
 	var enemyLeader = me.get_enemy_leader()
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.change_actor_five_phases(enemyLeader.actorId, enemyLeader.five_phases, -1)
 
 	var msg = "新恨既生，旧恩难续！\n（{0}发动【{1}】\n（{2}的点数刷新为 {3}".format([
@@ -73,4 +73,8 @@ func effect_20523_report() -> void:
 
 func on_view_model_2002() -> void:
 	wait_for_pending_message(FLOW_BASE + "_report")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

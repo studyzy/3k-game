@@ -93,7 +93,7 @@ func effect_20641_confirmed() -> void:
 	for targetId in selected:
 		ske.set_war_buff(targetId, "恶评", 2)
 		names.append(DataManager.get_actor_naughty_title(targetId, actorId))
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.war_report()
 
 	var msg = "{0}，碌碌之辈\n我何宜在诸将军中！".format([
@@ -111,4 +111,8 @@ func on_view_model_2002() -> void:
 
 func effect_20641_report() -> void:
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

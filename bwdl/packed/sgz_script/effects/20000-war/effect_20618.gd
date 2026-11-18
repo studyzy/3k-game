@@ -99,6 +99,10 @@ func effect_20618_all_selected() -> void:
 		"、".join(names), ske.skill_name,
 	])
 	play_dialog(actorId, msg, 2, 2001, true)
+	map.show_can_choose_actors(selected)
+	var shrink = selected.duplicate()
+	shrink.append(actorId)
+	map.next_shrink_actors = shrink
 	return
 
 func on_view_model_2001() -> void:
@@ -121,7 +125,7 @@ func effect_20618_confirmed() -> void:
 	for targetId in selected:
 		ske.change_actor_ap(targetId, -COST_AP, false)
 		names.append(DataManager.get_actor_honored_title(targetId, actorId))
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.war_report()
 	# 统一更新一次光环，避免重复更新耗时
 	SkillHelper.update_all_skill_buff(ske.skill_name)
@@ -141,4 +145,8 @@ func on_view_model_2002() -> void:
 
 func effect_20618_report() -> void:
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

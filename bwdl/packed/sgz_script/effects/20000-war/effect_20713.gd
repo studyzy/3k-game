@@ -85,7 +85,7 @@ func effect_20713_confirmed() -> void:
 	ske.change_war_attr(actorId, pb, va - vb)
 	if va == vb and va == 99:
 		ske.change_actor_ap(actorId, AP_BONUS)
-	ske.cost_war_cd(1)
+	perform_cost()
 
 	var msg = "不过数值而已 ……"
 	report_skill_result_message(ske, 2002, msg, 1)
@@ -97,4 +97,8 @@ func on_view_model_2002() -> void:
 
 func effect_20713_report() -> void:
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

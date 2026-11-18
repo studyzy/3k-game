@@ -21,7 +21,7 @@ Godot_*.app/
 bwdl/.ci-signing/
 
 # 原始 APK（反编译输入源，体积大，不入库）
-霸王的大陆GD安卓版 2540.Apk
+GD2560.Apk
 
 # 系统文件
 .DS_Store

@@ -74,8 +74,7 @@ func effect_20013_3():
 	if st != null and st.next_flow == "FORCED_CALL":
 		activeCall = false
 	if activeCall:
-		ske.cost_ap(COST_AP, true)
-		ske.cost_war_cd(1)
+		perform_cost()
 	ske.change_war_actor_position(actorId, position)
 	map.show_color_block_by_position([])
 	SceneManager.show_confirm_dialog("铁马金戈，挡无可挡！", actorId, 0)
@@ -136,4 +135,9 @@ func effect_20013_6():
 		FlowManager.add_flow("player_skill_end_trigger")
 	else:
 		FlowManager.add_flow("back_to_war_clear")
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(1)
 	return

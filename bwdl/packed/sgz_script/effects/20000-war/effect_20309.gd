@@ -45,7 +45,7 @@ func effect_20309_3():
 	var targetId = get_env_int("目标")
 	var ap = get_env_int("数值")
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	ap = -ske.change_actor_ap(targetId, -ap)
 	ske.change_actor_ap(actorId, ap)
 	ske.war_report()
@@ -57,4 +57,8 @@ func effect_20309_3():
 		ActorHelper.actor(targetId).get_name(), ap,
 	])
 	play_dialog(actorId, msg, 1, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

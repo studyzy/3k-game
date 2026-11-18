@@ -51,8 +51,7 @@ func effect_20450_2():
 				wa.move(wa.position + next, true)
 				moved = true
 				break
-	ske.cost_ap(COST_AP, true)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.war_report()
 	if moved:
 		FlowManager.add_flow("draw_actors")
@@ -65,4 +64,9 @@ func effect_20450_2():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(1)
 	return

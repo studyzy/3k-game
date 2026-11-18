@@ -21,10 +21,14 @@ func effect_20521_start() -> void:
 		play_dialog(actorId, msg, 1, 2999)
 		return
 	var cost = recover * 2
-	ske.cost_skill_flags(20000, ske.effect_Id, FLAG_NAME, cost)
+	perform_cost(cost)
 	ske.war_report()
 	var msg = "消耗 {0} 个 [{1}]\n体力回复 {2} -> {3}".format([
 		cost, FLAG_NAME, recover, actor.get_hp(),
 	])
 	play_dialog(actorId, msg, 1, 2999)
+	return
+
+func perform_cost(cost:int=0) -> void:
+	ske.cost_skill_flags(20000, ske.effect_Id, FLAG_NAME, cost)
 	return

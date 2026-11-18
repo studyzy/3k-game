@@ -59,8 +59,7 @@ func effect_20477_3()->void:
 	var pos = DataManager.get_target_position()
 	var wa = DataManager.get_war_actor_by_position(pos)
 
-	ske.cost_ap(5, true)
-	ske.cost_war_cd(1)
+	perform_cost()
 
 	map.show_color_block_by_position([])
 	if wa == null or wa.disabled:
@@ -92,4 +91,9 @@ func effect_20477_4()->void:
 
 func on_view_model_2999()->void:
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(1)
 	return

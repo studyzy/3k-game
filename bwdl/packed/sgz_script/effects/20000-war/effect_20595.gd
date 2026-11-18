@@ -51,7 +51,7 @@ func effect_20595_confirmed() -> void:
 
 	var flags = [targetId, targetWA.position.x, targetWA.position.y]
 	ske.set_war_skill_val(flags)
-	ske.cost_war_cd(99999)
+	perform_cost()
 
 	var msg = "全军静默，待时而动"
 	play_dialog(actorId, msg, 2, 2002)
@@ -66,4 +66,8 @@ func effect_20595_hide() -> void:
 	map.draw_actors()
 	skill_end_clear()
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

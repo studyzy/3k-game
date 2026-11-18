@@ -71,8 +71,7 @@ func effect_20314_3():
 	se.work_as_skill = 1
 	se.set_target(DataManager.get_env_int("目标"))
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	var apReduced = ske.change_actor_ap(se.targetId, -DAMAGE_AP)
 	ske.war_report()
 	se.perform_to_targets([se.targetId], true)
@@ -98,4 +97,9 @@ func on_view_model_2002():
 func effect_20314_report():
 	var se = DataManager.get_current_stratagem_execution()
 	report_stratagem_result_message(se, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

@@ -53,8 +53,7 @@ func effect_20567_2() -> void:
 			maxPolitics = pol
 			respondId = wa.actorId
 	ske.add_team_exp_rate(0.05)
-	ske.cost_ap(COST_AP, true)
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.war_report()
 
 	var msg = "\n（{0}机动力 -{1}，现为 {2}\n（全军机动力上限 +1\n（团队经验 +5%".format([
@@ -69,4 +68,9 @@ func effect_20567_2() -> void:
 		msg = response + msg
 
 	play_dialog(respondId, msg, 1, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(99999)
 	return

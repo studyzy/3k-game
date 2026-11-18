@@ -164,7 +164,7 @@
 [b][font=res://resource/font/FandolSong-Bold/26.tres]唐长孺（现代史学家）[/font][/b]
 
 
-[indent][color=#666666]┃ [color=#0066FF][url={"research": "王祥", "cat": "people"}]王祥[/url][/color]除掉孝行以外毫无事业可称，[color=#0066FF][url={"research": "何曾", "cat": "people"}]何曾[/url][/color]、荀勖在历史上更是奸妄之徒。[/color][/indent]
+[indent][color=#666666]┃ 王祥除掉孝行以外毫无事业可称，何曾、荀勖在历史上更是奸妄之徒。[/color][/indent]
 
 
 [color=#888888]──────────────────────────────[/color]
@@ -222,26 +222,49 @@
 [/table]
 
 
-（精确特技数据待核，低优先级）
+[color=#000000]战法：[/color] 落石●Lv1、罵声●Lv1（其余战法均为-）
+
+[color=#000000]特技：[/color] 商才●Lv1、虚報●●Lv2、話術●Lv1（其余特技均为-）
+
+[color=#000000]奇才：[/color] 无
+
+[color=#000000]定性：[/color] 纯内政+情报型武将。虚報Lv2（欺骗/离间）契合"探得人主微旨"的政治嗅觉。几乎无战场价值。✅2026-07-07核查
 
 
-[b][font=res://resource/font/FandolSong-Bold/26.tres]三国杀OL（门阀士族·颍川荀氏系列）[/font][/b]
+[b][font=res://resource/font/FandolSong-Bold/26.tres]三国杀[/font][/b]
 
 
-[color=#000000]武将：[/color] 族·荀勖，势力晋，3血4上限，称号「济北谋臣」
+[b]标准版（三国杀OL，一将成名-2025系列）[/b]
+
+
+[indent]•  [color=#000000]势力：[/color] 魏  [color=#000000]血量：[/color] 3  [color=#000000]称号：[/color] 博律明识[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  [color=#000000]上线时间：[/color] [color=#000000]2026-06-05[/color]（一将成名-2025系列）✅2026-07-07核查[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  [color=#000000]获取：[/color] 单笔充值12800元宝 / 消耗传世宝玉×6兑换[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+
 
 [color=#000000]技能：[/color]
 
 
-[indent]•  [color=#000000]【筹律】（锁定技）：[/color] 游戏开始时将手牌中的锦囊牌置于武将牌上（"筹库"），摸等量牌。任何角色使用锦囊后：若"筹库"已有该牌名则摸2张牌；否则将该牌入"筹库"并回血1点。每轮结束时移去至少X张"筹库"牌（X=当前体力），选择：①摸等量牌；②视为使用其中任意牌；③令下次同名牌无效。[/indent]
+[indent]•  [color=#000000]【笛音】（锁定技）：[/color] ①当你每累计失去七的倍数次牌后，你获得下一次进入弃牌堆的牌；②当你受到伤害后，所有体力值等于你的角色各摸一张牌。[/indent]
 [font=res://resource/font/FandolSong-Bold/12.tres] [/font]
-[indent]•  [color=#000000]【蹈节】（宗族技，锁定技）：[/color] 每回合首次使用非伤害锦囊后，失去1点体力或一个锁定技，令一名同族角色获得此牌。[/indent]
+[indent]•  [color=#000000]【博洽】：[/color] 每名角色回合限一次，你可以将三张牌当一张基本牌或非伤害普通锦囊牌使用，若这三张牌的花色或类型均不同，此牌结算后你令一名角色将手牌调整至其体力上限，然后此技能可再次发动（每回合每种牌名限一次）。[/indent]
 [font=res://resource/font/FandolSong-Bold/12.tres] [/font]
 
 
-[color=#000000]设计立意：[/color]「筹律」源于荀勗精通律令、以筹算著称，中书监掌管机密如储库；「蹈节」源于荀勗"做事小心谨慎，不欲使人知己豫闻"的处世之道。
+[color=#000000]台词：[/color] 阵亡台词沿用史料原话「夺我凤皇池，诸君贺我邪！」
 
-[color=#000000]上线时间：[/color] 官方确切日期待核（低优先级）；社区攻略文章见于2025年9月。
+
+[b]族·荀勖（门阀士族·颍川荀氏系列）⚠️ 截至2026-07-07尚未官方上线[/b]
+
+
+网络可见「筹律+蹈节」版族荀勖描述均为[color=#000000]玩家社区设计讨论[/color]（bilibili 2024-04，miyoushe 2025-09），非官方内容。biligame wiki（三国杀OLWIKI）无「族荀勖」独立词条。
+
+已上线的颍川荀氏族系列（截至2026-07）：族荀淑、族[color=#0066FF][url={"research": "荀谌", "cat": "people"}]荀谌[/url][/color]、族荀采、族荀莳、族荀彧等。[color=#000000]族荀勖不在其中[/color]，官方上线时间未知。
+
+玩家设计草案（仅参考）：3血4上限，称号「济北谋臣」，技能「筹律」（锁定技）+「蹈节」（宗族技锁定技）。
 
 
 [b][font=res://resource/font/FandolSong-Bold/26.tres]影视形象[/font][/b]

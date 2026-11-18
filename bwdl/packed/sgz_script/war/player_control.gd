@@ -680,6 +680,9 @@ func on_view_model_203(delta: float) -> void:
 		var retreatCityId = wf.get_env_int("撤退城市")
 		if retreatCityId < 0:
 			# 君主不可主动选择下野
+			var msg = "君主不可以下野"
+			SceneManager.actor_dialog.update_message(msg)
+			set_view_model(203)
 			return
 	SceneManager.lsc_menu_top.lsc.set_selected_change()
 	set_view_model(203)
@@ -1586,7 +1589,7 @@ func player_retreat_select() -> void:
 	# 不翻页，只从 TOP N 开始
 	var pageSize = 23
 	var actorsCount = wv.get_actors_count()
-	
+
 	var items = []
 	var values = []
 	for wa in wv.get_war_actors(false):
@@ -1594,14 +1597,26 @@ func player_retreat_select() -> void:
 			break
 		items.append(wa.get_name())
 		values.append(wa.actorId)
-	items.append("结束")
-	values.append(-1)
 
 	var msg = "请选择下野的武将"
 	if retreatCityId >= 0:
 		msg = "请选择撤往{0}的武将".format([
 			clCity.city(retreatCityId).get_name()
 		])
+	else:
+		# 君主不可以下野
+		for i in values.size():
+			var actorId = values[i]
+			if ActorHelper.actor(actorId).get_loyalty() == 100:
+				values.remove(i)
+				items.remove(i)
+				break
+
+	items.append("结束")
+	values.append(-1)
+	print(items)
+	print(values)
+
 	SceneManager.show_unconfirm_dialog(msg)
 	SceneManager.bind_top_menu(items, values, 3, Vector2(0, 0), Vector2(160, 40))
 	set_view_model(203)

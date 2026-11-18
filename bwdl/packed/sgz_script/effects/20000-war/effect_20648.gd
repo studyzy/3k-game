@@ -116,7 +116,7 @@ func effect_20648_splited() -> void:
 	if settings[0] == actorId or settings[1] == actorId:
 		total -= COST_FLAGS
 	# 先扣减自身
-	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, COST_FLAGS)
+	perform_cost()
 	var splited = DataManager.get_env_int("数值")
 	splited = min(total, splited)
 	SkillHelper.set_skill_flags(FLAG_SCENE_ID, FLAG_ID, settings[0], FLAG_NAME, splited)
@@ -127,7 +127,11 @@ func effect_20648_splited() -> void:
 		ActorHelper.actor(settings[1]).get_name(),
 		SkillHelper.get_skill_flags_number(FLAG_SCENE_ID, FLAG_ID, settings[1], FLAG_NAME),
 	])
-	ske.cost_war_cd(1)
 	ske.war_report()
 	play_dialog(actorId, msg, 2, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, COST_FLAGS)
+	ske.cost_war_cd(1)
 	return

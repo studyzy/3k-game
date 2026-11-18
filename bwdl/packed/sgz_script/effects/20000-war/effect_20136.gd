@@ -149,8 +149,7 @@ func _perform_skill(isAI:bool, nextViewModel:int=-1)->void:
 			LoadControl.set_view_model(2500)
 			return
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.war_report()
 
 	var targets = se.get_affected_actors(targetWA.position)
@@ -177,4 +176,9 @@ func effect_20136_direction() -> void:
 		se.set_env("风向Y", dir.y)
 		ske.set_war_skill_val(2, 99999, GUANXING_EFFECT_ID)
 	goto_step("3")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

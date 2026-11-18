@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：scene/scene_drama/scene_drama.gd
-# 说明：剧本模式场景脚本。管理历史剧本（赤壁/官渡等）的选择与进入。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Control
 
 const SCENE_ID = 0
@@ -36,12 +29,8 @@ func _process(delta: float) -> void :
 		lsc.move_up()
 	if Input.is_action_just_pressed("ANALOG_DOWN"):
 		lsc.move_down()
-	if Input.is_action_just_pressed("ANALOG_LEFT"):
-		lsc.move_left()
-	if Input.is_action_just_pressed("ANALOG_RIGHT"):
-		lsc.move_right()
 	var drama = dramas[lsc.cursor_index]
-	description.text = drama["description"] + "\n\n" + "上下左右选择时期，A键确认"
+	description.text = drama["description"] + "\n\n" + "上下选择时期，A键确认"
 	if not Global.is_action_pressed_AX():
 		return
 	DataManager.loading_version_resource(DataManager.mod_path, drama["path"])

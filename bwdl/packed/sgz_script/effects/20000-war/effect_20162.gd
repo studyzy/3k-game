@@ -28,8 +28,7 @@ func on_view_model_2000():
 	return
 
 func effect_20162_2():
-	ske.cost_war_cd(99999)
-	ske.cost_wv_gold(COST_GOLD)
+	perform_cost()
 
 	ske.add_war_skill(me.actorId, TARGET_SKILL, 1)
 	for wa in me.get_teammates(false):
@@ -44,4 +43,9 @@ func effect_20162_2():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
+	ske.cost_wv_gold(COST_GOLD)
 	return

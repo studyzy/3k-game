@@ -26,7 +26,7 @@ func effect_20572_start() -> void:
 		ske.change_actor_ap(actorId, AP_BONUS)
 		for teammate in me.get_teammates(false, true):
 			ske.change_actor_ap(teammate.actorId, AP_BONUS, false)
-		ske.cost_war_cd(3)
+		perform_cost()
 		SkillHelper.set_skill_cd(20000, PASSIVE_EFFECT_ID, actorId, 3, ske.skill_name)
 		# 统一更新一次光环，避免重复更新耗时
 		SkillHelper.update_all_skill_buff(ske.skill_name)
@@ -44,4 +44,8 @@ func effect_20572_start() -> void:
 func effect_20572_end() -> void:
 	skill_end_clear()
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(3)
 	return

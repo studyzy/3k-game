@@ -1,15 +1,6 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/affair/clDevelopCommand.gd
-# 说明：「开发」内政命令。处理农业/商业/城防的开发投入与收益计算。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Resource
 
-# 开发基础费用（按开发等级分档：devLevel 0/1/2 对应政治高/中/低）
 const DEV_COST_BASE = [22, 18, 14]
-# 防灾费用表：按政治分 3 档，每档 3 个随机候选值
 const DEFENCE_COST_SET = [
 	[14, 16, 18], 
 	[18, 20, 22], 
@@ -19,36 +10,41 @@ const DEFENCE_COST_SET = [
 
 class_name DevelopCommand
 
-# 目标城市 ID
+
 var cityId: int = - 1
 
-# 上次执行开发的武将 ID
+
 var lastActionId: int = - 1
 
-# 本次执行开发的武将 ID
+
 var actionId: int = - 1
 
-# 功德武将 ID（用于「让百姓感恩」类效果）
+
+
 var actorId: int = - 1
 
-# 开发类型：土地/产业/人口/防灾
+
 var type: String = ""
 
-# 用于计算的效果属性（政治，或触发「武簿」时改为武力）
+
 var actionAttr: int = 0
 
-# 开发随机档位（0~3）
+
 var devRnd: int = 0
 
-# 开发等级（0/1/2，由政治决定）
+
 var devLevel: int = 0
 
-# 基础费用 / 实际费用
+
 var cost: int = 0
+
+
 var realCost: int = 0
 
-# 效果倍率 / 费用倍率（由技能/难度调整）
+
 var effectRate: float = 1.0
+
+
 var costRate: float = 1.0
 
 
@@ -168,9 +164,6 @@ func rebuild_from_env() -> void :
 	return
 
 
-# 计算开发费用：
-#  - 防灾：按政治分档查 DEFENCE_COST_SET 随机取一个费用
-#  - 普通开发：政治分 3 档（>=80 / >=40 / 其余），费用 = 基础费 + (2 - 随机档) * 2
 func decide_cost() -> void :
 	SkillHelper.auto_trigger_skill(actionId, 10002)
 
@@ -201,7 +194,6 @@ func decide_cost() -> void :
 
 	lastActionId = actionId
 
-	# 按政治划分开发等级：>=80 为 0 级（最优），>=40 为 1 级，其余为 2 级
 	devLevel = 2
 	if actionAttr >= 80:
 		devLevel = 0
@@ -235,8 +227,6 @@ func get_real_cost() -> int:
 	return realCost
 
 
-# 执行开发：核心公式为 收益 = 费用 * 效果倍率 * 属性 / 100 * 随机数 / 10
-# 随机数范围：普通开发 10~17，防灾 6~10
 func execute() -> void :
 	
 	var lo = 6
@@ -256,31 +246,26 @@ func execute() -> void :
 	var equipAdded = actioner().get_equip_feature_total("开发提升")
 	var popAdded = actioner().get_equip_feature_total("开发附加人口")
 	match type:
-		# 土地：收益 = 费用*效果*政治/100*随机/10，达标（>=32）额外提升统治度
 		"土地":
 			land = int(cost * effectRate * actionAttr / 100.0 * rnd / 10)
 			land += equipAdded
 			if land >= 32:
 				loyalty = 2
 			pop = popAdded
-		# 产业：同土地
 		"产业":
 			comm = int(cost * effectRate * actionAttr / 100.0 * rnd / 10)
 			comm += equipAdded
 			if comm >= 32:
 				loyalty = 2
 			pop = popAdded
-		# 人口：收益 * 100，达标（>=2500）额外提升统治度
 		"人口":
 			pop = int(cost * effectRate * actionAttr / 100.0 * rnd / 10) * 100
 			pop += equipAdded * 50
 			if pop >= 2500:
 				loyalty = 2
-		# 防灾：提升城防值
 		"防灾":
 			defence = int(cost * effectRate * actionAttr / 100.0 * rnd / 10)
 
-	# 开发经验 = 各项收益折算经验之和
 	var experience = land * 10 + comm * 10 + int(pop / 10) + defence * 10
 
 	SkillHelper.auto_trigger_skill(actorId, 10018, "")
@@ -328,21 +313,18 @@ func execute() -> void :
 	return
 
 
-# 开发带来的「德」成长：开发累计一定次数后道德上升
-# 道德越低，所需开发次数越少、每次涨幅越大
 func check_actor_develop_exp() -> void :
 	moralLeft = 0
 	moralUp = 0
 	if DataManager.get_game_setting("武将成长") in ["禁读书", "就不加"]:
 		return
 
-	# 记录一次开发经验
+	
 	var actor = actor()
 	actor.inc_dev_exp()
 	var moral = actor._get_attr_int_original("德")
 	if moral >= 99:
 		return
-	# 按道德分档：所需开发次数 与 每次道德涨幅
 	var expRequired = 10
 	moralUp = 1
 	if moral < 40:
@@ -355,7 +337,7 @@ func check_actor_develop_exp() -> void :
 		expRequired = 7
 		moralUp = 2
 
-	# 达到所需次数则提升道德并清空累计
+	
 	var devExp = actor.get_dev_exp()
 	if devExp >= expRequired:
 		actor.set_moral(min(99, moral + moralUp))

@@ -67,13 +67,17 @@ func on_view_model_2001() -> void:
 func effect_20708_confirmed() -> void:
 	var pos = DataManager.get_target_position()
 
-	ske.cost_ap(COST_AP)
+	perform_cost()
 	map.switch_water_lock(actorId, pos)
-	ske.cost_war_cd(1)
 	ske.war_report()
 
 	var msg = "横江锁流，此路不通！"
 	if not map.is_water_locked(pos):
 		msg = "拔除锁链，乘流飞渡！"
 	play_dialog(actorId, msg, 0, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP)
+	ske.cost_war_cd(1)
 	return

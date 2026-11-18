@@ -66,7 +66,7 @@ func effect_20493_go()->void:
 		ske.change_wv_gold(-COST)
 		left = wv.money
 	ske.set_war_buff(targetId, "定止", 1)
-	ske.cost_war_cd(1)
+	perform_cost()
 
 	map.draw_actors()
 	var msg = "花费{0}{1}，余{2}\n{3}所部上下相疑\n正可相机用兵".format([
@@ -83,4 +83,8 @@ func effect_20493_end()->void:
 	ske.war_report()
 	skill_end_clear()
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

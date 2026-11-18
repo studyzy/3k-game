@@ -100,7 +100,7 @@ func effect_20039_6():
 	var dialogs = DIALOGS.duplicate()
 	dialogs.shuffle()
 	var msg = dialogs[0]+"\n（结束后进入额外回合"
-	ske.cost_war_cd(99999)
+	perform_cost()
 	unset_env(EFFECT_CHOOSE_NAME)
 	unset_env(EFFECT_CHOOSE_ACTOR)
 	play_dialog(actorId, msg, 0, 2999)
@@ -113,4 +113,8 @@ func on_view_model_2999():
 func _update_select_color(targetIds:PoolIntArray) -> void:
 	var selected = DataManager.get_env_int_array(EFFECT_CHOOSE_NAME)
 	map.show_can_choose_actors(targetIds, -1, selected)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

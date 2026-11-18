@@ -36,8 +36,7 @@ func on_view_model_2001() -> void:
 func effect_20574_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 
-	ske.cost_ap(COST_AP, true)
-	ske.cost_war_cd(2)
+	perform_cost()
 	ske.set_war_skill_val(targetId, 2)
 	ske.add_war_skill(actorId, "策行", 2)
 	ske.war_report()
@@ -54,4 +53,9 @@ func on_view_model_2002() -> void:
 
 func effect_20574_report() -> void:
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(2)
 	return

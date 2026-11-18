@@ -2,7 +2,7 @@
 
 # 霸王的大陆（Godot 3.5.3 反编译工程）
 
-**「霸王的大陆GD安卓版 2540.Apk」反编译得到的完整可运行 Godot 3.5.3 工程**
+**「霸王的大陆GD安卓版 GD2560.Apk」反编译得到的完整可运行 Godot 3.5.3 工程**
 
 ![Godot](https://img.shields.io/badge/Godot-3.5.3-478cbf?logo=godotengine&logoColor=white)
 ![GDScript](https://img.shields.io/badge/GDScript-1378%20个脚本-478cbf)
@@ -12,7 +12,7 @@
 
 ## 📖 简介
 
-本仓库是把安卓游戏 **《霸王的大陆GD安卓版 2540.Apk》**（一款 Godot 3.5.3 导出的三国策略游戏，游戏内项目名为 `Sgz Bwddl`，即「三国志2 霸王的大陆」复刻版）反编译、重组后的 **可编译、可运行** 的完整 Godot 工程。
+本仓库是把安卓游戏 **《霸王的大陆GD安卓版 GD2560.Apk》**（游戏内版本 **2.560**，一款 Godot 3.5.3 导出的三国策略游戏，游戏内项目名为 `Sgz Bwddl`，即「三国志2 霸王的大陆」复刻版）反编译、重组后的 **可编译、可运行** 的完整 Godot 工程。
 
 > ⚠️ **版权声明**：原版《霸王的大陆》为光荣（KOEI）的版权作品，本 APK 为第三方复刻。本项目仅用于**学习研究反编译技术与游戏逻辑**，不包含任何自主创作，请勿用于任何商业用途或二次分发。
 
@@ -26,21 +26,21 @@
 | `bwdl/windows/` | UI 控件脚本 |
 | `bwdl/resource/` | 美术/音频/字体资源（PNG、OGG、TTF 等） |
 | `bwdl/packed/data/` | 游戏数据（武将/城市/技能/装备/剧本等 JSON，可直接改） |
-| `bwdl/packed/images/` | 运行时图片（2207 张） |
-| `bwdl/packed/sgz_script/` | 游戏规则脚本（1189 个 `.gd`，原作者明文源码，含中文注释） |
+| `bwdl/packed/images/` | 运行时图片（909 张） |
+| `bwdl/packed/sgz_script/` | 游戏规则脚本（1192 个 `.gd`，原作者明文源码，含中文注释） |
 | `Godot_3.6.3.app/` | 运行本工程所需的 Godot 编辑器（macOS 版，`make setup` 自动下载到项目内，不入库） |
-| `霸王的大陆GD安卓版 2540.Apk` | 原始 APK（仅反编译输入源，已不需要） |
+| `GD2560.Apk` | 原始 APK（仅反编译输入源，已不需要） |
 
 ## 🔧 内容统计
 
 | 类型 | 数量 | 说明 |
 |---|---|---|
-| 框架脚本（`.gd`） | 189 | 从 `.gdc` 字节码反编译，已加中文注释 |
-| 规则脚本（`sgz_script/*.gd`） | 1189 | 原作者明文源码，本身含中文注释 |
+| 框架脚本（`.gd`） | 189 | 从 `.gdc` 字节码反编译 |
+| 规则脚本（`sgz_script/*.gd`） | 1192 | 原作者明文源码，本身含中文注释 |
 | 场景（`.tscn`） | 117 | 文本格式 |
-| 纹理（`.png`） | 920 + 2207 | 工程内资源 + 运行时打包资源 |
+| 纹理（`.png`） | 909 + 909 | 工程内资源 + 运行时打包资源 |
 | 音频（`.ogg`） | 55 | 从 `.oggstr` 还原 |
-| 数据（`.json`） | 1200 | 武将/城市/技能/装备等，可直接修改 |
+| 数据（`.json`） | 1204 | 武将/城市/技能/装备等，可直接修改 |
 | 资源/着色器 | 24 + 2 | `.tres` / `.gdshader` 文本格式 |
 
 ## 🚀 快速开始
@@ -78,25 +78,20 @@ make serve        # 起本地 HTTP 服务预览，默认 http://localhost:8060
 
 ## 📝 中文注释说明
 
-反编译得到的代码全部添加了中文注释：
-
-- **全部 189 个脚本**：文件头注释，说明该脚本职责。
-- **核心逻辑文件**：逐段详细注释，含关键公式推导，例如：
-  - `script/Flow_Manager.gd` — 流程字符串调度系统
-  - `script/objects/clSoloFight.gd` — 单挑与劝降查表公式
-  - `script/affair/clDevelopCommand.gd` — 开发收益公式（土地/产业/人口/防灾）
-  - `script/affair/clSearchCommand.gd` — 搜索/招募的相性距离判定
-  - `script/affair/clPolicyCommand.gd` — 六种外交政策的成功率公式
-  - `script/objects/clCity.gd` — 城市属性、连接、攻击范围、叛乱概率
-  - `script/objects/clBattleFight.gd` — 战斗结束判定、撤退损失
-  - `script/Battle_Unit.gd` — 白兵战伤害计算（刀/枪/剑修正、斧加成、格挡、回血）
+本次 **2.560** 基线是 GDRE 的原始反编译产物，框架脚本未添加人工注释；此前 2.540 版本中逐文件添加的中文注释保留在 git 历史里，需要时可另行回搬。`packed/sgz_script/` 下的 1192 个规则脚本是原作者明文源码，本身自带中文注释。
 
 ## 🔬 反编译方法（可复现）
 
-本工程使用 [GDRETools/gdsdecomp](https://github.com/GDRETools/gdsdecomp)（Godot RE Tools v2.6.4）完成：
+本工程使用 [GDRETools/gdsdecomp](https://github.com/GDRETools/gdsdecomp)（Godot RE Tools v2.7.4）完成：
 
 ```bash
-gdre_tools --headless --recover="霸王的大陆GD安卓版 2540.Apk" --output=bwdl
+# 1. 从 APK 恢复散装资源 + 反编译 .gdc
+GDRE_tools --headless --recover=GD2560.Apk --output=bwdl
+
+# 2. 内层 bwdl.pck 前面是「8 字节签名长度 + 512 字节 RSA 签名」，去掉 520 字节后再解包
+python3 -c "from pathlib import Path; d=Path('bwdl/resource/bwdl.pck').read_bytes(); Path('/tmp/bwdl.pck').write_bytes(d[520:])"
+GDRE_tools --headless --extract=/tmp/bwdl.pck --output=/tmp/bwdl_packed
+cp -R /tmp/bwdl_packed/packed/. bwdl/packed/
 ```
 
 该工具一次性完成：`.gdc` 字节码反编译、`project.binary` 还原、`.stex`→`.png`、`.oggstr`→`.ogg` 等资源转换。

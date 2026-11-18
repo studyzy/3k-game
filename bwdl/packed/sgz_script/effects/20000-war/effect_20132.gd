@@ -76,12 +76,16 @@ func effect_20132_4():
 	var targetActor = ActorHelper.actor(targetId)
 	var targetPosition = DataManager.get_target_position()
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.change_war_actor_position(targetId, targetPosition)
 	ske.war_report()
 	map.show_color_block_by_position([])
 	var msg = "{0}已入彀\n计将安出？".format([targetActor.get_name()])
 	FlowManager.add_flow("draw_actors")
 	play_dialog(actorId, msg, 1, 2003)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

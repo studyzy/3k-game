@@ -17,7 +17,7 @@ func effect_20472_start()->void:
 	return
 
 func on_view_model_2000()->void:
-	match wait_for_skill_option("skill_menu", true):
+	match wait_for_skill_option("player_ready", true):
 		0:
 			goto_step("for_flag")
 		1:
@@ -50,11 +50,9 @@ func on_view_model_2001()->void:
 func effect_20472_go_flag()->void:
 	var cost = DataManager.get_env_int("数值")
 	if cost > 0:
-		cost = -ske.change_wv_gold(-cost)
-	var flags = SkillHelper.get_skill_flags_number(FLAG_SCENE_ID, FLAG_ID, actorId, FLAG_NAME)
-	if cost > 0:
-		ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, -cost)
-	flags = SkillHelper.get_skill_flags_number(FLAG_SCENE_ID, FLAG_ID, actorId, FLAG_NAME)
+		cost = ske.cost_wv_gold(cost)
+		ske.add_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, cost)
+	var flags = ske.get_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME)
 	ske.war_report()
 	var msg = "我方金 -{0}\n现有「备」标记{1}".format([
 		cost, flags,
@@ -88,19 +86,12 @@ func on_view_model_2002()->void:
 func effect_20472_go_gold()->void:
 	var cost = DataManager.get_env_int("数值")
 	var flags = SkillHelper.get_skill_flags_number(FLAG_SCENE_ID, FLAG_ID, actorId, FLAG_NAME)
-	cost = min(cost, flags)
-	if cost > 0:
-		cost = ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, cost)
-	if cost > 0:
-		ske.change_wv_gold(cost)
-	flags = SkillHelper.get_skill_flags_number(FLAG_SCENE_ID, FLAG_ID, actorId, FLAG_NAME)
+	cost = ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, cost)
+	ske.change_wv_gold(cost)
+	flags = ske.get_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME)
 	ske.war_report()
 	var msg = "我方金 +{0}\n现有「备」标记{1}".format([
 		cost, flags,
 	])
 	play_dialog(actorId, msg, 2, 2999)
-	return
-
-func on_view_model_2999()->void:
-	wait_for_skill_result_confirmation()
 	return

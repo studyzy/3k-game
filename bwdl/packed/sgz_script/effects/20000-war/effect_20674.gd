@@ -39,8 +39,7 @@ func on_view_model_2000() -> void:
 	return
 
 func effect_20674_confirmed() -> void:
-	ske.cost_ap(COST_AP, true)
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.set_war_skill_val([FREE_STEPS, ske.skill_name, actorId], 1, PASSIVE_EFFECT_ID, actorId)
 	for wa in me.get_teammates(false, true):
 		ske.set_war_skill_val([FREE_STEPS, ske.skill_name, actorId], 1, PASSIVE_EFFECT_ID, wa.actorId)
@@ -59,4 +58,9 @@ func on_view_model_2001() -> void:
 
 func effect_20674_report() -> void:
 	report_skill_result_message(ske, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(99999)
 	return

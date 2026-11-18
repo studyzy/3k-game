@@ -58,8 +58,7 @@ func on_view_model_2000():
 	return
 
 func effect_20150_2():
-	ske.cost_skill_flags(20000, EFFECT_ID, FLAG_NAME, 1)
-	ske.cost_wv_gold(GOLD_COST)
+	perform_cost()
 	ske.add_war_tmp_soldier(ske.skill_actorId, 500, -1)
 
 	var nick = "本将"
@@ -108,4 +107,9 @@ func effect_20150_AI_2():
 
 func on_view_model_3009():
 	wait_for_pending_message(FLOW_BASE + "_AI_2", "AI_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_skill_flags(20000, EFFECT_ID, FLAG_NAME, 1)
+	ske.cost_wv_gold(GOLD_COST)
 	return

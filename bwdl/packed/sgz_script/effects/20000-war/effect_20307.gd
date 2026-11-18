@@ -50,7 +50,7 @@ func effect_20307_3():
 	var skill = get_env_str("目标项")
 	var last = ske.get_war_skill_val_str()
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.add_war_skill(actorId, skill, 99999)
 	if last != "":
 		ske.remove_war_skill(actorId, last)
@@ -85,3 +85,8 @@ func _get_available_skills(targetId:int)->PoolStringArray:
 	for dic in SkillHelper.get_actor_scene_skills(targetId):
 		ret.erase(dic["skill_name"])
 	return ret
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
+	return
+

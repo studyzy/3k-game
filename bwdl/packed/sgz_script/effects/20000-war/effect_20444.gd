@@ -44,8 +44,7 @@ func effect_20444_3():
 	var cost = DataManager.get_env_int("数值")
 	var targetActor = ActorHelper.actor(targetId)
 
-	ske.change_wv_gold(-cost)
-	ske.cost_war_limited_times(2)
+	perform_cost(cost)
 	var msg = "财散人聚，赏赐{0}{1}金".format([
 		targetActor.get_name(), cost,
 	])
@@ -70,4 +69,9 @@ func effect_20444_3():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost(cost:int=0) -> void:
+	ske.change_wv_gold(-cost)
+	ske.cost_war_limited_times(2)
 	return

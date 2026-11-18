@@ -4,8 +4,10 @@ extends "effect_30000.gd"
 #【拔矢】小战场，锁定技。你被箭矢击中后，本回合你的行动提前，立即强制前进状态行动6次（该行动，可无视定止），行动完立即回到行动前的位置，每次白刃战限1次。
 
 func on_trigger_30011()->bool:
-	var bu = ske.battle_is_unit_hit_by(["弓", "将"], ["将"], ["ALL"], true)
+	var bu = ske.battle_is_unit_hit_by(["弓", "将", "骑"], ["将"], ["ALL"], true)
 	if bu == null:
+		return false
+	if bu.last_action_name != "射箭":
 		return false
 	var hurt = get_leader_unit(me.actorId)
 	if hurt == null or hurt.disabled:

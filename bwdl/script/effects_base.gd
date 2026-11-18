@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/effects_base.gd
-# 说明：特效基类。定义战场特效的通用接口与生命周期。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends "clEnvBase.gd"
 
 const KEY_VALUE = "值"
@@ -131,6 +124,8 @@ func get_actor_names(targetIds: PoolIntArray) -> PoolStringArray:
 func skill_end_clear(clearNextFlow: bool = false):
 	if map != null:
 		map.clear_can_choose_actors()
+		map.update_ap()
+		map.draw_actors()
 	LoadControl.end_script()
 	var st = SkillHelper.get_current_skill_trigger()
 	if st != null:

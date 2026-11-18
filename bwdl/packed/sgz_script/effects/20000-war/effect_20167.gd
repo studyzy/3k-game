@@ -48,7 +48,7 @@ func effect_20167_3():
 	var targetId = get_env_int("目标")
 	var skill = get_env_str("目标项")
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	if not ske.ban_war_skill(targetId, skill, CD_TURN):
 		play_dialog(actorId, "【{0}】不可禁用".format([skill]), 2, 2002)
 		return
@@ -80,3 +80,7 @@ func _bind_skill_menu(targetId:int)->bool:
 		return false
 	bind_menu_items(menu_array, value_array, 1)
 	return true
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
+	return

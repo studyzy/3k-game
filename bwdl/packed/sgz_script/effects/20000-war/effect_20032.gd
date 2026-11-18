@@ -40,8 +40,8 @@ func on_view_model_2001() -> void:
 func effect_20032_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
-	
-	ske.cost_war_cd(1)
+
+	perform_cost()
 
 	ske.change_actor_five_phases(targetId, targetWA.five_phases, -1)
 
@@ -112,3 +112,6 @@ func effect_20032_hard() -> void:
 	return
 
 
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	return

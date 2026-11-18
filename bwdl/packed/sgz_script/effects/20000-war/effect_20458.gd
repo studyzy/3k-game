@@ -72,7 +72,7 @@ func effect_20458_3()->void:
 	var targetId = DataManager.get_env_int("目标")
 	var soldiers = DataManager.get_env_int("数值")
 
-	ske.cost_wv_gold(soldiers)
+	perform_cost()
 	ske.change_actor_soldiers(targetId, soldiers)
 	var triggered = ske.get_war_skill_val_dic()
 	triggered[str(targetId)] = soldiers
@@ -86,4 +86,9 @@ func effect_20458_3()->void:
 
 func on_view_model_2999()->void:
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	var soldiers = DataManager.get_env_int("数值")
+	ske.cost_wv_gold(soldiers)
 	return

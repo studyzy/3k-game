@@ -40,7 +40,7 @@ func effect_20163_start():
 func effect_20163_2():
 	var cost = get_env_int("数值")
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.cost_wv_rice(cost)
 	ske.add_war_tmp_soldier(ske.skill_actorId, cost * 3, 2500)
 
@@ -50,4 +50,8 @@ func effect_20163_2():
 
 func effect_20163_3():
 	report_skill_result_message(ske, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

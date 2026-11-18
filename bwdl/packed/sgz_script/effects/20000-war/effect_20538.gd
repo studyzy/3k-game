@@ -38,7 +38,7 @@ func on_view_model_2001() -> void:
 func effect_20538_3() -> void:
 	var targetId = DataManager.get_env_int("目标")
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.add_war_skill(targetId, TARGET_SKILL, 99999, true)
 	DataManager.disable_actor_equip_type(20000, actorId, "坐骑")
 	var msg = "{0}的坐骑被禁用".format([actor.get_name()])
@@ -57,4 +57,8 @@ func on_view_model_2002():
 
 func effect_20538_4():
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

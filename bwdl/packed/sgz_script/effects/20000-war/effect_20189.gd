@@ -46,7 +46,7 @@ func effect_20189_3():
 	var me = DataManager.get_war_actor(self.actorId)
 	var war_map = SceneManager.current_scene().war_map
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.remove_war_buff(ske.skill_actorId, "定止")
 	# 仅记录日志
 	ske.war_report()
@@ -54,4 +54,8 @@ func effect_20189_3():
 	LoadControl.end_script()
 	FlowManager.add_flow("load_script|war/player_move.gd")
 	FlowManager.add_flow("actor_move_start");
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

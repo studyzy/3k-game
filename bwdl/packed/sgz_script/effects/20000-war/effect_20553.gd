@@ -46,8 +46,7 @@ func effect_20553_3() -> void:
 	var targetWA = DataManager.get_war_actor(targetId)
 	var original = targetWA.position
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 
 	var dirs = StaticManager.NEARBY_DIRECTIONS.duplicate()
 	for i in 2:
@@ -65,4 +64,9 @@ func effect_20553_3() -> void:
 
 	var msg = "贼子可恨！\n约束全军，定心备战！"
 	play_dialog(targetId, msg, 0, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

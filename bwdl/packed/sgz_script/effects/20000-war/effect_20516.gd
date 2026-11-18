@@ -37,8 +37,7 @@ func effect_20516_3():
 	var targetWA = DataManager.get_war_actor(targetId)
 	var x = actor.get_level()
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(x, true)
+	perform_cost()
 	ske.set_war_skill_val([x, actorId], 1, -1, targetId)
 	ske.change_actor_five_phases(targetId, -1, x)
 	ske.set_war_buff(actorId, "迟滞", 2)
@@ -54,4 +53,10 @@ func on_view_model_2002()->void:
 
 func effect_20516_4():
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	var x = actor.get_level()
+	ske.cost_war_cd(1)
+	ske.cost_ap(x, true)
 	return

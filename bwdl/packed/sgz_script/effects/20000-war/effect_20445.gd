@@ -39,8 +39,7 @@ func effect_20445_3():
 	var targetId = DataManager.get_env_int("目标")
 	var targetActor = ActorHelper.actor(targetId)
 
-	ske.cost_ap(COST_AP)
-	ske.cost_war_cd(3)
+	perform_cost()
 	for wa in wf.get_war_actors(false):
 		var point = 1
 		if wa.actorId == targetId:
@@ -55,4 +54,9 @@ func effect_20445_3():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP)
+	ske.cost_war_cd(3)
 	return

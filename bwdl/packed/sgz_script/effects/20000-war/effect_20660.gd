@@ -50,12 +50,16 @@ func effect_20660_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
 
-	ske.cost_ap(COST_AP, true)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.set_war_buff(targetId, BUFF_NAME, 1)
 	ske.war_report()
 	var msg = "地利敌情，吾已探知\n虽蹈危地，亦当无虞\n（{0}获得1回合 [{1}]\n（期间免疫定止和陷阱伤害".format([
 		targetWA.get_name(), BUFF_NAME,
 	])
 	play_dialog(actorId, msg, 2, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(1)
 	return

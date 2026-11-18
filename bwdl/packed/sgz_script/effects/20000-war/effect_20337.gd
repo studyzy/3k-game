@@ -50,7 +50,7 @@ func effect_20337_3():
 	var targetId = DataManager.get_env_int("目标")
 	var targetActor = ActorHelper.actor(targetId)
 
-	ske.cost_war_cd(COST_CD)
+	perform_cost()
 	var ret = ske.clear_actor_skill_cd(targetId, [20000], [], 90000, 99999)
 	ske.war_report()
 
@@ -73,4 +73,8 @@ func effect_20337_3():
 		me.attach_free_dialog(msg, 1, 20000, targetId)
 	skill_end_clear()
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(COST_CD)
 	return

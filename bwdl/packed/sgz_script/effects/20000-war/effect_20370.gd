@@ -47,8 +47,7 @@ func effect_20370_start():
 	return
 
 func effect_20370_2():
-	ske.cost_war_cd(1)
-	ske.cost_wv_gold(COST_GOLD)
+	perform_cost()
 	ske.change_actor_ap(me.actorId, AP_RECOVER)
 	ske.war_report()
 	
@@ -56,5 +55,10 @@ func effect_20370_2():
 		AP_RECOVER
 	])
 	play_dialog(actorId, msg, 0, 2009)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_wv_gold(COST_GOLD)
 	return
 

@@ -5,7 +5,7 @@ extends "effect_20000.gd"
 
 const BUFF_SKILLS = ["耀武", "勇进"]
 
-func on_trigger_20009()->bool:
+func on_trigger_20009() -> bool:
 	var se = DataManager.get_current_stratagem_execution()
 	if not se.damage_soldier():
 		return false

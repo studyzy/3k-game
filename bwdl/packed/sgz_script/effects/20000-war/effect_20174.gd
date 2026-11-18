@@ -44,9 +44,7 @@ func effect_20174_confirmed() -> void:
 	var se = DataManager.new_stratagem_execution(ske.skill_actorId, STRATAGEM)
 	se.set_target(DataManager.get_env_int("目标"))
 
-	ske.cost_war_cd(1)
-	ske.cost_self_soldiers(COST_SOLDIERS)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.war_report()
 	se.perform_to_targets([se.targetId], true)
 
@@ -63,4 +61,10 @@ func on_view_model_2002() -> void:
 func effect_20174_report() -> void:
 	var se = DataManager.get_current_stratagem_execution()
 	report_stratagem_result_message(se, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_self_soldiers(COST_SOLDIERS)
+	ske.cost_ap(COST_AP, true)
 	return

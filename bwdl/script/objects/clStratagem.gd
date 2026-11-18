@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/objects/clStratagem.gd
-# 说明：计策信息对象。描述一条计策的名称、消耗、效果与触发条件。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends "res://script/clEnvBase.gd"
 class_name StratagemInfo
 
@@ -111,15 +104,19 @@ func performable(actorId: int) -> bool:
 	var info = get_cost_info(actorId)
 	var cost = info[0]
 	var current = info[1]
-	return current >= 0 and current >= cost
+	var hp = info[2]
+	if cost > 90000:
+		return false
+	return current >= 0 and (current >= cost or hp > 0)
 
 
 
 
 
 func get_cost_info(actorId: int) -> PoolIntArray:
-	var ret = [ - 1, - 1]
+	var ret = [ - 1, - 1, - 1]
 	var wa = DataManager.get_war_actor(actorId)
+	var wf = DataManager.get_current_war_fight()
 	if wa == null or wa.disabled:
 		return ret
 	
@@ -130,6 +127,17 @@ func get_cost_info(actorId: int) -> PoolIntArray:
 	
 	var cost = get_cost_ap(actorId)
 	var current = wa.action_point
+	if current < cost:
+		for item in wa.actor().get_equip_feature_all("计策用体"):
+			var equip = item[0]
+			var val = item[1]
+			var key = "CD.{0}.{1}.{2}".format([
+				equip.name(), wa.actorId, wf.date, 
+			])
+			if val <= wf.get_env_int(key):
+				continue
+			ret[2] = wa.actor().get_hp()
+			break
 
 	if is_stratagem():
 		var settings = {
@@ -153,41 +161,6 @@ func get_cost_info(actorId: int) -> PoolIntArray:
 	ret[0] = cost
 	ret[1] = current
 	return ret
-
-
-
-func perform_cost(actorId: int) -> int:
-	status = SchemeStatus.OK
-
-	var wa = DataManager.get_war_actor(actorId)
-	if wa == null or wa.disabled:
-		status = SchemeStatus.UNKNOWN
-		return - 1
-
-	var info = get_cost_info(actorId)
-	var cost = info[0]
-	var current = info[1]
-	if cost < 0 and current < 0:
-		status = SchemeStatus.CD
-		return - 1
-	if current < cost:
-		status = SchemeStatus.AP_COST
-		return - 1
-
-	wa.action_point = max(0, current - cost)
-	DataManager.set_env("计策.扣减", [cost, current, wa.action_point])
-	SkillHelper.auto_trigger_skill(actorId, 20006)
-	var changed = DataManager.get_env_int_array("计策.扣减")
-	cost = changed[0]
-	current = changed[1]
-	wa.action_point = changed[2]
-	DataManager.unset_env("计策.扣减")
-
-	var cd = get_cd_round()
-	if cd > 0:
-		wa.dic_skill_cd[name] = cd
-	status = SchemeStatus.OK
-	return cost
 
 
 
@@ -385,6 +358,8 @@ func _terrian_available(fromWA: War_Actor, targetWA: War_Actor) -> bool:
 		var skillNames = SkillHelper.get_actor_skill_names(fromWA.actorId)
 		match name:
 			"火计":
+				if fromWA.actor().get_equip_feature_max("河流火计") > 0:
+					targetAllowed += "、河流"
 				if "火攻" in skillNames:
 					if not targetTerrian in StaticManager.CITY_BLOCKS_CN:
 						targetAllowed += "、" + targetTerrian
@@ -435,8 +410,14 @@ func _get_neighbour_targets(fromWA: War_Actor, targetWA: War_Actor) -> PoolIntAr
 	
 	
 	var neighbourRange = int(get_targeting_val("neighbourRange", "1"))
+	var extending = StaticManager.NEARBY_DIRECTIONS.duplicate()
+	if name == "劫火" and fromWA.actor().get_equip_feature_max("斜角劫火") > 0:
+		extending.append(Vector2( - 1, - 1))
+		extending.append(Vector2(1, - 1))
+		extending.append(Vector2(1, 1))
+		extending.append(Vector2( - 1, 1))
 	for i in range(neighbourRange):
-		for dir in StaticManager.NEARBY_DIRECTIONS:
+		for dir in extending:
 			positions.append(targetWA.position + dir * (i + 1))
 	var war_map = SceneManager.current_scene().war_map
 	var neighbourTerrian = get_targeting_neighbour_terrian()
@@ -651,6 +632,9 @@ func _impact_for_soldier_damage(fromWA: War_Actor, targets: PoolIntArray, formul
 		
 		SkillHelper.auto_trigger_skill(fromWA.actorId, 20029)
 		dic = DataManager.get_env_dict("计策.ONCE.公式属性")
+		if fromWA.get_soldiers() < 1000:
+			if fromWA.actor().get_equip_feature_max("计策伤害不受低兵力影响") > 0:
+				dic["a.兵力"] = 1000 - fromWA.get_soldiers()
 		dic["a.知"] = DataManager.get_env_int("计策.ONCE.附加智力")
 		dic["b.知"] = DataManager.get_env_int("计策.ONCE.目标智力") - targetWisdom
 		DataManager.unset_env("计策.ONCE.附加智力")
@@ -663,6 +647,12 @@ func _impact_for_soldier_damage(fromWA: War_Actor, targets: PoolIntArray, formul
 				var targetBlock = map.get_blockCN_by_position(targetWA.position)
 				if targetBlock in weakened:
 					damage = int(damage / 2)
+		
+		if Global.get_distance(targetWA.position, fromWA.position) == 1:
+			for item in fromWA.actor().get_equip_feature_all("计策相邻增伤"):
+				var equip = item[0]
+				var val = item[1]
+				damage += int(damage * val / 100)
 		
 		if fromWA.get_buff_label_turn(["伤神"]) > 0:
 			damage = int(damage / 2)
@@ -1051,7 +1041,7 @@ func _check_special_skills(from: War_Actor, target: War_Actor) -> Array:
 		var marked = SkillHelper.get_skill_variable_int(20000, 20548, from.actorId, - 1)
 		if marked >= 0 and marked != target.actorId:
 			var markedWA = DataManager.get_war_actor(marked)
-			if markedWA == null or not markedWA.disabled:
+			if from.is_enemy(markedWA):
 				return [from.actorId, "千追"]
 	
 	if may_damage_soldier() and "毅重" in targetSkillNames:
@@ -1140,3 +1130,63 @@ func _equip_effect_on_damage(fromWA: War_Actor, targetWA: War_Actor) -> void :
 	var se = DataManager.get_current_stratagem_execution()
 	se.append_result("装备", msg, resistance, targetWA.actorId)
 	return
+
+func get_range_impacts() -> PoolStringArray:
+	var ret = []
+	if not "range" in impact:
+		return ret
+	for v in Global.arrval(impact["range"]):
+		ret.append(Global.strval(v))
+	return ret
+
+func has_range_impact() -> bool:
+	return get_range_impacts().size() > 0
+
+
+func _range_impact_for_rain(from: War_Actor, positions: PoolVector2Array) -> String:
+	var ret = ""
+	var map = SceneManager.current_scene().war_map
+	for pos in positions:
+		var terrain = map.get_blockCN_by_position(pos)
+		if terrain == "火原":
+			map.set_temp_block(pos, "")
+			ret = "大雨过处，火势烧减"
+	return ret
+
+
+func _range_impact_for_flame_over(from: War_Actor, positions: PoolVector2Array) -> String:
+	if from.get_buff_label_turn(["余烬"]) <= 0:
+		return ""
+	var map = SceneManager.current_scene().war_map
+	for pos in positions:
+		var terrain = map.get_blockCN_by_position(pos, true)
+		match terrain:
+			"平原":
+				map.set_temp_block(pos, "flame_1", 3)
+			"树林":
+				map.set_temp_block(pos, "flame_2", 3)
+			"山地":
+				map.set_temp_block(pos, "flame_3", 3)
+	return "火势已成燎原"
+
+
+func _range_impact_for_blow(from: War_Actor, positions: PoolVector2Array) -> String:
+	var map = SceneManager.current_scene().war_map
+	var flame = false
+	for pos in positions:
+		var terrain = map.get_blockCN_by_position(pos)
+		if terrain == "火原":
+			flame = true
+			break
+	if not flame:
+		return ""
+	for pos in positions:
+		var terrain = map.get_blockCN_by_position(pos, true)
+		match terrain:
+			"平原":
+				map.set_temp_block(pos, "flame_1", 3)
+			"树林":
+				map.set_temp_block(pos, "flame_2", 3)
+			"山地":
+				map.set_temp_block(pos, "flame_3", 3)
+	return "风助火势，连山遍野！"

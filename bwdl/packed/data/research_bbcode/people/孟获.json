@@ -377,6 +377,134 @@
 [color=#888888]──────────────────────────────[/color]
 
 
+[b][font=res://resource/font/FandolSong-Bold/28.tres]游戏形象[/font][/b]
+
+
+[b][font=res://resource/font/FandolSong-Bold/26.tres]三国志14（威力加强版）[/font][/b]
+
+
+[color=#000000]五维：[/color] 統率80 / 武力87 / 知力42 / 政治45 / 魅力80
+[color=#000000]主义：[/color] 我道 | [color=#000000]政策：[/color] 軍制改革 Lv5（全游戏仅[color=#0066FF][url={"research": "沮授", "cat": "people"}]沮授[/url][/color]与孟获持有）
+
+[color=#000000]个性：[/color] 南蛮 / 再起 / 頑健 / 猪突 / 直情
+
+[color=#000000]战法：[/color] 固有战法「蛮王咆哮」（攻击系，武力依存，附加敌士气下降）/ 奮戦 / 大喝 / 罵声
+
+[color=#000000]阵形：[/color] 魚鱗 / 鋒矢 / 長蛇
+
+[color=#000000]固有台词（被处断时）：[/color] 「俺を斬るのか！？放たずに斬るのか！？」（你要斩我！？不放就斩！？）
+
+[color=#000000]特色：[/color] 统武+魅力三项均80以上，我道武将中魅力80在全游戏属稀有（同档位仅[color=#0066FF][url={"research": "马超", "cat": "people"}]马超[/url][/color]、[color=#0066FF][url={"research": "张角", "cat": "people"}]张角[/url][/color]等数人）；军制改革Lv5作为战略顶级政策，是诸葛亮死后蜀军的核心支柱之一。
+
+
+[color=#888888]──────────────────────────────[/color]
+
+
+[b][font=res://resource/font/FandolSong-Bold/26.tres]三国志11[/font][/b]
+
+
+[color=#000000]五维：[/color] 統率76 / 武力87 / 知力42 / 政治45 / 魅力80
+[color=#000000]相性：[/color] 60 | [color=#000000]特技：[/color] 乱战（森林地形攻击时会心一击；与[color=#0066FF][url={"research": "刘辟", "cat": "people"}]刘辟[/url][/color]、[color=#0066FF][url={"research": "泠苞", "cat": "people"}]泠苞[/url][/color]同特技）
+
+[color=#000000]兵种适性：[/color] 枪B / 戟S / 弩C / 骑C / 兵器C / 水军C
+
+[color=#000000]评价：[/color] 戟S+乱战特技在林地居多的南中主场如鱼得水；魅力80有利于人海战术；南蛮地区天然主场优势武将。
+
+
+[color=#888888]──────────────────────────────[/color]
+
+
+[b][font=res://resource/font/FandolSong-Bold/26.tres]三国志8R[/font][/b]
+
+
+[color=#000000]五维：[/color] 統率83 / 武力86 / 知力50 / 政治51 / 魅力82
+[color=#000000]性格：[/color] 猪突 | [color=#000000]义理：[/color] 5（较低）
+
+[color=#000000]奇才：[/color]
+
+[indent]•  森戦：森林地形时，兵科战法攻击+50[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  象调教：战法「象兵」攻击+40且可再使用一次（南蛮专属奇才）[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+
+
+[color=#000000]战法：[/color] 歩兵 剛撃3 / 乱撃3 / 猛突2；騎兵 連撃2 / 突撃2；軍略 要撃1；補助 鼓舞3 / 罵声2
+
+[color=#000000]特技：[/color] 工作2 / 热弁2（智谋）；歩将3 / 騎将1（兵科）；破城2 / 膂力3 / 果敢2（军事）
+
+[color=#000000]评价：[/color] 历代孟获游戏版本最强之一；鼓舞3+罵声2+破城2组合完善；象调教奇才使南蛮象兵战法效果大幅提升，独具一格。
+
+
+[color=#888888]──────────────────────────────[/color]
+
+
+[b][font=res://resource/font/FandolSong-Bold/26.tres]三国杀[/font][/b]
+
+
+[color=#000000]势力：[/color] 群（标准版）/ G.SHU 014（国战）| [color=#000000]血量：[/color] 4血
+
+[color=#000000]技能：[/color]
+
+[indent]•  [color=#000000]祸首[/color]（锁定技）：①【南蛮入侵】对自身无效；②他人使用【南蛮入侵】时，孟获代替成为该牌伤害来源。[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  [color=#000000]再起[/color]（蓄力技/摸牌阶段）：若已受伤，可改为亮出牌堆顶X张（X=已损失体力值），回复其中红桃牌数的体力，获得其余牌。[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+
+
+[color=#000000]谋版差异：[/color] 谋版祸首额外包含"出牌阶段开始时从弃牌堆获得一张南蛮入侵（同一回合限一张）"。
+
+[color=#000000]特色：[/color] 南蛮入侵的始作俑者；祸首既是免疫盾（自身不受）也是反制杠杆（借他人南蛮输出伤害）；再起提供独特的恢复路线，尤其在血量较低时潜力大。
+
+
+[color=#888888]──────────────────────────────[/color]
+
+
+[b][font=res://resource/font/FandolSong-Bold/28.tres]艺术形象[/font][/b]
+
+
+[b][font=res://resource/font/FandolSong-Bold/26.tres]真三国无双（Dynasty Warriors）[/font][/b]
+
+
+[color=#000000]首登：[/color] DW2（真三国无双2）起可操控武将
+[color=#000000]所属：[/color] 其他势力（南蛮/南中）
+[color=#000000]CV（日）：[/color] 幸野善之（Yoshiyuki Kouno）
+[color=#000000]CV（英）：[/color] Kirk Thornton
+[color=#000000]CV（中）：[/color] 苗壮
+
+[color=#000000]武器演变：[/color]
+
+[indent]•  DW2-4：蛮拳系（鬼神手甲）[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  DW5 / 5SP：石柱[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+[indent]•  后续各代在鬼神手甲与石柱之间交替[/indent]
+[font=res://resource/font/FandolSong-Bold/12.tres] [/font]
+
+
+[color=#000000]形象设定：[/color] 身高约210cm（6英尺11英寸），外形壮硕，实为典型「惧妻者」（与祝融夫人的惧妻/爱妻关系设计是重要喜剧元素）。关键词：「大いなる王」（伟大的王）/「大地に轟く」（震撼大地）。
+
+
+[b][font=res://resource/font/FandolSong-Bold/26.tres]影视形象[/font][/b]
+
+
+[table=4]
+[cell][b]作品[/b][/cell]
+[cell][b]年份[/b][/cell]
+[cell][b]扮演者[/b][/cell]
+[cell][b]备注[/b][/cell]
+[cell]三国演义（央视84集）[/cell]
+[cell]1994[/cell]
+[cell]胡战利[/cell]
+[cell]代表性经典版本[/cell]
+[/table]
+
+
+胡战利：中国大陆男演员，1994年版孟获为其代表作之一，同年另有《大帅传奇》。
+
+
+[color=#888888]──────────────────────────────[/color]
+
+
 [b][font=res://resource/font/FandolSong-Bold/28.tres]遗迹与民间传说[/font][/b]
 
 

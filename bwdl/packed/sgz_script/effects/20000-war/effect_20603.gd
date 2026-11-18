@@ -45,8 +45,7 @@ func on_view_model_2001() -> void:
 func effect_20603_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 
-	ske.cost_ap(COST_AP, true)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.swap_war_actor_positions(actorId, targetId)
 	ske.war_report()
 
@@ -106,4 +105,9 @@ func effect_20603_fight() -> void:
 	map.next_shrink_actors = []
 	var targetId = DataManager.get_env_int("目标")
 	start_battle_and_finish(actorId, targetId)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(1)
 	return

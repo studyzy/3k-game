@@ -11,6 +11,9 @@ func on_trigger_20016()->bool:
 	if ske.get_war_skill_val_int() <= 0:
 		return false
 	var wa = DataManager.get_war_actor(ske.actorId)
+	var terrain = map.get_blockCN_by_position(wa.position)
+	if terrain in StaticManager.CITY_BLOCKS_CN:
+		return false
 	var x = int(actor.get_level() / 2)
 	var disv = wa.position - me.position
 	if max(abs(disv.x), abs(disv.y)) > x:

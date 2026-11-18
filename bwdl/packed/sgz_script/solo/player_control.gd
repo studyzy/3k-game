@@ -232,15 +232,16 @@ func solo_before_say_hurt():
 		# 攻击方触发，如吸血等
 		SkillHelper.auto_trigger_skill(wa.actorId, 40004)
 		extraMsgs = DataManager.get_env_array("单挑.补充信息")
-		var recover = DataManager.get_env_int("单挑.攻击回体")
-		DataManager.unset_env("单挑.攻击回体")
+	# 攻击回体可以无视命中与否
+	var recover = DataManager.get_env_int("单挑.攻击回体")
+	DataManager.unset_env("单挑.攻击回体")
+	if recover > 0:
+		recover = wa.actor().recover_hp(recover)
 		if recover > 0:
-			recover = wa.actor().recover_hp(recover)
-			if recover > 0:
-				var msg = "{0}体力回复 {1}".format([
-					wa.get_name(), recover
-				])
-				extraMsgs.append(msg)
+			var msg = "{0}体力回复 {1}".format([
+				wa.get_name(), recover
+			])
+			extraMsgs.append(msg)
 	# 判断反伤
 	if selfDamage > 0:
 		var msg = "{0}顺势反击\n{1}受到{2}点伤害".format([

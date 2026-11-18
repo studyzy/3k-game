@@ -40,7 +40,7 @@ func on_view_model_2001():
 func effect_20421_3():
 	var targetId = DataManager.get_env_int("目标")
 	var wa = DataManager.get_war_actor(targetId)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.change_actor_ap(wa.actorId, wa.poker_point)
 	ske.change_actor_five_phases(wa.actorId, wa.five_phases, 0)
 
@@ -56,4 +56,8 @@ func on_view_model_2002():
 
 func effect_20421_4():
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

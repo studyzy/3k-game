@@ -79,9 +79,13 @@ func monthly_step_1() -> void:
 			triggeredNames = triggeredNames.slice(0, 3)
 			names = "、".join(triggeredNames)
 			names += "等"
-		var msg = "{0}势力币制改革\n剩余：{1}月\n持有金少量增加".format([
-			names, monthLeft
+		var msg = "{0}势力币制改革\n持有金少量增加".format([
+			names
 		])
+		if monthLeft > 1:
+			msg += "\n剩余：{0}月".format([monthLeft - 1])
+		else:
+			msg += "\n币制改革效果结束"
 		SceneManager.play_affiars_animation("CollectMoney", "", false, msg)
 		set_view_model(1001)
 		return
@@ -147,7 +151,7 @@ func monthly_step_2() -> void:
 	match month:
 		4:
 			anim = "CollectMoney"
-			msg += "收取税金\n持有金增加";
+			msg += "收取税金\n持有金增加"
 		10:
 			anim = "CollectRice"
 			msg += "稻米收成\n持有米增加"

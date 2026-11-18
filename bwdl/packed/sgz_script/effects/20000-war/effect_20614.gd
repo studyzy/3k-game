@@ -45,11 +45,15 @@ func effect_20614_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var wa = DataManager.get_war_actor(targetId)
 	ske.set_war_skill_val(targetId)
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.war_report()
 	
 	var msg = "{0}不知兵机而居冲要\n合力破之，敌势必挫！".format([
 		DataManager.get_actor_naughty_title(targetId, actorId)
 	])
 	play_dialog(actorId, msg, 0, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

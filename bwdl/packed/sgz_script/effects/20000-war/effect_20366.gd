@@ -66,8 +66,7 @@ func effect_20366_done():
 	var equip = clEquip.equip(equipId, equipType)
 	var cost = cnt * equip.price()
 	equip.dec_count(cnt)
-	ske.cost_war_cd(1)
-	ske.cost_wv_gold(cost)
+	perform_cost(cost)
 	var current = targetActor.get_equip(equip.type)
 	var mood = 2
 	var msg = "无法装备此物\n{1}件{2}已置入装备库"
@@ -90,4 +89,9 @@ func effect_20366_done():
 
 	SceneManager.play_affiars_animation("Fair_EquipShop", "")
 	play_dialog(targetId, msg, mood, 2008)
+	return
+
+func perform_cost(cost:int=0) -> void:
+	ske.cost_war_cd(1)
+	ske.cost_wv_gold(cost)
 	return

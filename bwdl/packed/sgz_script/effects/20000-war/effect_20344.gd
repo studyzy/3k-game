@@ -58,8 +58,7 @@ func effect_20344_3():
 	var helping = true
 	if targetActor.get_soldiers() > actor.get_soldiers():
 		helping = false
-	ske.cost_war_cd(COST_CD)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	var total = targetActor.get_soldiers() + actor.get_soldiers()
 	var soldiers = int(total / 2)
 	ske.change_actor_soldiers(me.actorId, soldiers - actor.get_soldiers())
@@ -74,4 +73,9 @@ func effect_20344_3():
 	])
 	FlowManager.add_flow("draw_actors")
 	play_dialog(actorId, msg, 2, 2009)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(COST_CD)
+	ske.cost_ap(COST_AP, true)
 	return

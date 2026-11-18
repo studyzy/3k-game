@@ -67,7 +67,7 @@ func effect_20670_settle() -> void:
 
 	# 记住恢复了哪些
 	ske.set_war_skill_val(recovered, 1)
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.change_actor_hp(actorId, -COST_HP)
 
 	report_skill_result_message(ske, 2002)
@@ -79,4 +79,8 @@ func on_view_model_2002() -> void:
 
 func effect_20670_report() -> void:
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

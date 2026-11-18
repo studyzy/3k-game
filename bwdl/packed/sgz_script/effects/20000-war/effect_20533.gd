@@ -64,8 +64,7 @@ func on_view_model_2002() -> void:
 func effect_20533_4() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var option = DataManager.get_env_str("目标项")
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.change_actor_ap(targetId, COST_AP)
 	ske.set_war_skill_val(option, 99999, -1, targetId)
 	ske.war_report()
@@ -74,4 +73,9 @@ func effect_20533_4() -> void:
 		ActorHelper.actor(targetId).get_name(),
 	])
 	play_dialog(actorId, msg, 1, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

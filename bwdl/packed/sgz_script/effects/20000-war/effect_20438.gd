@@ -21,7 +21,7 @@ func on_view_model_2000():
 	return
 
 func effect_20438_2():
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.ban_war_skill(me.actorId, ske.skill_name, 99999)
 	ske.ban_war_skill(me.actorId, LOST_SKILL, 99999)
 
@@ -42,4 +42,8 @@ func effect_20438_2():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

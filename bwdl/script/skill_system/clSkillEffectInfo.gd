@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/skill_system/clSkillEffectInfo.gd
-# 说明：技能效果信息对象（核心）。描述技能的各种效果数值与作用方式。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends "../clEnvBase.gd"
 
 const SCHEME_CHANCE_EFFECT_ID = 20121
@@ -284,6 +277,35 @@ func cost_war_cd(turns: int) -> void :
 	return
 
 
+func set_war_common_cd(allSides: bool = false) -> void :
+	var wf = DataManager.get_current_war_fight()
+	var wa = DataManager.get_war_actor(actorId)
+	if wa == null:
+		return
+	var wvIds = [wa.vstate().id]
+	if allSides:
+		for wv in wf.war_vstates():
+			wvIds.append(wv.id)
+	for wvId in wvIds:
+		var key = "COMMONCD.{0}.{1}.{2}".format([
+			skill_name, wf.date, wvId
+		])
+		wf.set_env(key, 1)
+	return
+
+
+func is_war_common_cd() -> bool:
+	var wf = DataManager.get_current_war_fight()
+	var wa = DataManager.get_war_actor(actorId)
+	if wa == null:
+		return false
+
+	var key = "COMMONCD.{0}.{1}.{2}".format([
+		skill_name, wf.date, wa.vstate().id
+	])
+	return wf.get_env_int(key) > 0
+
+
 func reset_for_redo() -> void :
 	costs = []
 	results = []
@@ -396,6 +418,27 @@ func cost_hp(cost: int) -> int:
 	r.fromId = skill_actorId
 	r.actorId = skill_actorId
 	r.type = "体力"
+	r.initial = current
+	r.change = - cost
+	costs.append(r)
+	return cost
+
+
+
+func cost_exp(cost: int) -> int:
+	if cost <= 0:
+		return 0
+	var me = get_war_actor()
+	if me == null:
+		return 0
+	var current = int(me.actor().get_exp())
+	if current < cost:
+		cost = current
+	me.actor().set_exp(current - cost)
+	var r = SkillResult.new()
+	r.fromId = skill_actorId
+	r.actorId = skill_actorId
+	r.type = "经验"
 	r.initial = current
 	r.change = - cost
 	costs.append(r)
@@ -911,7 +954,8 @@ func add_war_skill(targetId: int, skill: String, turns: int, oppositeCD: bool = 
 
 
 func remove_war_skill(targetId: int, skill: String) -> void :
-	SkillHelper.remove_scene_actor_skill(20000, targetId, skill)
+	if not SkillHelper.remove_scene_actor_skill(20000, targetId, skill):
+		return
 	SkillHelper.update_all_skill_buff("REMOVE_WAR_SKILL")
 	var r = SkillResult.new()
 	r.fromId = skill_actorId
@@ -1202,7 +1246,10 @@ func set_actor_extra_max_hp(targetId: int, val: int, minVal: int = 10, accumulat
 		return
 	var current = wa.actor().get_max_hp()
 	if current + val < minVal:
-		val = minVal - current
+		if val < 0:
+			val = 0
+		else:
+			val = minVal - current
 	var dic = Global.dicval(wa.get_ext_variable("附加体力上限"))
 	if accumulative and skill_name in dic:
 		dic[skill_name] += val

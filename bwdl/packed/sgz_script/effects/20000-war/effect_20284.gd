@@ -21,31 +21,7 @@ func on_view_model_2000():
 	return
 
 func effect_20284_2() -> void:
-	var wf = DataManager.get_current_war_fight()
-	ske.cost_ap(COST_AP, true)
-
-	# 还原【幕后】武将 id
-	var backed = ske.get_war_skill_val_int_array()
-	if backed.size() == 2:
-		if wf.date == backed[1]:
-			# 当天立刻又发动了？！
-			backed[1] = -1
-			ske.set_war_skill_val(backed)
-		else:
-			# 清除标记
-			ske.set_war_skill_val([])
-	else:
-		for teammate in me.war_vstate().get_war_actors(false, true):
-			if teammate.actorId == actorId:
-				continue
-			if SkillHelper.actor_has_skills(teammate.actorId, ["幕后"], false):
-				backed = [teammate.actorId, wf.date]
-				ske.set_war_skill_val(backed)
-				break
-	if backed.size() == 2 and backed[1] == wf.date:
-		pass
-	else:
-		ske.cost_war_cd(99999)
+	perform_cost()
 
 	for wa in me.get_enemy_war_actors():
 		for skill in SkillHelper.get_actor_skills(wa.actorId):
@@ -86,4 +62,26 @@ func effect_20284_3() -> void:
 		# 当天立刻又发动了？！
 		msg = "将军不见机，谬矣\n乱上加乱，有何益处？"
 	play_dialog(backed[0], msg, 2, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	# 还原【幕后】武将 id
+	var backed = ske.get_war_skill_val_int_array()
+	if backed.size() == 2:
+		if wf.date == backed[1]:
+			# 当天立刻又发动了？！
+			backed[1] = -1
+			ske.set_war_skill_val(backed)
+		else:
+			# 清除标记
+			ske.set_war_skill_val([])
+	else:
+		for teammate in me.get_teammates(false, true):
+			if SkillHelper.actor_has_skills(teammate.actorId, ["幕后"], false):
+				backed = [teammate.actorId, wf.date]
+				ske.set_war_skill_val(backed)
+				break
+	if backed.size() != 2 or backed[1] != wf.date:
+		ske.cost_war_cd(99999)
 	return

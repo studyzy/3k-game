@@ -47,8 +47,7 @@ func effect_20288_3():
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.set_war_skill_val(actor.get_soldiers(), 1, PASSIVE_EFFECT_ID)
 	ske.war_report()
 
@@ -63,4 +62,9 @@ func on_view_model_2002()->void:
 func effect_20288_4():
 	var targetId = DataManager.get_env_int("目标")
 	start_battle_and_finish(actorId, targetId)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

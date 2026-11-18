@@ -23,7 +23,7 @@ func effect_20320_start():
 	return
 
 func effect_20320_2():
-	ske.cost_war_cd(99999)
+	perform_cost()
 	var ap = ske.change_actor_ap(me.actorId, AP_GAIN)
 	ske.set_war_skill_val(1, 99999)
 	ske.war_report()
@@ -31,4 +31,8 @@ func effect_20320_2():
 		ap, me.action_point,
 	])
 	play_dialog(actorId, msg, 0, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

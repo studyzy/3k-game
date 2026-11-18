@@ -62,8 +62,7 @@ func effect_20345_start():
 	return
 
 func effect_20345_2():
-	ske.cost_war_cd(99999)
-	ske.cost_wv_gold(COST_GOLD)
+	perform_cost()
 	ske.add_war_tmp_soldier(ske.skill_actorId, RECOVER_SOLDIERS, -1)
 
 	var msg ="重赏之下，可有勇夫？"
@@ -75,4 +74,9 @@ func effect_20345_2():
 
 func effect_20345_3():
 	report_skill_result_message(ske, 2009)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
+	ske.cost_wv_gold(COST_GOLD)
 	return

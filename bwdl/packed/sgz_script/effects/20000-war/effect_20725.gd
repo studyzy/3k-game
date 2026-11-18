@@ -70,7 +70,7 @@ func on_view_model_2001() -> void:
 
 func effect_20725_execute() -> void:
 	var targetId = DataManager.get_env_int("目标")
-	ske.cost_war_limited_times(get_times_limit(), CD)
+	perform_cost()
 	ske.war_report()
 	start_battle_and_finish(actorId, targetId)
 	return
@@ -82,4 +82,8 @@ func on_view_model_2002() -> void:
 func effect_20725_battle() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	start_battle_and_finish(actorId, targetId)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_limited_times(get_times_limit(), CD)
 	return

@@ -78,7 +78,8 @@ func effect_20021_AI_2()->void:
 	var se = DataManager.get_current_stratagem_execution()
 	se.perform_to_targets([se.targetId])
 	# 模拟消耗
-	on_trigger_20018()
+	on_trigger_20005()
+	on_trigger_20009()
 	goto_step("AI_3")
 	return
 
@@ -133,14 +134,18 @@ func effect_20021_selected() -> void:
 	start_scheme(stratagem)
 	return
 
-# 20018 时回调，如果计策由奇策发起，则扣除所有机动力
-func on_trigger_20018()->bool:
+func on_trigger_20005() -> bool:
 	var se = DataManager.get_current_stratagem_execution()
 	if se.skill != ske.skill_name:
 		# 不是由奇策发起的计策，忽略
 		return false
-	me.action_point += se.cost
-	se.cost = me.action_point
-	ske.cost_ap(me.action_point)
+	set_scheme_ap_cost(se.name, me.action_point)
+	return false
+
+func on_trigger_20009() -> bool:
+	var se = DataManager.get_current_stratagem_execution()
+	if se.skill != ske.skill_name:
+		# 不是由奇策发起的计策，忽略
+		return false
 	ske.cost_war_limited_times(get_times_limit())
 	return false

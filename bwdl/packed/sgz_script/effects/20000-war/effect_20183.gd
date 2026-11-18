@@ -36,7 +36,7 @@ func effect_20183_2():
 	return
 
 func effect_20183_3():
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.change_actor_hp(me.actorId, -int(actor.get_hp() / 2))
 	var targets = []
 	var targetNames = ""
@@ -58,4 +58,8 @@ func effect_20183_3():
 		actor.get_name(), ske.skill_name, targetNames
 	])
 	play_dialog(-1, msg, 2, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

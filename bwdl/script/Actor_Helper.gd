@@ -1,12 +1,7 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/Actor_Helper.gd
-# 说明：武将辅助类（自动加载）。负责武将属性计算、成长加点、关系网、技能学习等辅助逻辑。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Node
 class_name Actor_Helper
+
+const AVATAR_GROUP_SIZE = 75
 
 var status_change_ghistory = []
 
@@ -1121,9 +1116,10 @@ class ActorInfo:
 	func get_avatar_options() -> Array:
 		var options = []
 		
+		var page = int(actorId / AVATAR_GROUP_SIZE)
 		var defaultOption = {
-			"sort": 0, 
-			"img": Global.load_pic_with_cache("res://packed/images/actor/face/avatar/{0}.png".format([actorId])), 
+			"sort": actorId % AVATAR_GROUP_SIZE, 
+			"img": StaticManager.basic_avatars[page], 
 		}
 		
 		var specified = _get_attr_str("头像")
@@ -1175,7 +1171,7 @@ class ActorInfo:
 			if not matched:
 				continue
 			var option = setting["then"].duplicate()
-			option["img"] = StaticManager.face_x_sheet
+			option["img"] = StaticManager.basic_avatars[int(option["picture"])]
 			if not "optional" in option:
 				
 				option["id"] = 0

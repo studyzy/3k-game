@@ -55,12 +55,16 @@ func effect_20661_confirmed() -> void:
 		play_dialog(actorId, msg, 3, 2999)
 		return
 
-	ske.cost_ap(me.action_point, true)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.change_war_actor_position(actorId, targetPosition)
 	ske.war_report()
 	var msg = "万不可被{0}抄了后路！".format([
 		me.get_war_enemy_leader().get_name(),
 	])
 	play_dialog(actorId, msg, 2, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(me.action_point, true)
+	ske.cost_war_cd(1)
 	return

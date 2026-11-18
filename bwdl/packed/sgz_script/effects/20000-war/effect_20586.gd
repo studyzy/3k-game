@@ -66,8 +66,7 @@ func effect_20586_confirmed() -> void:
 	map.next_shrink_actors = []
 	map.show_color_block_by_position(se.get_affected_positions(pos))
 	
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.war_report()
 
 	se.perform_to_area(pos)
@@ -83,4 +82,9 @@ func on_view_model_2003() -> void:
 func effect_20586_report() -> void:
 	var se = DataManager.get_current_stratagem_execution()
 	report_stratagem_result_message(se, 2003)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

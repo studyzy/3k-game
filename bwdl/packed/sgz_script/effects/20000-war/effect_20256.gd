@@ -174,8 +174,7 @@ func effect_20256_5():
 	var equipType = str(item["类型"])
 	var equip = clEquip.equip(equipId, equipType)
 	var currentEquip = targetActor.get_equip(equipType)
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.war_report()
 	var mood = 3
 	var msgs = ["…… 也罢，凑合用吧", "", ""]
@@ -223,4 +222,9 @@ func effect_20256_5():
 
 func on_view_model_2009():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

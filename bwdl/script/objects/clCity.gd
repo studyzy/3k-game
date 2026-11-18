@@ -1,14 +1,6 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/objects/clCity.gd
-# 说明：城市对象。维护城市的太守、兵力、开发值、民忠等状态与内政操作。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Resource
 class_name clCity
 
-# 城市各属性的上限（金/米/宝/土地/产业/人口/防灾/统治度/后备兵/战乱度）
 const CITY_PROPERTY_MAX = {
 	"金": 9999, 
 	"米": 9999, 
@@ -23,13 +15,10 @@ const CITY_PROPERTY_MAX = {
 }
 
 
-# 城市信息对象：封装一座城市的所有状态（人口/土地/产业/武将/太守等）。
-# 静态数据来自 StaticManager.citys（配置表），动态数据存于 DataManager.citys（存档）。
 class CityInfo:
 
 	var ID: int = - 1
 
-	# 城市对话框信息（用于内政/外交的对话展示）
 	class DialogInfo:
 		var cityId: int = - 1
 		var msg = ""
@@ -176,7 +165,6 @@ class CityInfo:
 
 	
 	
-	# 获取与本城相连的城市列表（可过滤包含/排除的势力）
 	func get_connected_city_ids(includeVstateIds: PoolIntArray = [], excludeVstateIds: PoolIntArray = []) -> PoolIntArray:
 		var ret = []
 		var connected = get_property("连接城")
@@ -215,7 +203,6 @@ class CityInfo:
 	
 	
 	
-	# 增加某项城市属性（自动夹在 [0, 上限] 区间），返回实际变化量
 	func add_city_property(attr: String, val: int) -> int:
 		if ID < 0 or ID >= DataManager.citys.size():
 			return 0
@@ -409,7 +396,6 @@ class CityInfo:
 		return get_chaos_score()
 
 	
-	# 是否发生天灾：有灾害标记且无「佛光普照」庇护时，20% 概率触发
 	func chance_for_disaster(disasterName: String) -> bool:
 		var setting = get_property(disasterName)
 		if setting == null or not setting:
@@ -419,7 +405,7 @@ class CityInfo:
 		
 		return Global.get_rate_result(20)
 
-	# 是否发生民众叛乱：统治度越低，叛乱概率越高（50/30/10/5 %）
+	
 	func chance_for_rebellion() -> bool:
 		var rates = [50, 30, 10, 5]
 		var metrics = [20, 30, 40, 50]
@@ -1023,7 +1009,6 @@ static func list_stored_equipments_paged(vstateId: int, includingAllCity: bool =
 		values.append({"ID": - 1, "类型": "上一页"})
 	return [items, values]
 
-# 广度优先搜索计算两城之间的最短距离（步数），用于判断行军距离/移动范围
 static func get_city_distance(from: int, to: int, checkVState: bool = false) -> int:
 	if from == to:
 		return 0
@@ -1048,7 +1033,7 @@ static func get_city_distance(from: int, to: int, checkVState: bool = false) -> 
 	return 0
 
 
-# 计算从某城出发可攻击的城市集合（相邻且非同盟，含「引狼入室」技能扩展的路由）
+
 static func get_attackable_city_ids(from: CityInfo) -> Dictionary:
 	var fromVstateId = from.get_vstate_id()
 	var targetIds = from.get_connected_city_ids([], [fromVstateId])
@@ -1091,7 +1076,6 @@ static func get_movable_city_ids(from: CityInfo) -> Dictionary:
 
 
 
-# 深度优先递归搜索路线：在限定势力范围内寻找 fromId -> targetId 的路径（取最短）
 static func get_route_via_cities(fromId: int, targetId: int, allowedVstateIds: PoolIntArray, prevRoute: Array = []) -> Array:
 	
 	prevRoute = prevRoute.duplicate()

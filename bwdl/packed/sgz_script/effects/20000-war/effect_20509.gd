@@ -7,23 +7,28 @@ const FLAG_NAME = "筹"
 const TRIGGER_TIMES = 3
 const DAMAGE_RAISE = 50
 
-func on_trigger_20009() -> bool:
+func on_trigger_20018() -> bool:
 	var se = DataManager.get_current_stratagem_execution()
 	# 队友用计
-	ske.add_skill_flags(10000, ske.effect_Id, FLAG_NAME, 1)
 	var flags = ske.get_skill_flags(10000, ske.effect_Id, FLAG_NAME)
 	if flags >= TRIGGER_TIMES:
-		ske.set_war_skill_val(1)
+		se.set_env("筹谋", 1)
+	return false
+
+func on_trigger_20009() -> bool:
+	var se = DataManager.get_current_stratagem_execution()
+	# 队友用计完成
+	ske.add_skill_flags(10000, ske.effect_Id, FLAG_NAME, 1)
 	var msg = "{0}获得一个「{1}」".format([
 		actor.get_name(), FLAG_NAME,
 	])
-	se.append_result(ske.skill_name, msg, 1, actorId, true)
+	se.append_result(ske.skill_name + "+", msg, 1, actorId, true)
 	return false
 
 func on_trigger_20011() -> bool:
-	if ske.get_war_skill_val_int() <= 0:
+	var se = DataManager.get_current_stratagem_execution()
+	if se.get_env_int("筹谋") <= 0:
 		return false
 	change_scheme_damage_rate(DAMAGE_RAISE)
-	ske.set_war_skill_val(0)
 	ske.clear_skill_flags(10000, ske.effect_Id, FLAG_NAME)
 	return false

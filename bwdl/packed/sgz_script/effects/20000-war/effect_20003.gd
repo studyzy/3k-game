@@ -105,7 +105,6 @@ func on_view_model_3000():
 func effect_20003_AI_2():
 	var target = get_env_int_array("AI.龙胆.目标")
 	var pos = Vector2(target[0], target[1])
-	ske.cost_ap(COST_AP, true)
 	ske.change_war_actor_position(me.actorId, pos)
 
 	map.show_color_block_by_position([])
@@ -173,7 +172,6 @@ func on_view_model_2001():
 	return
 
 func effect_20003_3():
-	ske.cost_ap(COST_AP, true)
 	var target = get_env_dict("龙胆目标")
 	var pos = Vector2(int(target["x"]), int(target["y"]))
 	ske.change_war_actor_position(me.actorId, pos)
@@ -196,13 +194,12 @@ func desperate_situation()->bool:
 	return false
 
 func _try_recover_and_get_message()->String:
+	perform_cost()
 	var recoveredHP = 0
-	var noCD = desperate_situation()
+	var noCD = ske.get_war_cd() <= 0
 	# 直接判断是否解锁【绝境】
 	if desperate_skill():
 		recoveredHP = ske.change_actor_hp(me.actorId, RECOVER_HP)
-	if not noCD:
-		ske.cost_war_cd(1)
 	var msg = "能进能退\n乃真正法器！"
 	if recoveredHP > 0 and noCD:
 		msg = "能进能退，乃真正法器！\n【绝境】{1}体力恢复{2}\n本回合可继续发动龙胆"
@@ -214,3 +211,9 @@ func _try_recover_and_get_message()->String:
 		ske.skill_name, me.get_name(), recoveredHP
 	])
 	return msg
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	if not desperate_situation():
+		ske.cost_war_cd(1)
+	return

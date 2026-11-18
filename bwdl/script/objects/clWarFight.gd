@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/objects/clWarFight.gd
-# 说明：战争结算对象（核心战争逻辑）。计算攻城/野战的整体流程与胜负。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Resource
 
 var KILL_STREAK_MESSAGES = [
@@ -360,16 +353,21 @@ func date_finished() -> void :
 		bf.status = 2
 	return
 
-func cleanup() -> void :
-	return
-
 func done() -> void :
 	status = 3
 	result = 1
 	if target_city().get_vstate_id() != defenderWV.vstateId:
 		result = 2
+	
+	for wv in war_vstates():
+		for wa in wv.get_war_actors():
+			wa.cleanup()
 	SkillHelper.clear_ban_actor_skill(20000)
 	SkillHelper.clear_scene_actor_skill(20000)
+	DataManager.war_control_sort = []
+	DataManager.clear_common_variable(["战争", "大战场", "白兵", "单挑", "诱发"])
+	DataManager.unset_env("战争.结算进行")
+	DataManager.common_variable.erase("大限检查")
 	SkillHelper.update_all_skill_buff("WAR_DONE")
 	return
 

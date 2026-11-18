@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/clEndlessGame.gd
-# 说明：无尽模式管理（自动加载）。负责无尽模式的状态与流程。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Node
 
 
@@ -131,8 +124,12 @@ func load_endless(_init_player_actors: PoolIntArray) -> bool:
 	return true
 
 func fix_all_actor_data() -> void :
+	SkillHelper.update_all_skill_buff("INF-FIX", 10000)
 	for actor in ActorHelper.all_actors():
-		actor.set_soldiers(DataManager.get_actor_max_soldiers(actor.actorId))
+		if actor.actorId == StaticManager.ACTOR_ID_DONGZHUO:
+			pass
+		var limit = DataManager.get_actor_max_soldiers(actor.actorId)
+		actor.set_soldiers(limit)
 		actor.set_hp(actor.get_max_hp())
 	return
 

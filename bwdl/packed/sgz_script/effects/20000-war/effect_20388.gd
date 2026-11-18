@@ -13,7 +13,7 @@ func on_trigger_20040() -> bool:
 	prevSke.input_data(prevSkeData)
 	var target = null
 	for r in prevSke.results:
-		if r.type == "机动力" and r.actorId >= 0:
+		if r.type == "机动力" and r.actorId >= 0 and r.change > 0:
 			var wa = DataManager.get_war_actor(r.actorId)
 			if not me.is_enemy(wa):
 				continue

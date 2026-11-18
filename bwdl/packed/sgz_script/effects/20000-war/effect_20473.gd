@@ -47,8 +47,7 @@ func effect_20473_3():
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
 	
-	ske.cost_war_limited_times(3)
-	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, COST_FLAGS)
+	perform_cost()
 	var marked = ske.get_war_skill_val_int_array(PASSIVE_EFFECT_ID)
 	marked.erase(targetId)
 	marked.append(targetId)
@@ -64,4 +63,9 @@ func effect_20473_3():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_limited_times(3)
+	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, COST_FLAGS)
 	return

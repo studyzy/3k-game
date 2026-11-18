@@ -48,7 +48,7 @@ func on_view_model_2001():
 func effect_20033_3():
 	var targetId = get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
-	ske.cost_war_cd(1)
+	perform_cost()
 	targetWA.refresh_poker_random()
 	var msg = "{0}当前点数:{1}\n敌将点数刷新为:{2}".format([
 		actor.get_name(), me.poker_point, targetWA.poker_point
@@ -103,4 +103,8 @@ func effect_20033_6():
 
 func on_view_model_2009():
 	wait_for_pending_message(FLOW_BASE + "_6")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

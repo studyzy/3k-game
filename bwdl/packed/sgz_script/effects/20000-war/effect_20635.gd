@@ -33,6 +33,7 @@ func recalc_flags() -> Array:
 func effect_20635_start() -> void:
 	var msg = "调整【{0}】概率：".format([ske.skill_name])
 	SceneManager.show_input_numbers(msg, ["概率"], [actor.get_level() * 10 - 1], [0])
+	SceneManager.input_numbers.show_actor(actorId)
 	LoadControl.set_view_model(2000)
 	return
 

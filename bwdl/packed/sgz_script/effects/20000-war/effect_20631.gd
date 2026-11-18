@@ -31,7 +31,7 @@ func effect_20631_confirmed() -> void:
 	var city = wf.target_city()
 	var total = city.get_backup_soldiers()
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	var changed = ske.add_actor_soldiers(actorId, total, LIMIT)
 	ske.change_city_property(city.ID, "后备兵", -changed)
 	ske.set_war_buff(actorId, "禁策", 99)
@@ -43,3 +43,6 @@ func effect_20631_confirmed() -> void:
 	play_dialog(actorId, msg, 2, 2999)
 	return
 
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
+	return

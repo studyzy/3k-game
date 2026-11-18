@@ -57,12 +57,17 @@ func on_view_model_2001() -> void:
 
 func effect_20667_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
-	ske.cost_war_limited_times(TIMES_LIMIT)
-	var ap = ske.cost_ap(me.action_point, true)
+	var ap = me.action_point
+	perform_cost()
 	# 记录消耗的机动力
 	ske.set_war_skill_val(ap, 1, PASSIVE_EFFECT_ID)
 	ske.war_report()
 	var msg = "何须留力\n雷霆一击！\n（机动力归零"
 	me.attach_free_dialog(msg, 0)
 	start_battle_and_finish(actorId, targetId)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_limited_times(TIMES_LIMIT)
+	ske.cost_ap(me.action_point, true)
 	return

@@ -26,7 +26,7 @@ func effect_20343_start():
 	return
 
 func effect_20343_2():
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.ban_war_skill(ske.skill_actorId, LOST_SKILL_1, 99999)
 	ske.ban_war_skill(ske.skill_actorId, LOST_SKILL_2, 99999)
 
@@ -43,4 +43,8 @@ func effect_20343_2():
 	# 信息太多了，不汇报，只记录
 	ske.war_report()
 	play_dialog(actorId, msg, 0, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

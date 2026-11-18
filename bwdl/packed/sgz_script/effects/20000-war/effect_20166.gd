@@ -62,8 +62,7 @@ func effect_20166_3():
 		play_dialog(actorId, "没有需要处理的负面状态", 2, 2009)
 		return
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	buffNames.shuffle()
 	var buffName = buffNames.pop_front()
 	ske.remove_war_buff(targetId, buffName)
@@ -80,4 +79,9 @@ func effect_20166_3():
 func effect_20166_4():
 	var ske = SkillHelper.read_skill_effectinfo()
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

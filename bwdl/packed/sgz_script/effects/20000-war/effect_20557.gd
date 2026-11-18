@@ -22,10 +22,14 @@ func on_view_model_2000() -> void:
 	return
 
 func effect_20557_2() -> void:
-	ske.cost_ap(COST_AP, true)
-	ske.cost_war_cd(3)
+	perform_cost()
 	ske.set_war_skill_val(1, 2)
 	ske.war_report()
 	var msg = "遵时养晦，待机而动"
 	play_dialog(actorId, msg, 2, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(3)
 	return

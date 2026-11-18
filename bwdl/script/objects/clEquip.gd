@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/objects/clEquip.gd
-# 说明：装备对象。描述武器/铠甲/宝物等装备的属性与效果。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Resource
 class_name clEquip
 
@@ -304,10 +297,11 @@ class EquipInfo:
 				continue
 			if not key in StaticManager.EQUIP_TAG_MAPPING:
 				continue
-			var data = [0, 0, 0]
+			var data = [0, 0, 0, ""]
 			data[0] = Global.intval(setting[key])
 			data[1] = data[0] * 100
 			data[2] = data[0] * 50
+			data[3] = Global.strval(setting[key])
 			if "公式" in setting:
 				data[0] = explain_expr(setting["公式"])
 			

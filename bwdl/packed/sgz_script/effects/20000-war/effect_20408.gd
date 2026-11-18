@@ -24,7 +24,7 @@ func on_view_model_2000():
 	return
 
 func effect_20408_2():
-	ske.cost_ap(COST_AP)
+	perform_cost()
 	ske.remove_war_buff(me.actorId, "定止")
 	ske.war_report()
 
@@ -34,4 +34,8 @@ func effect_20408_2():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP)
 	return

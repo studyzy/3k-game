@@ -113,7 +113,7 @@ func on_view_model_2000() -> void:
 	return
 
 func effect_20602_confirmed() -> void:
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.set_war_buff(actorId, BUFF, 3)
 	# 设置标记，用以辅助判断被动 BUFF 消失后的 CD
 	ske.set_war_skill_val(1)
@@ -122,4 +122,8 @@ func effect_20602_confirmed() -> void:
 	var msg = "人衔枚，马束口\n敛息速行！"
 	map.draw_actors()
 	play_dialog(actorId, msg, 2, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
 	return

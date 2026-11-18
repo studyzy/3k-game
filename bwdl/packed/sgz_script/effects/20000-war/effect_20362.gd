@@ -94,7 +94,7 @@ func effect_20362_3():
 	var targetActor = ActorHelper.actor(targetId)
 	var soldiers = min(SOLDIERS_LIMIT - actor.get_soldiers(), targetActor.get_soldiers())
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	soldiers = ske.change_actor_soldiers(targetId, -soldiers)
 	soldiers = ske.change_actor_soldiers(me.actorId, -soldiers)
 	ske.war_report()
@@ -103,4 +103,8 @@ func effect_20362_3():
 		targetActor.get_name(), me.get_name(), soldiers,
 	])
 	play_dialog(actorId, msg, 0, 2009)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

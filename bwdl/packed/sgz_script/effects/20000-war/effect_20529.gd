@@ -22,8 +22,7 @@ func on_view_model_2000() -> void:
 	return
 
 func effect_20529_2() -> void:
-	ske.cost_war_cd(3)
-	ske.cost_ap(COST_AP)
+	perform_cost()
 	ske.set_war_skill_val(1)
 	ske.war_report()
 
@@ -31,4 +30,9 @@ func effect_20529_2() -> void:
 		actor.get_short_name(),
 	])
 	play_dialog(actorId, msg, 1, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(3)
+	ske.cost_ap(COST_AP)
 	return

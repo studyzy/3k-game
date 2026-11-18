@@ -337,9 +337,9 @@ func _push_move(dir:Vector2):
 		LoadControl.set_view_model(-1)
 		FlowManager.add_flow("actor_move_stop")
 		return
-	msg = DataManager.get_env_str("对白")
 	if wa.after_move():
 		return
+	msg = DataManager.get_env_str("对白")
 	SceneManager.show_unconfirm_dialog(msg, wa.actorId)
 	SceneManager.dialog_msg_complete(true)
 	#DataManager.game_trace("MOVE")
@@ -375,9 +375,9 @@ func _pop_move():
 	DataManager.set_env("移动", -1)
 	#插入移动技能判定
 	SkillHelper.auto_trigger_skill(wa.actorId, 20003, "")
-	msg = DataManager.get_env_str("对白")
 	if wa.after_move(false):
 		return
+	msg = DataManager.get_env_str("对白")
 
 	SceneManager.show_unconfirm_dialog(msg, wa.actorId)
 	SceneManager.dialog_msg_complete(true)

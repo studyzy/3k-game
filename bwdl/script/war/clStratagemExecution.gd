@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/war/clStratagemExecution.gd
-# 说明：计策执行对象（核心）。负责战争/战斗中计策的具体执行与效果结算。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Resource
 
 const TRACE = false
@@ -290,10 +283,82 @@ func perform_cost() -> void :
 	trace("{0} perform_cost".format([self]))
 	if cost < 0:
 		return
+
+	cost = 0
+
 	
 	
+	var wf = DataManager.get_current_war_fight()
 	var wa = DataManager.get_war_actor(fromId)
-	cost = stratagem.perform_cost(fromId)
+	if wa == null or wa.disabled:
+		stratagem.status = StratagemInfo.SchemeStatus.UNKNOWN
+		return
+
+	var info = stratagem.get_cost_info(wa.actorId)
+	var toCost = info[0]
+	var current = info[1]
+	var hp = info[2]
+	if toCost < 0 and current < 0:
+		stratagem.status = StratagemInfo.SchemeStatus.CD
+		return
+	if current < toCost and hp <= 0:
+		stratagem.status = StratagemInfo.SchemeStatus.AP_COST
+		return
+
+	if current >= toCost:
+		wa.action_point = max(0, current - toCost)
+	else:
+		wa.action_point = 0
+		for item in wa.actor().get_equip_feature_all("计策用体"):
+			var equip = item[0]
+			var val = item[1]
+			var key = "CD.{0}.{1}.{2}".format([
+				equip.name(), wa.actorId, wf.date, 
+			])
+			var triggered = wf.get_env_int(key, 0)
+			if val <= triggered:
+				continue
+			wf.set_env(key, triggered + 1)
+			var costHP = toCost - current
+			wa.actor().set_hp(wa.actor().get_hp() - costHP)
+			var seMsg = "<y{0}>效果，体力扣减<r{1}>".format([
+				equip.name(), costHP, 
+			])
+			append_message(seMsg)
+			if wa.actor().get_hp() >= 0:
+				var msg = "鞠躬尽瘁，死而后已\n（{0}强行发动计策\n（「{1}」效果，体力扣减{2}".format([
+					wa.get_name(), equip.name(), costHP
+				])
+				wa.attach_free_dialog(msg, 2)
+			else:
+				var leader = wa.get_leader()
+				if leader.actorId == wa.actorId:
+					
+					var msg = "{0}强行发动计策\n竟致身亡，何苦来哉\n（「{1}」效果，体力扣减{2}".format([
+						wa.get_name(), equip.name(), costHP
+					])
+					wa.get_enemy_leader().attach_free_dialog(msg, 1)
+				else:
+					
+					var msg = "{0}强行发动计策\n竟致身亡，吾之过也！\n（「{1}」效果，体力扣减{2}".format([
+						wa.get_name(), equip.name(), costHP
+					])
+					leader.attach_free_dialog(msg, 3)
+				wa.dead("计策", wa.actorId)
+			break
+	DataManager.set_env("计策.扣减", [toCost, current, wa.action_point])
+	SkillHelper.auto_trigger_skill(wa.actorId, 20006)
+	var changed = DataManager.get_env_int_array("计策.扣减")
+	toCost = changed[0]
+	current = changed[1]
+	wa.action_point = changed[2]
+	DataManager.unset_env("计策.扣减")
+
+	var cd = stratagem.get_cd_round()
+	if cd > 0:
+		wa.dic_skill_cd[stratagem.name] = cd
+	stratagem.status = StratagemInfo.SchemeStatus.OK
+	cost = toCost
 	costed = wa.action_point
 	return
 
@@ -353,17 +418,20 @@ func perform_to_targets(targets: PoolIntArray, skipRating: bool = false) -> bool
 
 	
 	DataManager.set_env("计策.ONCE.目标数", targets.size())
-	var firstTargetWA = DataManager.get_war_actor(targets[0])
-	if firstTargetWA != null:
-		DataManager.set_env("计策.ONCE.目标位置", {"x": firstTargetWA.position.x, "y": firstTargetWA.position.y})
-		DataManager.set_env("计策.ONCE.覆盖位置", get_affected_positions(firstTargetWA.position))
+	var target = DataManager.get_war_actor(targetId)
+	if target != null:
+		DataManager.set_env("计策.ONCE.目标位置", {"x": target.position.x, "y": target.position.y})
+		DataManager.set_env("计策.ONCE.覆盖位置", get_affected_positions(target.position))
 		DataManager.set_env("计策.ONCE.所有目标", targets)
+		if stratagem.has_range_impact():
+			_perform_to_positions(from)
+
 	succeeded = 0
-	for targetId in targets:
-		if _perform_to_target(targetId, skipRating):
+	for tid in targets:
+		if _perform_to_target(tid, skipRating):
 			succeeded = 1
 
-		var targetWA = DataManager.get_war_actor(targetId)
+		var targetWA = DataManager.get_war_actor(tid)
 		if targetWA == null:
 			continue
 		
@@ -1206,3 +1274,18 @@ func mark_auto_finish_turn() -> void :
 
 func will_auto_finish_turn() -> bool:
 	return get_env_int("auto_finish_turn") > 0
+
+func _perform_to_positions(from: War_Actor) -> void :
+	var posInfo = DataManager.get_env_dict("计策.ONCE.目标位置")
+	if not "x" in posInfo or not "y" in posInfo:
+		return
+	var center = Vector2(Global.intval(posInfo["x"]), Global.intval(posInfo["y"]))
+	var positions = DataManager.get_env_array("计策.ONCE.覆盖位置")
+	for impact in stratagem.get_range_impacts():
+		var method = "_range_impact_for_" + impact
+		if not stratagem.has_method(method):
+			continue
+		var ret = stratagem.call(method, from, positions)
+		if ret != "":
+			append_result(impact, ret, 0, - 1, true)
+	return

@@ -129,7 +129,7 @@ func on_view_model_2004() -> void:
 func effect_20334_perform() -> void:
 	var selected = _get_selected_targets()
 	var targets = [[selected[0], selected[1]], [selected[1], selected[0]]]
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	var msgs = []
 	var mood = 3
 	var totalDamage = 0
@@ -206,3 +206,8 @@ func _get_selected_targets()->Array:
 func _clear_selected_targets():
 	DataManager.unset_env("离间.目标")
 	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	return
+

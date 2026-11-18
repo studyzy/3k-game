@@ -119,7 +119,7 @@ func effect_20720_confirmed() -> void:
 	var targetActor = ActorHelper.actor(targetId)
 
 	# 消耗 CD
-	ske.cost_war_cd(CD_TURNS)
+	perform_cost()
 
 	# 敌将时附加甘露保护
 	if me.is_enemy(targetWA):
@@ -169,3 +169,7 @@ func effect_20720_execute() -> void:
 
 func check_AI_perform_20000() -> bool:
 	return false
+
+func perform_cost() -> void:
+	ske.cost_war_cd(CD_TURNS)
+	return

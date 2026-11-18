@@ -166,7 +166,7 @@ func effect_20402_5():
 			if ske.remove_war_buff(targetId, "铁索连环"):
 				msg = "{0}已经解除[铁索]"
 			else:
-				msg = "未能接触{0}的[铁索]"
+				msg = "未能解除{0}的[铁索]"
 		else:
 			if ske.set_war_buff(targetId, "铁索连环", 1) > 0:
 				msg = "{0}已被[铁索]连起来"
@@ -178,9 +178,7 @@ func effect_20402_5():
 	SkillHelper.save_skill_effectinfo(currentSke)
 	init_vars()
 	# 已经交代得很清楚了，仅记录日志
-	var ap = get_cost_ap()
-	ske.cost_ap(ap)
-	ske.set_war_skill_val(ap, 1)
+	perform_cost()
 	ske.war_report()
 	play_dialog(actorId, "\n".join(msgs), 2, 2003)
 	return
@@ -210,4 +208,10 @@ func effect_20402_6():
 func _update_select_color(targetIds:PoolIntArray) -> void:
 	var selected = DataManager.get_env_int_array(EFFECT_CHOOSE_NAME)
 	map.show_can_choose_actors(targetIds, -1, selected)
+	return
+
+func perform_cost() -> void:
+	var ap = get_cost_ap()
+	ske.cost_ap(ap)
+	ske.set_war_skill_val(ap, 1)
 	return

@@ -6,6 +6,7 @@ extends "effect_20000.gd"
 const EFFECT_ID = 20269
 const FLOW_BASE = "effect_" + str(EFFECT_ID)
 
+const COST_AP = 2
 const EXTRA_AP = 2
 
 func effect_20269_start() -> void:
@@ -51,8 +52,7 @@ func on_view_model_2001() -> void:
 
 func effect_20269_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
-	var apCost = _get_ap_cost(targetId)
-	ske.cost_ap(apCost, true)
+	perform_cost(targetId)
 	map.update_ap()
 	var msg = "动如雷霆，力出万钧！\n{0}接战！".format([
 		DataManager.get_actor_naughty_title(targetId, actorId),
@@ -74,9 +74,9 @@ func effect_20269_go() -> void:
 func _get_ap_cost(targetId:int)->int:
 	var target = DataManager.get_war_actor(targetId)
 	if target == null:
-		return 999
+		return COST_AP
 	var distance = Global.get_range_distance(me.position, target.position)
-	return 2 + EXTRA_AP * distance
+	return COST_AP + EXTRA_AP * distance
 
 func update_choose_actor_message(targetId:int)->String:
 	var msg = "选择敌军发动【{0}】".format([ske.skill_name])
@@ -85,3 +85,8 @@ func update_choose_actor_message(targetId:int)->String:
 	var apCost = _get_ap_cost(targetId)
 	msg += "（需机动：{0}".format([apCost])
 	return msg
+
+func perform_cost(targetId:int=-1) -> void:
+	var apCost = _get_ap_cost(targetId)
+	ske.cost_ap(apCost, true)
+	return

@@ -30,7 +30,7 @@ func on_view_model_2000() -> void:
 func effect_20548_2() -> void:
 	var targetId = DataManager.get_env_int("目标")
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.set_war_skill_val(targetId)
 	ske.war_report()
 
@@ -38,4 +38,8 @@ func effect_20548_2() -> void:
 		ActorHelper.actor(targetId).get_name(),
 	])
 	play_dialog(actorId, msg, 0, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

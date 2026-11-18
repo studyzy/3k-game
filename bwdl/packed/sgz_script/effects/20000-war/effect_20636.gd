@@ -46,7 +46,7 @@ func effect_20636_confirmed() -> void:
 	var ap = wa.action_point
 	ske.change_actor_ap(targetId, ap)
 	ske.set_war_skill_val(targetId, 1)
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.war_report()
 
 	var msg = "千钧一发，不奋力而何待！\n（{0}机动力 +{1} => {2}"
@@ -56,4 +56,8 @@ func effect_20636_confirmed() -> void:
 		wa.get_name(), ap, wa.action_point
 	])
 	play_dialog(actorId, msg, 0, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

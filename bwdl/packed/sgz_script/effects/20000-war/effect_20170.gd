@@ -39,9 +39,12 @@ func on_view_model_2000() -> void:
 
 func effect_20170_confirmed() -> void:
 	var msg = "天象有变\n风随意转"
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.set_war_skill_val(1)
 	ske.war_report()
 	play_dialog(actorId, msg, 2, 2999)
 	return
 
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
+	return

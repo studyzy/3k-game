@@ -35,7 +35,7 @@ func effect_20542_selected() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	for wa in me.get_teammates(false):
 		ske.remove_war_buff(wa.actorId, "主将授权")
 	ske.set_war_buff(targetId, "主将授权", 3)
@@ -65,4 +65,8 @@ func on_view_model_2002():
 
 func effect_20542_report():
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

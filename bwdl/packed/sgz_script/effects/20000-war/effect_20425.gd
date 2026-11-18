@@ -39,8 +39,7 @@ func effect_20425_2():
 	map.next_shrink_actors = []
 	map.show_color_block_by_position(se.get_affected_positions(me.position))
 	
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.war_report()
 
 	se.perform_to_area(me.position)
@@ -60,4 +59,9 @@ func effect_20425_3():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

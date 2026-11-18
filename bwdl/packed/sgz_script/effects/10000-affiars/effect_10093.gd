@@ -77,11 +77,11 @@ func effect_10093_4():
 	srb.effectId = ske.effect_Id
 	srb.triggerId = -1
 	srb.effectTag = "每月赋税"
-	srb.effectTagVal = 12
+	srb.effectTagVal = 13
 	srb.targetType = SkillRangeBuff.BuffTargetType.VSTATE
 	srb.targetId = vs.id
 	srb.condition = ""
-	srb.continuous = 12
+	srb.continuous = 13
 	DataManager.skill_range_buff.append(srb)
 
 	var fromYear = DataManager.year

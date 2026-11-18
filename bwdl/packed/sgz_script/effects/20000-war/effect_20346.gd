@@ -76,7 +76,7 @@ func effect_20346_selected() -> void:
 
 	var skill = DataManager.get_env_str("目标项")
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.ban_war_skill(enemyLeaderId, skill, 99999)
 
 	var msg = "{0}，可知吾剑利否？".format([
@@ -94,4 +94,8 @@ func on_view_model_2009() -> void:
 
 func effect_20346_3() -> void:
 	report_skill_result_message(ske, 2009)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

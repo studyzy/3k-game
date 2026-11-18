@@ -35,7 +35,7 @@ func on_view_model_2001() -> void:
 func effect_20566_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	ske.set_war_skill_val(targetId, 99999, ZHENSHI_EFFECT_ID)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.war_report()
 
 	var msg = "澄明通达，自可兼济\n（【甄识】对{0}生效\n（技能范围扩大".format([
@@ -43,4 +43,8 @@ func effect_20566_confirmed() -> void:
 	])
 	SkillHelper.update_all_skill_buff(ske.skill_name)
 	play_dialog(actorId, msg, 1, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

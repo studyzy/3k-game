@@ -54,8 +54,7 @@ func effect_20151_3():
 	soldiers = min(soldiers, 2500 - targetActor.get_soldiers())
 	soldiers = max(0, soldiers)
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(ap, true)
+	perform_cost(ap)
 	ske.change_actor_ap(targetId, ap)
 	ske.cost_self_soldiers(soldiers)
 	ske.change_actor_soldiers(targetId, soldiers)
@@ -64,4 +63,9 @@ func effect_20151_3():
 	var msg = "皆为王事，岂有彼此\n以吾有余，补君不足"
 	FlowManager.add_flow("draw_actors")
 	play_dialog(actorId, msg, 2, 2009)
+	return
+
+func perform_cost(ap:int=0) -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(ap, true)
 	return

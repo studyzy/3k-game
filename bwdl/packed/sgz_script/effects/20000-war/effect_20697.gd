@@ -45,7 +45,7 @@ func effect_20697_confirmed() -> void:
 	var skills = SkillHelper.get_actor_scene_skills(actorId, 20000)
 	for skill in skills:
 		ske.add_war_skill(actorId, skill["skill_name"], 2)
-	ske.cost_war_cd(3)
+	perform_cost()
 	var msg = "吾文武通达，何往不利！"
 	report_skill_result_message(ske, 2001, msg, 0)
 	return
@@ -56,4 +56,8 @@ func on_view_model_2001() -> void:
 
 func effect_20697_report() -> void:
 	report_skill_result_message(ske, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(3)
 	return

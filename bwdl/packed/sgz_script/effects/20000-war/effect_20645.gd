@@ -37,7 +37,7 @@ func effect_20645_selected() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.change_actor_hp(targetId, RECOVER_HP)
 
 	var honoring = DataManager.get_actor_honored_title(targetId, actorId)
@@ -67,4 +67,8 @@ func on_view_model_2001() -> void:
 
 func effect_20645_report() -> void:
 	report_skill_result_message(ske, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

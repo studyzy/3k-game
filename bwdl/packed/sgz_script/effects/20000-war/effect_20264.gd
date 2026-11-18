@@ -36,7 +36,7 @@ func effect_20264_2():
 func effect_20264_3():
 	var targetId = get_env_int("目标")
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.set_war_skill_val(actorId, 99999, -1, targetId)
 	ske.set_war_skill_val(targetId)
 	ske.set_actor_extra_ap_limit(actorId, -AP_LIMIT)
@@ -49,3 +49,6 @@ func effect_20264_3():
 	play_dialog(actorId, msg, 2, -1)
 	return
 
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
+	return

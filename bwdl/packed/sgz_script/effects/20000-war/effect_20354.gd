@@ -61,12 +61,10 @@ func effect_20354_2():
 
 func effect_20354_3():
 	var targetId = get_env_int("目标")
-	var ap = ske.get_war_skill_val_int() + 1
 	var wv = me.war_vstate()
 	var enemyLeader = wv.get_enemy_vstate().main_actorId
 	
-	ske.set_war_skill_val(ap, 1)
-	ske.cost_ap(ap, true)
+	perform_cost()
 	if SkillHelper.actor_has_skills(actorId, ["睿敛"]):
 		ske.change_actor_ap(actorId, 1)
 
@@ -124,4 +122,10 @@ func effect_20354_6():
 
 func effect_20354_7():
 	report_skill_result_message(ske, 2004)
+	return
+
+func perform_cost() -> void:
+	var ap = ske.get_war_skill_val_int() + 1
+	ske.set_war_skill_val(ap, 1)
+	ske.cost_ap(ap, true)
 	return

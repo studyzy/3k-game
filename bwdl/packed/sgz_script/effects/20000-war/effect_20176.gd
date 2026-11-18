@@ -48,11 +48,15 @@ func on_view_model_2002()->void:
 func effect_20176_4()->void:
 	var targetId = DataManager.get_env_int("目标")
 	
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.swap_war_actor_positions(me.actorId, targetId)
 	ske.war_report()
 
 	map.draw_actors()
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

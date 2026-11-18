@@ -67,8 +67,7 @@ func effect_20355_2():
 func effect_20355_3():
 	var targetId = get_env_int("目标")
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 
 	var msg = "腐草萤光，怎及天心皓月\n何不倒戈卸甲，以礼来降？\n{0}退而熟思之".format([
 		DataManager.get_actor_honored_title(targetId, me.actorId),
@@ -97,4 +96,9 @@ func effect_20355_5():
 	ske.change_actor_hp(me.actorId, 1 - actor.get_hp())
 	ske.war_report()
 	play_dialog(actorId, msg, 0, 2009)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

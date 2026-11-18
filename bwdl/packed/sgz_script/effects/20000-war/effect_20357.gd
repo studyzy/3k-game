@@ -48,7 +48,7 @@ func effect_20357_2():
 func effect_20357_3():
 	var targetId = get_env_int("目标")
 
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.war_camp_in(targetId)
 	
 	var turns = me.get_buff(COST_BUFF)["回合数"] + COST_BUFF_TURNS
@@ -63,4 +63,8 @@ func effect_20357_3():
 func effect_20357_4():
 	var ske = SkillHelper.read_skill_effectinfo()
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

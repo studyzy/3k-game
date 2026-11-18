@@ -70,9 +70,8 @@ func effect_20177_4():
 func effect_20177_5():
 	var targetId = get_env_int("目标")
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.set_war_skill_val(targetId, 99999)
-	ske.cost_ap(COST_AP, true)
 	ske.set_war_buff(ske.skill_actorId, "定止", Global.get_random(STOP_ROUND_MIN, STOP_ROUND_MAX))
 	ske.set_war_buff(targetId, "定止", Global.get_random(STOP_ROUND_MIN, STOP_ROUND_MAX))
 	
@@ -81,4 +80,9 @@ func effect_20177_5():
 
 func effect_20177_6():
 	report_skill_result_message(ske, 2004)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
+	ske.cost_ap(COST_AP, true)
 	return

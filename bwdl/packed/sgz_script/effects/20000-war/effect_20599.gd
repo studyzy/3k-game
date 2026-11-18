@@ -64,8 +64,7 @@ func effect_20599_confirmed() -> void:
 			continue
 		targetIds.append(enemy.actorId)
 
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.war_report()
 
 	se.set_target(-1)
@@ -95,4 +94,9 @@ func effect_20599_report():
 
 func on_view_model_2002()->void:
 	wait_for_pending_message(FLOW_BASE + "_report")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

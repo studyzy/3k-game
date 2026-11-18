@@ -44,11 +44,15 @@ func effect_20716_selected():
 		ske.remove_war_skill(actorId, attached)
 	ske.add_war_skill(actorId, skillName, 99999)
 	ske.set_war_skill_val(skillName)
-	ske.cost_war_cd(3)
+	perform_cost()
 	ske.war_report()
 
 	var msg = "父兄功业，惟吾继之！\n（获得【{0}】".format([skillName])
 	if attached != "":
 		msg += "\n（替换【{0}】".format([attached])
 	play_dialog(actorId, msg, 1, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(3)
 	return

@@ -79,10 +79,7 @@ func war_patrol_start() -> void:
 func war_patrol_end() -> void:
 	var wf = DataManager.get_current_war_fight()
 	wf.done()
-	wf.cleanup()
-	DataManager.war_control_sort = []
 	LoadControl.end_script()
-	DataManager.clear_common_variable(["战争","大战场","白兵","单挑","诱发"])
 	FlowManager.add_flow("go_to_scene|res://scene/scene_affiars/scene_affiars.tscn")
 	FlowManager.add_flow("player_ready")
 	return
@@ -699,7 +696,9 @@ func war_over_start():
 
 func war_over_end():
 	var wf = DataManager.get_current_war_fight()
+
 	wf.done()
+
 	if DataManager.endless_mode:#无尽模式
 		#玩家方，注意这里要遵循固定顺序约定，FIXME later
 		var wv = wf.get_war_vstate(EndlessGame.PLAYER_VSTATEID)
@@ -710,7 +709,6 @@ func war_over_end():
 		# 挑战赛过关基础分 +100
 		if DataManager.is_challange_game():
 			DataManager.add_challange_game_score(100)
-		DataManager.clear_common_variable(["战争","大战场","白兵","单挑","诱发"])
 		EndlessGame.go_to_pass(EndlessGame.pass_no + 1)
 		return
 
@@ -727,13 +725,7 @@ func war_over_end():
 		_decrease("土地", loss)
 		_decrease("产业", loss)
 		_decrease("统治度", loss)
-	DataManager.unset_env("战争.结算进行")
-	wf.cleanup()
-	DataManager.war_control_sort = []
-	DataManager.common_variable.erase("大限检查")
 	LoadControl.end_script()
-	DataManager.clear_common_variable(["战争","大战场","白兵","单挑","诱发"])
-
 	FlowManager.add_flow("go_to_scene|res://scene/scene_affiars/scene_affiars.tscn")
 	FlowManager.add_flow("back_from_war")
 	return
@@ -850,7 +842,6 @@ func check_embattle_trigger():
 		wf.set_env("布阵触发", leaderEmbattleTriggered)
 		if SkillHelper.auto_trigger_skill(leader.actorId, 20019, "check_embattle_trigger"):
 			return
-	wf.unset_env("布阵触发")
 	war_step_4()
 	return
 

@@ -62,8 +62,7 @@ func effect_20570_confirmed() -> void:
 	map.show_color_block_by_position([])
 	map.cursor.hide()
 
-	ske.cost_ap(COST_AP, true)
-	ske.cost_war_cd(1)
+	perform_cost()
 
 	var him = DataManager.get_war_actor(TARGET_ID)
 	if him == null or him.disabled or not him.has_position():
@@ -95,4 +94,9 @@ func effect_20570_respond() -> void:
 	var him = DataManager.get_war_actor(TARGET_ID)
 	var msg = "… …"
 	play_dialog(him.actorId, msg, 2, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(1)
 	return

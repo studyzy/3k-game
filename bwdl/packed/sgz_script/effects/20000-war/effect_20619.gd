@@ -49,7 +49,7 @@ func effect_20619_add() -> void:
 	var wa = DataManager.get_war_actor(targetId)
 
 	var ap = ske.change_actor_ap(targetId, wa.poker_point)
-	ske.cost_war_cd(2)
+	perform_cost()
 	ske.war_report()
 
 	var name = DataManager.get_actor_naughty_title(targetId, actorId)
@@ -66,7 +66,7 @@ func effect_20619_sub() -> void:
 	var wa = DataManager.get_war_actor(targetId)
 
 	var ap = ske.change_actor_ap(targetId, -wa.poker_point)
-	ske.cost_war_cd(2)
+	perform_cost()
 	ske.war_report()
 
 	var name = DataManager.get_actor_naughty_title(targetId, actorId)
@@ -76,4 +76,8 @@ func effect_20619_sub() -> void:
 		name, wa.get_name(), ap, wa.action_point
 	])
 	play_dialog(actorId, msg, 2, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(2)
 	return

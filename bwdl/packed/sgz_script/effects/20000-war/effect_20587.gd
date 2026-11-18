@@ -45,11 +45,15 @@ func effect_20587_report() -> void:
 	for wa in wf.get_war_actors(false):
 		ske.add_war_skill(wa.actorId, TARGET_SKILL, 99999)
 		ske.set_war_buff(wa.actorId, "罢兵", 3)
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.war_report()
 
 	var msg = "众人解锁【{0}】\n进入 [罢兵] 状态三日".format([
 		TARGET_SKILL,
 	])
 	play_dialog(-1, msg, 2, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

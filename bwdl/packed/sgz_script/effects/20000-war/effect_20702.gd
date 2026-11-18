@@ -69,8 +69,7 @@ func on_view_model_2001() -> void:
 func effect_20702_confirmed() -> void:
 	var pos = DataManager.get_target_position()
 	mark_position(pos)
-	ske.cost_ap(COST_AP)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.war_report()
 
 	map.show_color_block_by_position(get_marked_positions())
@@ -99,4 +98,9 @@ func mark_position(pos: Vector2) -> void:
 		var key = ske.skill_name + "_" + str(i)
 		me.set_areas(key, BUFF_NAME, actorId, 99, p)
 		i += 1
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP)
+	ske.cost_war_cd(1)
 	return

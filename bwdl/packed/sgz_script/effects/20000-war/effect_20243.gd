@@ -56,7 +56,7 @@ func on_view_model_2002()->void:
 
 func effect_20243_4():
 	var targetId = DataManager.get_env_int("目标")
-	ske.cost_war_cd(1)
+	perform_cost()
 	start_battle_and_finish(actorId, targetId)
 	return
 
@@ -84,3 +84,7 @@ func _get_available_perform_targets(me:War_Actor) -> Array:
 				break
 	targetIds = check_combat_targets(targetIds)
 	return [targetIds, blockingPositions]
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	return

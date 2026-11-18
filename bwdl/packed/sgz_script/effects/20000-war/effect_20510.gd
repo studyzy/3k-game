@@ -76,7 +76,7 @@ func on_view_model_2001()->void:
 
 func effect_20510_3()->void:
 	var discard = DataManager.get_env_str("目标项")
-	ske.cost_war_cd(3)
+	perform_cost()
 	ske.add_war_skill(me.get_leader().actorId, TARGET_SKILL, 2)
 	if discard != "":
 		ske.ban_war_skill(actorId, discard, 99999)
@@ -91,4 +91,8 @@ func effect_20510_3()->void:
 			actor.get_name(), discard,
 		])
 	play_dialog(actorId, msg, 2, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(3)
 	return

@@ -19,7 +19,7 @@ func on_view_model_2000():
 
 func effect_20461_2():
 	ske.set_war_skill_val(1, 99999)
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.change_actor_ap(actorId, BUFF_AP, false)
 	ske.set_war_buff(actorId, "围困", 30)
 	for targetId in get_teammate_targets(me, 999):
@@ -38,4 +38,8 @@ func effect_20461_2():
 
 func on_view_model_2001():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：windows/war_map.gd
-# 说明：战争地图 UI。战争地图的显示与交互。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Control
 
 const MASK_COLOR = "#60F00000"
@@ -33,6 +26,11 @@ var observerId: int = - 1
 var blockInfo: Dictionary = {}
 
 
+var originalBlockInfo: Dictionary = {}
+
+var builds_position: Dictionary = {}
+
+
 onready var dic_actor_layer = {
 	"战斗区": get_node("view/actor_battle_layer"), 
 	"NPC区": get_node("view/actor_npc_layer"), 
@@ -40,8 +38,6 @@ onready var dic_actor_layer = {
 onready var fog = get_node("view/fog");
 onready var build_layer = get_node("view/build_layer");
 onready var cursor = get_node("view/top/cursor");
-
-export var builds_position = {}
 
 export var cursor_position: Vector2 = Vector2(18, 8);
 export var camer_position: Vector2 = Vector2(10, 3);
@@ -74,6 +70,11 @@ var aStar: AStar2D
 
 var apActorId = - 1
 
+
+var _rect_tips_queue: Dictionary = {}
+
+var _rect_tips_playing: Dictionary = {}
+
 func set_save_cursor_position(v: Vector2):
 	DataManager.set_env("光标位置", {
 		"x": v.x, 
@@ -105,6 +106,8 @@ func get_save_carmer_position() -> Vector2:
 func _ready() -> void :
 
 	warStatus.visible = false
+	DataManager.connect("soldier_damaged", self, "_on_soldier_damaged")
+	DataManager.connect("hp_damaged", self, "_on_hp_damaged")
 	
 	map_data = StaticManager.get_war_map_data(cityId())
 
@@ -147,6 +150,7 @@ func init_map():
 	Global.clearNode(mapB)
 	Global.clearNode(build_layer)
 	blockInfo.clear()
+	originalBlockInfo.clear()
 	door_position = []
 
 	var mapData = get_map_data()
@@ -223,8 +227,17 @@ func get_position_by_buildCN(build_name: String) -> Vector2:
 	return Vector2( - 1, - 1);
 
 
-func get_blockCN_by_position(pos: Vector2) -> String:
+func get_blockCN_by_position(pos: Vector2, original: bool = false) -> String:
 	pos = Vector2(int(pos.x), int(pos.y))
+	if not is_valid_position(pos):
+		return ""
+	if original:
+		if not pos in originalBlockInfo:
+			var block = map_data[pos.y * cell_columns + pos.x]
+			block = block.split("_")[0]
+			block = get_blockCN_by_EN(block)
+			originalBlockInfo[pos] = block
+		return originalBlockInfo[pos]
 	if not "A" in blockInfo:
 		return ""
 	if not pos in blockInfo["A"]:
@@ -779,6 +792,25 @@ func _create_or_update_actor(wa: War_Actor) -> Control:
 
 func get_actor_rect(actorId: int) -> Control:
 	return dic_actor_layer["战斗区"].get_node_or_null(str(actorId))
+
+func _on_soldier_damaged(targetId: int, damage: int) -> void :
+	_enqueue_rect_tip(targetId, "兵-" + str(damage), Color.yellow)
+	return
+
+func _on_hp_damaged(targetId: int, damage: int) -> void :
+	_enqueue_rect_tip(targetId, "体-" + str(damage), Color.yellow)
+	return
+
+func _enqueue_rect_tip(actorId: int, text: String, color: Color) -> void :
+	var rect = get_actor_rect(actorId)
+	if rect == null:
+		return
+	if not actorId in _rect_tips_queue:
+		_rect_tips_queue[actorId] = []
+	_rect_tips_queue[actorId].append({"text": text, "color": color})
+	if not actorId in _rect_tips_playing:
+		_play_next_rect_tip(actorId)
+	return
 
 
 func _create_or_update_npc(wa: War_Neutralor):
@@ -1350,3 +1382,45 @@ remote func _rpc_show_ap(ap: int):
 
 
 
+
+func _play_next_rect_tip(actorId: int) -> void :
+	if not actorId in _rect_tips_queue or _rect_tips_queue[actorId].empty():
+		_rect_tips_queue.erase(actorId)
+		_rect_tips_playing.erase(actorId)
+		return
+	_rect_tips_playing[actorId] = true
+	var tip = _rect_tips_queue[actorId].pop_front()
+	var rect = get_actor_rect(actorId)
+	if rect == null:
+		_rect_tips_queue.erase(actorId)
+		_rect_tips_playing.erase(actorId)
+		return
+	show_rect_tips(rect, tip["text"], tip["color"], actorId)
+	return
+
+func show_rect_tips(rect: Control, text: String, color: Color = Color.red, actorId: int = - 1) -> void :
+	var font = load("res://resource/font/FandolSong-Bold/25_outline.tres")
+	var lbl = Label.new()
+	lbl.text = text
+	lbl.add_color_override("font_color", color)
+	lbl.add_font_override("font", font)
+	var bg = StyleBoxFlat.new()
+	bg.bg_color = Color(0, 0, 0, 0.3)
+	bg.content_margin_left = 2
+	bg.content_margin_right = 2
+	lbl.add_stylebox_override("normal", bg)
+	lbl.rect_scale = Vector2(0.8, 0.8)
+	lbl.rect_position = rect.rect_position
+	lbl.rect_position.x += 0
+	lbl.align = Label.ALIGN_CENTER
+	lbl.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	lbl.rect_min_size = Vector2(60, 0)
+	view.add_child(lbl)
+	var tween = get_tree().create_tween()
+	var duration = 0.5 * Engine.time_scale
+	tween.tween_property(lbl, "rect_position:y", rect.rect_position.y - 32, duration).set_trans(Tween.TRANS_SINE)
+	tween.parallel().tween_property(lbl, "modulate:a", 0.0, duration).set_delay(duration * 0.5)
+	tween.tween_callback(lbl, "queue_free")
+	if actorId >= 0:
+		tween.tween_callback(self, "_play_next_rect_tip", [actorId])
+	return

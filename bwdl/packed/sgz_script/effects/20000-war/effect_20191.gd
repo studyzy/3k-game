@@ -88,8 +88,7 @@ func effect_20191_4():
 	var targetId = get_env_int("目标")
 	var targetPos = DataManager.get_target_position()
 	
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.change_war_actor_position(targetId, targetPos)
 	ske.war_report()
 	
@@ -97,4 +96,9 @@ func effect_20191_4():
 		DataManager.get_actor_honored_title(targetId, me.actorId)
 	])
 	play_dialog(actorId, msg, 2, 2009)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

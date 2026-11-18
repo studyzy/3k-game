@@ -50,8 +50,7 @@ func effect_20228_2():
 	var damage = se.get_soldier_damage_for(ske.actorId)
 	var recover = int(damage / 2)
 
-	ske.cost_ap(COST_AP)
-	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, COST_FLAG)
+	perform_cost()
 	ske.change_actor_exp(ske.skill_actorId, EXP_GAIN)
 	ske.change_actor_soldiers(ske.actorId, recover)
 	var msg = "{0}稍安\n士卒之伤可解".format([
@@ -91,3 +90,8 @@ func check_trigger_correct()->bool:
 	if me.action_point < COST_AP:
 		return false
 	return true
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP)
+	ske.cost_skill_flags(FLAG_SCENE_ID, FLAG_ID, FLAG_NAME, COST_FLAG)
+	return

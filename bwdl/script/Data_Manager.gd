@@ -1,15 +1,10 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/Data_Manager.gd
-# 说明：全局数据管理（自动加载单例，最核心）。负责 mod 加载/解密、存档读写、全局环境变量、数据修复与追踪。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Node
 
-# 游戏版本与联系方式
-const DISPLAY_VERSION = "2.540"
-const VERSION = "2.540"
+signal soldier_damaged(targetId, damage)
+signal hp_damaged(targetId, damage)
+
+const DISPLAY_VERSION = "2.560"
+const VERSION = "2.560"
 const DEFAULT_CONTACT = "(28群)1025656970"
 
 
@@ -17,7 +12,6 @@ const DEFAULT_CONTACT = "(28群)1025656970"
 
 
 
-# 存档兼容版本号
 const COMPABILITY = 2
 
 
@@ -25,10 +19,8 @@ const COMPABILITY = 2
 
 
 
-# 是否允许存档
 var game_saving_enabled = true
 
-# 默认 mod 路径（mod 目录 = resource/ 下的数据与 sgz_script 脚本）
 const DEFAULT_MOD_PATH = "res://resource/"
 
 var debug_info = {}
@@ -64,7 +56,6 @@ var test_content: String = ""
 
 
 
-# 当前 mod 路径 / 剧本路径 / mod 信息 / mod 中文名
 var mod_path = "";
 var drama_path = "";
 var mod;
@@ -1000,7 +991,23 @@ func get_battle_unit_by_position(position: Vector2) -> Battle_Unit:
 		if int(round(unit.unit_position.x)) == position.x\
 		and int(round(unit.unit_position.y)) == position.y:
 			return unit;
-	return null;
+	return null
+
+
+
+
+
+
+func war_damage_hp(fromId: int, targetId: int, damage: int) -> int:
+	if damage <= 0:
+		return 0
+	var target = DataManager.get_war_actor(targetId)
+	if target == null:
+		return 0
+	target.actor().set_hp(target.actor().get_hp() - damage)
+	if get_current_scene_id() == 20000:
+		emit_signal("hp_damaged", targetId, damage)
+	return damage
 
 
 
@@ -1021,6 +1028,8 @@ func damage_sodiers(fromId: int, targetId: int, damage: int, expFactor: int = 1)
 	if damage <= 0:
 		return 0
 	target.actor().set_soldiers(current - damage)
+	if get_current_scene_id() == 20000:
+		emit_signal("soldier_damaged", targetId, damage)
 	
 	var wv = target.war_vstate()
 	if wv != null:
@@ -1329,11 +1338,6 @@ func get_common_path():
 	var player_machine_name = OS.get_name();
 	if player_machine_name == "Android":
 		common_save_path = OS.get_system_dir(0) + "/sgz/";
-	elif player_machine_name == "HTML5":
-		# 网页版没有可执行文件目录：web 平台 get_executable_path() 拿不到真实路径
-		#（实测返回页面名，如 index），拼出来的 "index/sgz/" 只是浏览器内存文件系统，刷新即丢。
-		# 改用 user://，Godot 3 web 会把它映射到 IDBFS(/userfs)，持久化进浏览器 IndexedDB。
-		common_save_path = "user://sgz/";
 	else:
 		common_save_path = OS.get_executable_path();
 		var index = common_save_path.find_last("/");
@@ -1711,6 +1715,15 @@ func new_war_fight(fromCityId: int, targetCityId: int) -> WarFight:
 	var wf = WarFight.new(fromCityId, targetCityId)
 	
 	for srb in SkillRangeBuff.find_for_vstate("撤退收容", wf.from_city().get_vstate_id()):
+		var c = DataManager.get_office_city_by_actor(srb.actorId)
+		if c == null:
+			continue
+		var extraExtractions = wf.get_env_int_array("额外可撤退城市")
+		extraExtractions.erase(c.ID)
+		extraExtractions.append(c.ID)
+		wf.set_env("额外可撤退城市", extraExtractions)
+	
+	for srb in SkillRangeBuff.find_for_vstate("撤退收容", wf.target_city().get_vstate_id()):
 		var c = DataManager.get_office_city_by_actor(srb.actorId)
 		if c == null:
 			continue

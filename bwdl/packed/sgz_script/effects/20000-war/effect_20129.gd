@@ -39,17 +39,21 @@ func effect_20129_2():
 		play_dialog(actorId, "不可", 3, 2999)
 		return
 
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	actor.set_troops_type(type)
 	var msg = "<y{0}>将军种改为<g{1}>".format([
 		actor.get_name(), actor.get_troops_type(),
 	])
 	ske.append_message(msg)
-	ske.cost_war_limited_times(TIMES_LIMIT)
 	ske.war_report()
 
 	msg = "高山大川，无往不利！\n（已变更为{0}军".format([
 		actor.get_troops_type()
 	])
 	play_dialog(actorId, msg, 1, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_limited_times(TIMES_LIMIT)
 	return

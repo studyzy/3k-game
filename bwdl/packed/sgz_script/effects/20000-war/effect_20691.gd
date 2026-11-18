@@ -52,7 +52,7 @@ func effect_20691_point() -> void:
 	var wa = DataManager.get_war_actor(targetId)
 
 	ske.change_actor_five_phases(targetId, wa.five_phases, 9)
-	ske.cost_war_cd(2)
+	perform_cost()
 	ske.war_report()
 
 	var msg = "义之所在，天可为鉴\n（{0}点数变为 {1}".format([
@@ -66,7 +66,7 @@ func effect_20691_encourage() -> void:
 	var wa = DataManager.get_war_actor(targetId)
 
 	ske.set_war_buff(targetId, "激励", 1)
-	ske.cost_war_cd(2)
+	perform_cost()
 	var ret = ske.reduce_actor_skill_cd(targetId, CD_REDUCE, [20000, 30000, 40000])
 	ske.war_report()
 
@@ -88,4 +88,8 @@ func effect_20691_encourage() -> void:
 		wa.get_name(),
 	])
 	play_dialog(actorId, msg, 2, 2999)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(2)
 	return

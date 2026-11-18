@@ -29,8 +29,7 @@ func effect_20317_start():
 	return
 
 func effect_20317_2():
-	ske.cost_war_cd(5)
-	ske.cost_wv_gold(COST_GOLD)
+	perform_cost()
 	ske.set_war_buff(ske.skill_actorId, "愈合", 3)
 
 	var msg = "稍作医治，回复尚需时日"
@@ -41,4 +40,9 @@ func effect_20317_2():
 
 func effect_20317_3():
 	report_skill_result_message(ske, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(5)
+	ske.cost_wv_gold(COST_GOLD)
 	return

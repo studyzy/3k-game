@@ -129,10 +129,7 @@ func effect_20126_3():
 
 	var cnt = DataManager.get_env_int("数值")
 
-	ske.cost_ap(COST_AP * cnt)
-	var flags = SkillHelper.get_skill_flags_number(20000, EFFECT_ID, self.actorId, FLAG_NAME)
-	flags = max(0, flags - cnt)
-	ske.cost_skill_flags(20000, ske.effect_Id, FLAG_NAME, cnt)
+	perform_cost(cnt)
 	_mark_for_help(actorId, targetId, cnt)
 	ske.war_report()
 
@@ -150,4 +147,9 @@ func effect_20126_3():
 	])
 	me.attach_free_dialog(msg, 2, 20000, targetId)
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost(cnt:int=1) -> void:
+	ske.cost_ap(COST_AP * cnt)
+	ske.cost_skill_flags(20000, ske.effect_Id, FLAG_NAME, cnt)
 	return

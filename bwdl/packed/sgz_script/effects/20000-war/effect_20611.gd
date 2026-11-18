@@ -78,7 +78,7 @@ func effect_20611_anyway() -> void:
 
 	ske.change_actor_hp(wa.actorId, recover)
 	ske.change_actor_hp(actorId, -damage)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.war_report()
 
 	report_skill_result_message(ske, 2003)
@@ -104,4 +104,8 @@ func effect_20611_end() -> void:
 		play_dialog(targetId, msg, 3, 2999)
 		return
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

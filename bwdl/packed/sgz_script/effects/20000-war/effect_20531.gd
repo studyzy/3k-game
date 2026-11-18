@@ -57,7 +57,7 @@ func effect_20531_4() -> void:
 	var wa = DataManager.get_war_actor(targetId)
 	var ap = wa.action_point
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.change_actor_ap(actorId, ap)
 	ske.change_actor_ap(targetId, -ap)
 	me.set_tmp_variable("无视定止", 1)
@@ -78,4 +78,8 @@ func effect_20531_report() -> void:
 
 func on_view_model_2003() -> void:
 	wait_for_pending_message(FLOW_BASE + "_report")
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

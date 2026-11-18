@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/affair/clSearchCommand.gd
-# 说明：「搜索」内政命令。处理搜寻在野人才、招募武将的流程。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Resource
 
 
@@ -12,12 +5,10 @@ extends Resource
 
 class_name SearchCommand
 
-# 势力 / 城市 / 君主 / 执行搜索的武将
 var vstateId: int
 var cityId: int
 var lordId: int
 var fromId: int
-# 搜索结果：1=缴获金 2=捐米 3=捐金 4=得宝 5/6/7=发现武将 8=无果 9=拒绝 10=特殊拒绝
 var result: int
 var gold: int = 0
 var rice: int = 0
@@ -29,16 +20,17 @@ var actorJoin: int = 0
 var actorCost: int = 0
 var mood: int = 0
 
-# 相性距离（决定武将是否愿意加入及初始忠诚度）
+
 var distance: int
 
-# 加入后的忠诚度上下限
+
 var minLoyalty: int = 30
 var maxLoyalty: int = 99
 
+
 var done: int = 0
 
-# 对话序列
+
 var dialogs: Array = []
 
 
@@ -66,16 +58,14 @@ func found_actor() -> ActorHelper.ActorInfo:
 	return ActorHelper.actor(foundActorId)
 
 
-# 决定搜索结果：根据执行武将的「德」「政」查表，再随机取一个结果
 func decide_result() -> int:
 	specifiedFoundActorId = - 1
-	# 默认无果
+	
 	result = 8
 
 	var results = StaticManager.get_search_setting()
 	var actor = actioner()
 	var list = []
-	# 遍历结果表，找到首个「德」「政」均不超过执行武将的档位，取该档的结果列表
 	for r in results:
 		var mor = int(r["德"])
 		var pol = int(r["政"])
@@ -84,13 +74,11 @@ func decide_result() -> int:
 		list.append_array(r["List"])
 		break
 
-	# 随机取一个结果
 	if not list.empty():
 		list.shuffle()
 		result = list[0]
 	if not result in [5, 6, 7]:
 		return result
-	# 结果是「发现武将」时，若城中没有在野武将则换一个非武将类结果
 	var unoffices = clCity.get_unoffice_actors(cityId)
 	if not unoffices.empty():
 		return result
@@ -101,14 +89,13 @@ func decide_result() -> int:
 			continue
 		relist.append(r)
 	if relist.empty():
-		# 没有候选结果则退化为无果
+		
 		result = 3
 	relist.shuffle()
 	result = relist[0]
 	return result
 
 
-# 执行搜索结果：根据 result 结算金/米/宝/武将
 func execute() -> void :
 	gold = 0
 	rice = 0
@@ -175,15 +162,13 @@ func execute() -> void :
 	return
 
 
-# 决定被发现的武将是否加入：
-# 核心依据是「相性距离」(personality_distance)，距离越小越愿意加入、初始忠诚度越高。
 func decide_actor_result():
 	actorJoin = 1
 	actorCost = 0
 
 	var found = found_actor()
 
-	# 若武将厌恶本势力，通常直接拒绝（除非有「解仇」技能）
+	
 	if found.get_dislike_vstate_id() == vstateId:
 		for srb in SkillRangeBuff.find_for_vstate("解仇", vstateId):
 			if srb.effectTagVal > 0:
@@ -215,31 +200,28 @@ func decide_actor_result():
 		clCity.find_new_home(foundActorId)
 		return
 
-	# 武将身价 = (体力 + 武力 + 智力) / 3，决定招募所需花费
+	
 	var actorValue = int((found.get_hp() + found.get_power() + found.get_wisdom()) / 3)
-	# 「唯才是举」技能可无视相性距离
 	if SkillRangeBuff.max_val_for_city("唯才是举", cityId) > 0:
 		distance = 0
 	elif SkillRangeBuff.max_val_for_vstate("唯才是举", vstateId) > 0:
 		distance = 0
 	else:
-		# 取与执行武将、君主两人中更近的相性距离
 		distance = found.personality_distance(actioner())
 		distance = min(distance, found.personality_distance(lord()))
 	if distance == 0:
-		# 相性完全一致：免费加入（甚至可能带钱/宝物来投）
+		
 		result = 6
 		actorJoin = 1
 		actorCost = - actorValue
-		# 20% 概率带来 999 金（等价于宝物）
+		
 		if Global.get_rate_result(20):
 			actorCost = - 999
 	elif distance <= 10:
-		# 相性接近：免费加入
+		
 		result = 5
 		actorCost = 0
 	elif result == 6:
-		# 相性一般：需按身价支付金钱
 		actorJoin = 1
 		
 		actorCost = actorValue
@@ -296,8 +278,6 @@ func decide_actor_result():
 
 
 
-# 根据相性距离决定加入武将的初始忠诚度：
-# 距离越小忠诚越高；距离很大时忠诚上限被压低。
 func decide_loyalty_by_distance() -> void :
 	var msg = "愿效犬马之劳"
 	var mood = 2
@@ -323,7 +303,6 @@ func decide_loyalty_by_distance() -> void :
 	return
 
 
-# 确认武将加入：扣除金钱（或收钱/宝物），把武将转入本城并设置忠诚度
 func accept_actor() -> bool:
 	if done:
 		return false

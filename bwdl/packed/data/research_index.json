@@ -390,6 +390,11 @@
     "file": "people/关索.json"
   },
   {
+    "name": "关统",
+    "category": "people",
+    "file": "people/关统.json"
+  },
+  {
     "name": "关羽",
     "category": "people",
     "file": "people/关羽.json"
@@ -528,6 +533,11 @@
     "name": "刘晔",
     "category": "people",
     "file": "people/刘晔.json"
+  },
+  {
+    "name": "刘桢",
+    "category": "people",
+    "file": "people/刘桢.json"
   },
   {
     "name": "刘氏",
@@ -1660,6 +1670,11 @@
     "file": "people/应劭.json"
   },
   {
+    "name": "应玚",
+    "category": "people",
+    "file": "people/应玚.json"
+  },
+  {
     "name": "庞会",
     "category": "people",
     "file": "people/庞会.json"
@@ -2018,6 +2033,11 @@
     "name": "徐宣",
     "category": "people",
     "file": "people/徐宣.json"
+  },
+  {
+    "name": "徐幹",
+    "category": "people",
+    "file": "people/徐幹.json"
   },
   {
     "name": "徐庶",
@@ -4405,6 +4425,11 @@
     "file": "people/阚泽.json"
   },
   {
+    "name": "阮瑀",
+    "category": "people",
+    "file": "people/阮瑀.json"
+  },
+  {
     "name": "阮籍",
     "category": "people",
     "file": "people/阮籍.json"
@@ -5018,6 +5043,11 @@
     "name": "黄琬",
     "category": "people",
     "file": "people/黄琬.json"
+  },
+  {
+    "name": "黄皓",
+    "category": "people",
+    "file": "people/黄皓.json"
   },
   {
     "name": "黄盖",

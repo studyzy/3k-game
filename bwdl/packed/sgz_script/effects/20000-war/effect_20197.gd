@@ -57,8 +57,7 @@ func on_view_model_2002():
 func effect_20197_4():
 	var targetId = get_env_int("目标")
 
-	ske.cost_war_cd(99999)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.swap_war_actor_positions(me.actorId, targetId)
 	ske.set_war_buff(me.actorId, "定止", 1)
 
@@ -71,4 +70,9 @@ func on_view_model_2003():
 
 func effect_20197_5():
 	report_skill_result_message(ske, 2003)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
+	ske.cost_ap(COST_AP, true)
 	return

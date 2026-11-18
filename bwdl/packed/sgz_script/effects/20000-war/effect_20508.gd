@@ -33,8 +33,7 @@ func effect_20508_go()->void:
 
 	var msg = "太玄在上，如律令敕！"
 
-	ske.cost_ap(COST_AP, true)
-	ske.cost_war_cd(99999)
+	perform_cost()
 
 	for item in target.actor().get_equip_feature_all("仙术无效"):
 		if item[1] > 0:
@@ -68,4 +67,9 @@ func effect_20508_go()->void:
 
 func on_view_model_2999()->void:
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(99999)
 	return

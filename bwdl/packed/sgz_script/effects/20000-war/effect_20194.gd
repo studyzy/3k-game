@@ -82,7 +82,7 @@ func effect_20194_4():
 	var targetId = get_env_int("战争.挑衅目标")
 	var withId = get_env_int("战争.挑衅队友")
 
-	ske.cost_war_cd(1)
+	perform_cost()
 
 	var msg = "{0}，可敢与{1}一战".format([
 		DataManager.get_actor_naughty_title(targetId, me.actorId),
@@ -131,4 +131,8 @@ func effect_20194_7():
 
 func effect_20194_8():
 	report_skill_result_message(ske, 2005)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

@@ -64,7 +64,7 @@ func effect_20657_confirmed() -> void:
 	ske.set_war_buff(targetId, "围困", 10)
 	for skillName in SkillHelper.get_actor_skill_names(actorId):
 		ske.ban_war_skill(actorId, skillName, 99999)
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.war_report()
 
 	var msg = "主公大业，尚赖{0}\n今陷重围，但决死杀敌\n勿以{1}为念，休得两误！"
@@ -83,4 +83,8 @@ func on_view_model_2002() -> void:
 
 func effect_20657_report() -> void:
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

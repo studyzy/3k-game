@@ -71,7 +71,7 @@ func effect_20543_2() -> void:
 		history.append(skill)
 	if selected.size() == 1:
 		cd = 1
-	ske.cost_war_cd(cd)
+	perform_cost(cd)
 	ske.set_war_skill_val(history)
 	ske.war_report()
 
@@ -87,3 +87,7 @@ func _set_selected_skills(skills:Array)->void:
 func _get_selected_skills()->Array:
 	var key = "战争.退雄.{0}".format([actorId])
 	return DataManager.get_env_array(key)
+
+func perform_cost(cd:int=1) -> void:
+	ske.cost_war_cd(cd)
+	return

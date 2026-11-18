@@ -47,7 +47,7 @@ func effect_20710_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
 	var diff = me.action_point - targetWA.action_point
-	ske.cost_war_cd(2)
+	perform_cost()
 	ske.set_actor_extra_max_hp(actorId, -abs(diff), 10, true)
 	ske.change_actor_ap(actorId, -diff)
 	ske.change_actor_ap(targetId, diff)
@@ -61,4 +61,8 @@ func on_view_model_2002() -> void:
 
 func effect_20710_report() -> void:
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(2)
 	return

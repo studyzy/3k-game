@@ -47,7 +47,7 @@ func effect_20282_3():
 	var targetWA = DataManager.get_war_actor(targetId)
 	var targetActor = ActorHelper.actor(targetId)
 
-	ske.cost_war_cd(99999)
+	perform_cost()
 	ske.set_actor_extra_ap_limit(actorId, -COST_MAX_AP)
 	ske.set_war_buff(targetId, "中毒", BUFF_TURNS)
 
@@ -59,4 +59,8 @@ func effect_20282_3():
 
 func effect_20282_4():
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

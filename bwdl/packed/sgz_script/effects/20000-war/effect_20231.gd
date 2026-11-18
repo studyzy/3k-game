@@ -158,8 +158,7 @@ func _perform_skill(isAI:bool, nextViewModel:int=-1)->void:
 	var se = DataManager.get_current_stratagem_execution()
 	var targetWA = DataManager.get_war_actor(se.targetId)
 	
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.war_report()
 
 	var targets = se.get_affected_actors(targetWA.position)
@@ -171,4 +170,9 @@ func _perform_skill(isAI:bool, nextViewModel:int=-1)->void:
 		return
 
 	ske.play_se_animation(se, nextViewModel, "", 0)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

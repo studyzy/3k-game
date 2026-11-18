@@ -85,7 +85,7 @@ func effect_20410_4():
 	var cost = min(troops, COST_TROOPS)
 	var remaining = cost
 	var costed = 0
-	ske.cost_war_cd(4)
+	perform_cost()
 	while not selected.empty() and remaining > 0:
 		var recover = int(ceil(remaining * 1.0 / selected.size()))
 		recover = min(500, recover)
@@ -107,6 +107,10 @@ func on_view_model_2002():
 
 func effect_20410_5():
 	report_skill_result_message(ske, 2002)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(4)
 	return
 
 func _update_select_color(targetIds:PoolIntArray) -> void:

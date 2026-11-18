@@ -53,7 +53,7 @@ func effect_20498_go()->void:
 		ske.set_war_buff(teammate.actorId, "禁止攻击用计", 1)
 	# 记录 buff
 	ske.set_war_skill_val([wa.actorId, mainAttr, diff], 1)
-	ske.cost_war_cd(1)
+	perform_cost()
 	ske.war_report()
 	var msg = "{0}之{1}，当冠世之懿\n（本回合，{2}的{1}提升至{3}\n（其他武将不可用计/攻击".format([
 		DataManager.get_actor_honored_title(wa.actorId, actorId),
@@ -64,4 +64,8 @@ func effect_20498_go()->void:
 
 func on_view_model_2999()->void:
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
 	return

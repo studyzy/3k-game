@@ -57,7 +57,7 @@ func effect_20254_2():
 	var se = DataManager.get_current_stratagem_execution()
 	var extra = int(ceil(se.cost * 3 / 10.0))
 
-	ske.cost_ap(extra)
+	perform_cost()
 	ske.set_war_skill_val(1, 1)
 	se.goback_disabled = 1
 	ske.war_report()
@@ -81,3 +81,7 @@ func get_cost_ap()->int:
 	var se = DataManager.get_current_stratagem_execution()
 	var extra = int(ceil(se.cost * 3 / 10.0))
 	return extra
+
+func perform_cost() -> void:
+	ske.cost_ap(get_cost_ap())
+	return

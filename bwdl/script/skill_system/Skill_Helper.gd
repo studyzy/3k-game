@@ -1,10 +1,3 @@
-# ==============================================================================
-# 霸王的大陆（三国志2 复刻版）- 反编译工程
-# 文件：script/skill_system/Skill_Helper.gd
-# 说明：技能辅助（自动加载，核心）。负责技能触发判定、Buff 更新等技能系统调度。
-# 注：本文件由 GDRETools 从原版 APK 反编译而来，注释为后续添加，仅供学习研究。
-# ==============================================================================
-
 extends Node
 
 
@@ -1391,6 +1384,7 @@ func _ensure_flags(actorId: int, flagName: String, cnt: int = 100) -> void :
 		"起": {"effectId": 20150}, 
 		"备": {"effectId": 10025}, 
 		"士": {"effectId": 10068}, 
+		"策": {"effectId": 20126}, 
 	}
 	if not flagName in flags:
 		return
@@ -1425,9 +1419,11 @@ func _stop_battle_enemy(actorId: int) -> void :
 	return
 
 
-func update_all_skill_buff(source: String = ""):
+func update_all_skill_buff(source: String = "", specifiedSceneId: int = - 1):
 	DataManager.game_trace("")
 	var sceneId = DataManager.get_current_scene_id()
+	if sceneId == 0 and specifiedSceneId > 0:
+		sceneId = specifiedSceneId
 	clear_instant_range_buff()
 	if sceneId == 10000:
 		for city in clCity.all_cities():
@@ -1598,17 +1594,17 @@ func skill_testing_inject_before(actor: ActorHelper.ActorInfo, found: PoolString
 		return ret
 	
 	var TESTING_INJECTION = {
-		"张角": ["荐书"], 
-		"阎圃": ["质盟", "讨州"], 
-		"孙峻": ["时乎"], 
+		"陈震": ["运粮"], 
+		"刘备": ["猇烬", "摧克"], 
+		"吕旷": ["招架"], 
 	}
 	for name in TESTING_INJECTION:
 		if name != actor.get_name():
 			continue
 		
 		
-		actor.set_moral(99)
-		_ensure_flags(actor.actorId, "士", 400)
+		
+		_ensure_flags(actor.actorId, "士\t", 400)
 		actor.set_gender("女")
 		
 		

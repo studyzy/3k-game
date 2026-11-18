@@ -25,7 +25,7 @@ func on_view_model_2000() -> void:
 	return
 
 func effect_20573_confirmed() -> void:
-	ske.cost_war_cd(99999)
+	perform_cost()
 	for skillName in TARGET_SKILLS:
 		ske.add_war_skill(actorId, skillName, 1)
 	ske.war_report()
@@ -40,4 +40,8 @@ func on_view_model_2001() -> void:
 
 func effect_20573_report() -> void:
 	report_skill_result_message(ske, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(99999)
 	return

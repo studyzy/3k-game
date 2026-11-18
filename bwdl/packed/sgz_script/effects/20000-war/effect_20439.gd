@@ -42,7 +42,7 @@ func effect_20439_3():
 	var targetActor = ActorHelper.actor(targetId)
 
 	# 谁占便宜了？
-	ske.cost_war_cd(COST_CD)
+	perform_cost()
 	ske.change_actor_ap(targetId, GRANT_AP)
 	ske.war_report()
 
@@ -54,4 +54,8 @@ func effect_20439_3():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(COST_CD)
 	return

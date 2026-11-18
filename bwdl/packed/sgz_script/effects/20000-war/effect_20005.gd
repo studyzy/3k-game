@@ -45,8 +45,8 @@ func on_view_model_2001():
 
 func effect_20005_3():
 	var se = DataManager.get_current_stratagem_execution()
-	
-	ske.cost_ap(get_cost_ap(), true)
+
+	perform_cost()
 
 	se.set_target(get_env_int("目标"))
 	var rate = se.get_rate([se.targetId])
@@ -101,4 +101,8 @@ func on_view_model_2003() -> void:
 func effect_20005_cancel() -> void:
 	skill_end_clear()
 	FlowManager.add_flow("player_skill_end_trigger")
+	return
+
+func perform_cost() -> void:
+	ske.cost_ap(get_cost_ap(), true)
 	return

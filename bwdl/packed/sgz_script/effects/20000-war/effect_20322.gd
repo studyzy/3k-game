@@ -69,8 +69,7 @@ func effect_20322_4():
 	var ap = int(int(chosen[1]) * 2 / 3)
 	var targetId = get_env_int("目标")
 	
-	ske.cost_war_cd(1)
-	ske.cost_ap(ap, true)
+	perform_cost(ap)
 	_mark_scheme(me, targetId, schemeName)
 	var msg = "{0}不难破也\n{1}留心，只须如此…".format([
 		schemeName,
@@ -104,4 +103,9 @@ func _mark_scheme(me:War_Actor, targetId:int, schemeName:String):
 		turns = 2
 	ske.set_war_skill_val(marked, turns, PASSIVE_EFFECT_ID, targetId)
 	ske.set_war_buff(targetId, "计防", 1)
+	return
+
+func perform_cost(ap:int=0) -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(ap, true)
 	return

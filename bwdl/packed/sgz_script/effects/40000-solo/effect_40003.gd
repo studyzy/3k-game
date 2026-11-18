@@ -8,7 +8,7 @@ const COST_HP = 20
 func on_trigger_40003()->bool:
 	var extraMsgs = DataManager.get_env_array("单挑.补充信息")
 	var damage = DataManager.get_env_int("单挑.伤害数值")
-	if actor.get_hp() > 60:
+	if actor.get_hp() > 60 and damage > COST_HP:
 		actor.set_hp(actor.get_hp() - COST_HP)
 		DataManager.set_env("单挑.伤害数值", 0)
 		var msg = "{0}【{1}】消耗{2}体格挡".format([

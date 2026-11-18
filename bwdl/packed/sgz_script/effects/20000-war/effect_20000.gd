@@ -116,48 +116,70 @@ func wait_choose_actors(targets:PoolIntArray, msg:String="对何人发动{0}?",t
 	return true
 
 #对目标执行什么效果
-func choose_actor_then(targetId:int, nextFlow:String):
-	var targetActor = ActorHelper.actor(targetId)
+func choose_actor_then(targetId:int, nextFlow:String, canBack:bool=false, backFlow:String="") -> bool:
+	var target = DataManager.get_war_actor(targetId)
+	if target == null:
+		return false
 	# 谦逊比较特别，直接判断了
-	if actor.get_wisdom() < 90:
-		if SkillHelper.actor_has_skills(targetId, ["谦逊"], false):
+	if actor.get_wisdom() < 98:
+		if SkillHelper.actor_has_skills(target.actorId, ["谦逊"], false):
 			var msg = "君子之道，思危，思退\n（{0}【谦逊】\n（规避{1}的【{2}】".format([
-				targetActor.get_name(), actor.get_name(), ske.skill_name,
+				target.get_name(), actor.get_name(), ske.skill_name,
 			])
-			LoadControl._error(msg, targetId)
+			perform_cost()
+			ske.append_message("技能被<y{0}><r【谦逊】>规避".format([target.get_name()]))
+			ske.war_report()
+			skill_end_clear()
+			LoadControl._error(msg, target.actorId)
 			return false
 	# 秀慧也直接判断了
-	if actor.get_moral() < targetActor.get_moral():
+	if actor.get_moral() < target.actor().get_moral():
 		if ske.effect_type == "主动" and SkillHelper.actor_has_skills(targetId, ["秀慧"], false):
 			var msg = "卿何人，勿预也\n（{0}【秀慧】\n（规避{1}的【{2}】".format([
-				targetActor.get_name(), actor.get_name(), ske.skill_name,
+				target.get_name(), actor.get_name(), ske.skill_name,
 			])
+			if canBack and backFlow != "":
+				DataManager.set_env("战争.临时步骤", backFlow)
+				play_dialog(target.actorId, msg, 2, 2980)
+				return false
 			LoadControl._error(msg, targetId)
 			return false
-	if actor.get_moral() <= targetActor.get_moral() - 20:
+	if actor.get_moral() <= target.actor().get_moral() - 20:
 		if SkillHelper.actor_has_skills(targetId, ["气狭"], false):
 			var msg = "{0}何人也，不足与论！\n（{1}【气狭】\n（规避{2}的【{3}】".format([
 				DataManager.get_actor_naughty_title(actorId, targetId),
-				targetActor.get_name(), actor.get_name(), ske.skill_name,
+				target.get_name(), actor.get_name(), ske.skill_name,
 			])
+			if canBack and backFlow != "":
+				DataManager.set_env("战争.临时步骤", backFlow)
+				play_dialog(target.actorId, msg, 2, 2980)
+				return false
 			LoadControl._error(msg, targetId)
 			return false
-	if targetActor.get_moral() <= actor.get_moral() - 20:
+	if target.actor().get_moral() <= actor.get_moral() - 20:
 		if SkillHelper.actor_has_skills(actorId, ["气狭"], false):
 			var msg = "{0}何人也，目无此人！\n（{1}【气狭】\n（无法对{2}发动技能".format([
 				DataManager.get_actor_naughty_title(targetId, actorId),
-				actor.get_name(), targetActor.get_name(),
+				actor.get_name(), target.get_name(),
 			])
+			if canBack and backFlow != "":
+				DataManager.set_env("战争.临时步骤", backFlow)
+				play_dialog(target.actorId, msg, 2, 2980)
+				return false
 			LoadControl._error(msg, actorId)
 			return false
-	if require_target_male() and not targetActor.is_male():
+	if require_target_male() and not target.actor().is_male():
 		var msg = "红粉骷髅，何惑于我"
+		if canBack and backFlow != "":
+			DataManager.set_env("战争.临时步骤", backFlow)
+			play_dialog(target.actorId, msg, 2, 2980)
+			return false
 		LoadControl._error(msg, targetId)
 		return false
 
 	ske.targetId = targetId
 	FlowManager.add_flow(nextFlow)
-	return
+	return true
 
 #默认可选距离6
 func get_choose_distance()->int:
@@ -199,12 +221,13 @@ func back_to_skill_menu():
 	return
 
 # 信息发动后的结果确认
-func wait_for_skill_result_confirmation(nextFlow:String="player_skill_end_trigger"):
+func wait_for_skill_result_confirmation(nextFlow:String="player_skill_end_trigger") -> bool:
 	if Global.wait_for_confirmation(nextFlow):
 		map.clear_can_choose_actors()
 		if nextFlow == "":
 			LoadControl.end_script()
-	return
+		return true
+	return false
 
 # 发动主动技时，等待数值输入
 func wait_for_number_input(nextFlow:String, allowZero:bool=false):
@@ -327,7 +350,7 @@ func wait_for_choose_actor(nextFlow:String, isActiveSkill:bool=true, canBack:boo
 	map.draw_outline_by_range(Vector2.ZERO, 0)
 	LoadControl.set_view_model(-1)
 	set_env("目标", targets[index])
-	choose_actor_then(targets[index], nextFlow)
+	choose_actor_then(targets[index], nextFlow, canBack, backFlow)
 	return
 
 # 选择目标位置，支持主动技和诱发计
@@ -1170,6 +1193,14 @@ func on_view_model_2888()->void:
 	wait_for_skill_result_confirmation()
 	return
 
+
+# 默认的 2980 view model，选人被中断，确认对话并继续指定的临时步骤
+func on_view_model_2980()->void:
+	var backFlow = DataManager.get_env_str("战争.临时步骤")
+	if wait_for_skill_result_confirmation(backFlow):
+		DataManager.unset_env("战争.临时步骤")
+	return
+
 # 默认的 2990 view model，确认对话并结束被动技
 func on_view_model_2990()->void:
 	wait_for_skill_result_confirmation("")
@@ -1186,4 +1217,9 @@ func cancel_attack() -> void:
 		st.next_flow = "attack_cancelled"
 	map.draw_actors()
 	bf.skip_execution(actorId, ske.skill_name)
+	return
+
+# 发动代价统一扣减
+# 抽离出来是为了支持「视为已发动」类效果
+func perform_cost() -> void:
 	return

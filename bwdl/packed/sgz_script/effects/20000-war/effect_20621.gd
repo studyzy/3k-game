@@ -47,9 +47,8 @@ func on_view_model_2001() -> void:
 func effect_20621_confirmed() -> void:
 	var targetId = DataManager.get_env_int("目标")
 
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.set_war_skill_val(targetId)
-	ske.cost_war_cd(1)
 	ske.war_report()
 
 	var msg = "{0}侧后，{1}自当之".format([
@@ -69,3 +68,8 @@ func _get_marked_actor_id() -> int:
 	if not me.is_teammate(wa):
 		return -1
 	return targetId
+
+func perform_cost() -> void:
+	ske.cost_ap(COST_AP, true)
+	ske.cost_war_cd(1)
+	return

@@ -36,8 +36,7 @@ func on_view_model_2001():
 func effect_20467_3():
 	var targetId = DataManager.get_env_int("目标")
 	var targetWA = DataManager.get_war_actor(targetId)
-	ske.cost_war_cd(1)
-	ske.cost_ap(COST_AP, true)
+	perform_cost()
 	ske.change_actor_five_phases(targetId, targetWA.five_phases, -1)
 	var msg = "{0}其人，当善察所行\n（{1}点数变为{2}".format([
 		DataManager.get_actor_honored_title(targetId, actorId),
@@ -56,4 +55,9 @@ func effect_20467_3():
 
 func on_view_model_2999():
 	wait_for_skill_result_confirmation()
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(1)
+	ske.cost_ap(COST_AP, true)
 	return

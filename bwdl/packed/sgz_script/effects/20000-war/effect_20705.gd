@@ -18,7 +18,7 @@ func on_view_model_2000() -> void:
 func effect_20705_confirmed() -> void:
 	var isLeader = me.get_main_actor_id() == actorId
 	var isLord = me.get_lord_id() == actorId
-	ske.cost_war_cd(2)
+	perform_cost()
 	var skills = []
 	for skill in StaticManager.get_all_possible_skills(actorId).values():
 		if not isLeader and skill.has_feature("主将"):
@@ -50,4 +50,8 @@ func on_view_model_2001() -> void:
 
 func effect_20705_report() -> void:
 	report_skill_result_message(ske, 2001)
+	return
+
+func perform_cost() -> void:
+	ske.cost_war_cd(2)
 	return
