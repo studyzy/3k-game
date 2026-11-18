@@ -317,11 +317,12 @@ anchor_bottom = 0.0
 margin_left = 389.0
 margin_top = 339.0
 margin_right = 629.0
-margin_bottom = 477.0
+; 修改：AI Agent 接入——新增「大模型」难度，容器加高 50 以容纳第 3 行
+margin_bottom = 527.0
 columns = 2
 h_separation = 160
 v_separation = 50
-items = [ "简单", "困难", "究极", "挑战" ]
+items = [ "简单", "困难", "究极", "挑战", "大模型" ]
 font_color = Color( 1, 1, 1, 1 )
 
 [node name="game_model" type="Control" parent="3"]

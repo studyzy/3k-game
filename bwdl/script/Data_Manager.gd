@@ -102,6 +102,9 @@ var steeds: Array = [];
 
 var diffculities: int = 0;
 
+# 修改：AI Agent 接入——仅「大模型」难度为 true，控制战争层是否使用远程决策器
+var ai_agent_mode: bool = false;
+
 var game_mode: int = 0;
 
 var game_mode2: int = 0;
@@ -387,6 +390,8 @@ func get_save_data() -> Dictionary:
 	save_dit["steeds"] = steeds.duplicate(true)
 
 	save_dit["diffculities"] = diffculities
+	# 修改：AI Agent 接入——大模型难度标记随存档持久化
+	save_dit["ai_agent_mode"] = ai_agent_mode
 	save_dit["year"] = year
 	save_dit["month"] = month
 	save_dit["vstates_sort"] = vstates_sort.duplicate(true)
@@ -557,6 +562,8 @@ func set_save_data(_load_dit: Dictionary):
 		endless_mode = load_dit["endless_model"];
 		EndlessGame.set_data(load_dit["endless_data"]);
 	diffculities = load_dit["diffculities"];
+	# 修改：AI Agent 接入——兼容没有该字段的旧存档（默认关闭）
+	ai_agent_mode = bool(load_dit["ai_agent_mode"]) if load_dit.has("ai_agent_mode") else false;
 	year = int(load_dit["year"]);
 	month = int(load_dit["month"]);
 	vstates_sort = Array(PoolIntArray(load_dit["vstates_sort"]));

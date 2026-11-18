@@ -37,7 +37,19 @@ Thumbs.db
 *.tmp
 .workbuddy/
 
+# AI Agent 服务（Node 依赖与 npm 缓存，不入库）
+agent-service/node_modules/
+.npm-cache/
+# 测试时从 bwdl/ 复制的真实脚本副本（不入库，避免漂移）
+agent-service/gdharness/ai/
+
+# 本地下载的 Godot 3.6.3 headless 校验二进制（31MB，不入库）
+.tools/
+
 # Python 缓存与生成预览
 __pycache__/
 *.pyc
 tools/avatar_gen/preview/
+# Agent 服务本机密钥与临时探针（不入库）
+agent-service/.env
+agent-service/.tools/

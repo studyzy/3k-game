@@ -1,0 +1,15 @@
+; 隔离的 Godot 3.6 工程：仅用于运行时校验 AI Agent 的 GDScript 数据契约
+config_version=4
+
+[application]
+config/name="AI Agent GDScript Harness"
+run/main_scene="res://Main.tscn"
+config/features=PackedStringArray("3.6")
+
+[autoload]
+DataManager="*res://stubs/DataManager.gd"
+Global="*res://stubs/Global.gd"
+SceneManager="*res://stubs/SceneManager.gd"
+FlowManager="*res://stubs/FlowManager.gd"
+StaticManager="*res://stubs/StaticManager.gd"
+SkillHelper="*res://stubs/SkillHelper.gd"
