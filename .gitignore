@@ -58,3 +58,16 @@ tools/avatar_gen/preview/
 # Agent 服务本机密钥与临时探针（不入库）
 agent-service/.env
 agent-service/.tools/
+
+# 服务端预编译二进制（本机 x64 构建产物，由源码 make 构建，不入库）
+server/bin/
+
+# 测试报告生成产物（GDUnit 每次运行的 HTML/XML 报告，不入库）
+reports/
+
+# 反编译出来的 Godot 二进制资源副本（*.translation 为 RSRC 二进制，随 bwdl/ 工程走）
+data/
+server/data/
+
+# Serena AI 助手本地配置
+.serena/
