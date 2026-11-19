@@ -84,6 +84,13 @@ test("Godot 3.6.3 → HTTP → Agent 服务 全链路契约", async (t) => {
       assert.ok(!(key in payload), `payload 不应包含 ${key}`);
     }
 
+    // 地形投影格式：[x, y, "地形名"]，只列非平原格（FakeMap 里定义了 3 个非平原格）
+    assert.deepEqual(req.terrain, [
+      [3, 4, "河流"],
+      [9, 15, "树林"],
+      [10, 15, "米屋"],
+    ], "terrain 只列非平原格，且按行优先（y 小在前）排列");
+
     // Godot 侧 accept_action 结果 → 服务侧 validateAction 同规则
     const accepted = JSON.parse(marker(out, "AI_NORMALIZED"));
     assert.ok(accepted.id, "Godot 侧应接受一个合法动作");

@@ -8,7 +8,7 @@
 // 并发安全：GET pending 与 POST result 可能交错到达。
 // 用「待取列表 + 等待者」双缓冲，保证一个动作只被取走一次。
 import type {
-  LegalAction, PendingAction, PendingResponse, ToolName, ToolResultPayload, TurnRequest,
+  LegalAction, PendingAction, PendingResponse, TerrainCell, ToolName, ToolResultPayload, TurnRequest,
 } from "./types.ts";
 
 export interface ToolOutcome {
@@ -16,7 +16,7 @@ export interface ToolOutcome {
   outcome: string;
   units: Array<Record<string, unknown>>;
   legal_actions: LegalAction[];
-  terrain?: Array<Record<string, unknown>>;
+  terrain?: TerrainCell[];
   economy?: Record<string, unknown>;
 }
 

@@ -6,13 +6,13 @@
 //           await 结果后用最新状态刷新本地视图，loop 继续让 LLM 决策下一个动作。
 // end：唯一终止工具，结束本回合。
 import type { AgentTool } from "@earendil-works/pi-agent-core";
-import type { Budget, LegalAction, ToolName } from "./types.ts";
+import type { Budget, LegalAction, TerrainCell, ToolName } from "./types.ts";
 import type { TurnSession } from "./session.ts";
 import { validateAction } from "./validate.ts";
 
 export interface LiveState {
   units: Array<Record<string, unknown>>;
-  terrain: Array<Record<string, unknown>>;
+  terrain: TerrainCell[];
   economy: Record<string, unknown>;
   legal_actions: LegalAction[];
 }
@@ -112,8 +112,10 @@ export function buildTools(
     },
     execute: async (_id, params) => {
       const [x, y] = params.pos as number[];
-      const rows = live.terrain.filter((t) => Array.isArray(t.pos) && t.pos[0] === x && t.pos[1] === y);
-      return result(rows, { count: rows.length });
+      // 未列出的格子就是平原
+      const row = live.terrain.find((t) => t[0] === x && t[1] === y);
+      const cell: TerrainCell = row ?? [x, y, "平原"];
+      return result(cell, { count: row ? 1 : 0 });
     },
   };
 

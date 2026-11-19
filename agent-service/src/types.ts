@@ -21,6 +21,9 @@ export interface LegalAction {
   rate?: number;
 }
 
+/** 地形格：[x, y, "地形名"]。平原不列出（默认值），米屋/装备店/医馆/太守府 也作为地形名出现。 */
+export type TerrainCell = [number, number, string];
+
 export interface Budget {
   /** 单个回合内最多允许 LLM 发起多少次动作。 */
   max_actions: number;
@@ -47,7 +50,8 @@ export interface TurnRequest {
   diffculities: number;
   session_id?: string;
   units: Array<Record<string, unknown>>;
-  terrain: Array<Record<string, unknown>>;
+  /** 地形：只列非平原格 [x, y, "地形名"]；未列出的格子一律是平原。整局战斗不变，只下发一次。 */
+  terrain: TerrainCell[];
   economy: Record<string, unknown>;
   legal_actions: LegalAction[];
   memory?: Record<string, unknown>;
@@ -66,8 +70,8 @@ export interface ToolResultPayload {
   units: Array<Record<string, unknown>>;
   /** 执行后重算的合法动作。 */
   legal_actions: LegalAction[];
-  /** 可选：地形/经济若有变化一并回传。 */
-  terrain?: Array<Record<string, unknown>>;
+  /** 地形不会随战斗变化，通常不回传。 */
+  terrain?: TerrainCell[];
   economy?: Record<string, unknown>;
 }
 

@@ -51,6 +51,18 @@ function checkActions(actions: unknown, label: string): void {
   }
 }
 
+/** 地形投影格式：[x, y, "地形名"]，只列非平原格（未列出即平原）。 */
+function checkTerrain(terrain: unknown): void {
+  if (!Array.isArray(terrain)) throw new ValidationError("bad_schema", "terrain must be an array");
+  for (const cell of terrain) {
+    if (!Array.isArray(cell) || cell.length !== 3 ||
+        typeof cell[0] !== "number" || typeof cell[1] !== "number" ||
+        typeof cell[2] !== "string" || cell[2].length === 0) {
+      throw new ValidationError("bad_schema", "terrain entries must be [x, y, \"地形名\"]");
+    }
+  }
+}
+
 /** 校验开场请求（一个 AI 回合的初始状态）。 */
 export function validateTurnRequest(body: unknown): TurnRequest {
   if (!isObject(body)) throw new ValidationError("bad_json", "body must be a JSON object");
@@ -59,7 +71,7 @@ export function validateTurnRequest(body: unknown): TurnRequest {
   if (typeof body.turn_key !== "string" || body.turn_key.length === 0) throw new ValidationError("bad_schema", "turn_key required");
   if (typeof body.controlled_vstate_id !== "number") throw new ValidationError("bad_schema", "controlled_vstate_id required");
   if (!Array.isArray(body.units)) throw new ValidationError("bad_schema", "units must be an array");
-  if (!Array.isArray(body.terrain)) throw new ValidationError("bad_schema", "terrain must be an array");
+  checkTerrain(body.terrain);
   if (!isObject(body.economy)) throw new ValidationError("bad_schema", "economy must be an object");
   if (!Array.isArray(body.legal_actions) || body.legal_actions.length === 0) {
     throw new ValidationError("bad_schema", "legal_actions must be a non-empty array");
@@ -83,9 +95,7 @@ export function validateToolResult(body: unknown): {
   if (!Array.isArray(body.units)) throw new ValidationError("bad_schema", "units must be an array");
   if (!Array.isArray(body.legal_actions)) throw new ValidationError("bad_schema", "legal_actions must be an array");
   checkActions(body.legal_actions, "legal_actions");
-  if (body.terrain !== undefined && !Array.isArray(body.terrain)) {
-    throw new ValidationError("bad_schema", "terrain must be an array when present");
-  }
+  if (body.terrain !== undefined) checkTerrain(body.terrain);
   if (body.economy !== undefined && !isObject(body.economy)) {
     throw new ValidationError("bad_schema", "economy must be an object when present");
   }

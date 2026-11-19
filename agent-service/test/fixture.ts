@@ -14,10 +14,10 @@ export function sampleRequest(overrides: Partial<TurnRequest> = {}): TurnRequest
       { id: 13, vstate: 2, pos: [7, 14], ap: 5, poker: 2, soldiers: 800, disabled: false },
       { id: 31, vstate: 1, pos: [9, 15], ap: 6, poker: 2, soldiers: 900, disabled: false },
     ],
+    // 地形只列非平原格：[x, y, "地形名"]
     terrain: [
-      { pos: [8, 14], kind: "plain", move_cost: 1 },
-      { pos: [8, 15], kind: "plain", move_cost: 1 },
-      { pos: [9, 15], kind: "forest", move_cost: 2 },
+      [9, 15, "树林"],
+      [10, 15, "米屋"],
     ],
     economy: { rice: 420, money: 1800, day: 7, max_days: 30, main_city_pos: [3, 9] },
     legal_actions: [

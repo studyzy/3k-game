@@ -4,14 +4,20 @@
 # 说明：全知（不做视野裁剪）但去引擎噪声的状态投影，并生成 legal_actions。
 #       依据设计文档 §3.5 / 附录 B。只投影 war/ 战争层状态，
 #       不发送白兵战 / 内政 / 单挑状态。
+#
+# 地形投影：[[x, y, "地形名"], ...]，只列非平原格（平原是默认值，不列出）。
+#   米屋 / 装备店 / 医馆 / 太守府 等地形名同样出现在这里，所以店面坐标不需要额外字段。
+#   地图在一场战斗内不会变化，因此只在开场请求里下发一次，
+#   动作执行后的 tool result 不再携带地形。
 # ==============================================================================
 extends Resource
 
 const MOVE_RADIUS: int = 6
 const MAX_MOVE_CANDIDATES: int = 24
-const MAX_TERRAIN_CELLS: int = 64
 const CELL_COLUMNS: int = 32
 const CELL_ROWS: int = 19
+# 平原是默认地形：不列出，未出现的格子一律按平原理解
+const DEFAULT_BLOCK: String = "平原"
 
 var _seq: int = 0
 
@@ -25,7 +31,8 @@ func _next_id(prefix: String) -> String:
 
 # 动作执行后重新投影工具结果（服务端驱动逐步交互的 D1/D2）：
 # Godot 负责计算执行后的真实状态，沙盒返回给服务端喂回 LLM。
-# 返回 {"ok", "outcome", "units", "legal_actions", "terrain", "economy"}
+# 返回 {"ok", "outcome", "units", "legal_actions", "economy"}
+# 地形不随战斗变化，这里不重复下发（开场请求已给过全量）。
 func build_tool_result(wv, ok: bool, outcome: String) -> Dictionary:
 	var fresh = build(wv)
 	if fresh.empty():
@@ -35,7 +42,6 @@ func build_tool_result(wv, ok: bool, outcome: String) -> Dictionary:
 		"outcome": outcome,
 		"units": fresh["units"],
 		"legal_actions": fresh["legal_actions"],
-		"terrain": fresh["terrain"],
 		"economy": fresh["economy"],
 	}
 
@@ -209,31 +215,19 @@ func _append_retreat_action(legal: Array, wa) -> void:
 		})
 	return
 
-# 只投影单位附近的地形，避免把整张 32x19 地图塞进 prompt
-func _build_terrain(units: Array, map) -> Array:
+# 地形全量投影：[[x, y, "地形名"], ...]。
+# 只列非平原格——平原是默认地形，不列出可以把 prompt 体积砍掉近一半；
+# 米屋 / 装备店 / 医馆 / 太守府 是地形名，也会出现在这里。
+# 整张地图 32x19，一场战斗内不变，所以只调用一次。
+func _build_terrain(_units: Array, map) -> Array:
 	var rows = []
-	var seen = {}
-	for u in units:
-		if u["disabled"]:
-			continue
-		var px = int(u["pos"][0])
-		var py = int(u["pos"][1])
-		for dx in range(-2, 3):
-			for dy in range(-2, 3):
-				var x = px + dx
-				var y = py + dy
-				if x < 0 or x >= CELL_COLUMNS or y < 0 or y >= CELL_ROWS:
-					continue
-				var key = "{0},{1}".format([x, y])
-				if seen.has(key):
-					continue
-				seen[key] = true
-				var pos = Vector2(x, y)
-				rows.append({
-					"pos": [x, y],
-					"kind": map.get_blockCN_by_position(pos),
-					"build": map.get_buildCN_by_position(pos),
-				})
-				if rows.size() >= MAX_TERRAIN_CELLS:
-					return rows
+	for y in range(CELL_ROWS):
+		for x in range(CELL_COLUMNS):
+			var pos = Vector2(x, y)
+			if not map.is_valid_position(pos):
+				continue
+			var kind = map.get_blockCN_by_position(pos)
+			if kind == DEFAULT_BLOCK:
+				continue
+			rows.append([x, y, kind])
 	return rows
