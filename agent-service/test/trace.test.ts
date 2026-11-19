@@ -44,7 +44,7 @@ test("stub 回合产生完整对话事件（system/user/turn/assistant/tool_call
   const t = traceStore.get(list[0].id);
   assert.ok(t);
   assert.equal(t!.status, "ok");
-  assert.match(t!.system_prompt, /霸王的大陆/);
+  assert.match(t!.system_prompt, /战场指挥官/);
   assert.match(t!.user_message, /legal_actions/);
   const types = new Set(t!.events.map((e) => e.type));
   for (const k of ["system", "user", "turn", "assistant", "tool_call", "tool_result", "final"]) {
@@ -89,7 +89,7 @@ test("调试面板 API：列表 / 详情 / 清空 / HTML", async () => {
 
     const detail = await fetch(`${base}/ai/traces/${list.traces[0].id}`).then((r) => r.json()) as any;
     assert.ok(detail.events.length > 0);
-    assert.ok(detail.system_prompt.includes("霸王的大陆"));
+    assert.ok(detail.system_prompt.includes("战场指挥官"));
 
     const missing = await fetch(`${base}/ai/traces/nope`);
     assert.equal(missing.status, 404);

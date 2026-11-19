@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { startTurn, ServiceError } from "../src/agent.ts";
+import { startTurn, ServiceError, buildUserMessage } from "../src/agent.ts";
 import { buildTools, TOOL_NAMES, ACT_TOOL_NAMES } from "../src/tools.ts";
 import { budgetFor } from "../src/config.ts";
 import { TurnSession } from "../src/session.ts";
@@ -99,4 +99,41 @@ test("ServiceError 携带状态码与错误码", () => {
   const e = new ServiceError(503, "api_key_missing", "x");
   assert.equal(e.status, 503);
   assert.equal(e.code, "api_key_missing");
+});
+
+test("同一场战斗连续两轮的静态段逐字节相同", () => {
+  const a = buildUserMessage(sampleRequest({ turn_key: "w2-d7-s1" }), null);
+  const b = buildUserMessage(sampleRequest({ turn_key: "w2-d8-s2", memory: { note: "x" } }), { note: "x" });
+  const cut = (s: string) => s.slice(0, s.indexOf("──"));
+  assert.equal(cut(a), cut(b), "静态段不得随回合变化");
+  assert.ok(!/turn_key|legal_actions|"units"|"memory"|"day"/.test(cut(a)), "静态段不得含动态键");
+});
+
+test("buildUserMessage 缺 side / 缺 economy.enemy 时不出现 undefined", () => {
+  const req = sampleRequest();
+  delete (req as any).side;
+  delete (req as any).economy.enemy;
+  const msg = buildUserMessage(req, null);
+  assert.ok(!msg.includes("undefined"), "不得把缺失字段渲染成 undefined");
+  assert.ok(msg.includes("未知"), "缺失的敌方粮草应显示为未知");
+});
+
+test("开场消息按敌我分组，动态字段在分界之后", () => {
+  const msg = buildUserMessage(sampleRequest(), null);
+  const cut = msg.indexOf("──");
+  assert.ok(cut > 0, "必须有静态/动态分界");
+  const staticPart = msg.slice(0, cut);
+  const dynamicPart = msg.slice(cut);
+  assert.ok(!staticPart.includes("turn_key"), "静态段不得含 turn_key");
+  assert.ok(dynamicPart.includes("turn_key"), "turn_key 必须在动态段");
+  assert.ok(dynamicPart.includes("legal_actions"), "legal_actions 必须在动态段");
+  const enemyIdx = msg.indexOf("敌方：");
+  const ownIdx = msg.indexOf("我方：");
+  assert.ok(enemyIdx > cut && ownIdx > enemyIdx, "敌方/我方块必须在动态段且按顺序");
+  const enemyBlock = msg.slice(enemyIdx, ownIdx);
+  const ownBlock = msg.slice(ownIdx);
+  assert.ok(enemyBlock.includes('"id":31'), "敌方块应含 vstate=1 的武将 31");
+  assert.ok(!enemyBlock.includes('"id":12'), "敌方块不得含己方武将 12");
+  assert.ok(ownBlock.includes('"id":12') && ownBlock.includes('"id":13'), "我方块应含 12/13");
+  assert.ok(!ownBlock.includes('"id":31'), "我方块不得含敌方武将 31");
 });
