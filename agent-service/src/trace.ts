@@ -30,7 +30,7 @@ export interface DecisionTrace {
   status: "running" | "ok" | "fallback" | "error";
   error?: string;
   elapsed_ms?: number;
-  budget_used?: { tokens: number; turns: number; tool_calls: number };
+  budget_used?: { tokens: number; turns: number; tool_calls: number; cache_read?: number; cache_write?: number };
   system_prompt: string;
   user_message: string;
   events: TraceEvent[];

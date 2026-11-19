@@ -44,6 +44,8 @@ test("stub 回合产生完整对话事件（system/user/turn/assistant/tool_call
   const t = traceStore.get(list[0].id);
   assert.ok(t);
   assert.equal(t!.status, "ok");
+  assert.equal(t!.budget_used?.cache_read, 0, "stub 模式无 usage.cacheRead 时应记为 0 而不崩");
+  assert.equal(t!.budget_used?.cache_write, 0);
   assert.match(t!.system_prompt, /战场指挥官/);
   assert.match(t!.user_message, /legal_actions/);
   const types = new Set(t!.events.map((e) => e.type));

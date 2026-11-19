@@ -396,7 +396,7 @@ async function piTurn(
     units: req.units, terrain: req.terrain, economy: req.economy, legal_actions: req.legal_actions,
   };
   const { tools, state } = buildTools(live, session, budget);
-  const counters = { turns: 0, toolCalls: 0, tokens: 0 };
+  const counters = { turns: 0, toolCalls: 0, tokens: 0, cacheRead: 0, cacheWrite: 0 };
   const t0 = Date.now();
 
   const agent = new Agent({
@@ -442,6 +442,8 @@ async function piTurn(
     }
     if (event.type === "message_end" && event.message?.role === "assistant") {
       counters.tokens += Number(event.message?.usage?.totalTokens ?? 0);
+      counters.cacheRead += Number(event.message?.usage?.cacheRead ?? 0);
+      counters.cacheWrite += Number(event.message?.usage?.cacheWrite ?? 0);
       const blocks: any[] = event.message.content ?? [];
       const text = blocks.filter((c) => c.type === "text").map((c) => c.text).join("").trim();
       const calls = blocks.filter((c) => c.type === "toolCall");
@@ -480,7 +482,7 @@ async function piTurn(
       error: why,
       model: runtime.modelId,
       elapsed_ms: Date.now() - t0,
-      budget_used: { tokens: counters.tokens, turns: counters.turns, tool_calls: counters.toolCalls },
+      budget_used: { tokens: counters.tokens, turns: counters.turns, tool_calls: counters.toolCalls, cache_read: counters.cacheRead, cache_write: counters.cacheWrite },
       actions: session.actions,
       intent: session.actions[session.actions.length - 1]?.reasoning ?? "",
     });
@@ -496,7 +498,7 @@ async function piTurn(
     status: "ok",
     model: runtime.modelId,
     elapsed_ms: Date.now() - t0,
-    budget_used: { tokens: counters.tokens, turns: counters.turns, tool_calls: counters.toolCalls },
+    budget_used: { tokens: counters.tokens, turns: counters.turns, tool_calls: counters.toolCalls, cache_read: counters.cacheRead, cache_write: counters.cacheWrite },
     actions: session.actions,
     intent: last?.reasoning ?? "",
   });
