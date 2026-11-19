@@ -70,6 +70,9 @@ export function validateTurnRequest(body: unknown): TurnRequest {
   if (body.visibility !== "omniscient") throw new ValidationError("bad_schema", "visibility must be omniscient");
   if (typeof body.turn_key !== "string" || body.turn_key.length === 0) throw new ValidationError("bad_schema", "turn_key required");
   if (typeof body.controlled_vstate_id !== "number") throw new ValidationError("bad_schema", "controlled_vstate_id required");
+  if (body.side !== undefined && body.side !== "attacker" && body.side !== "defender") {
+    throw new ValidationError("bad_schema", "side must be attacker|defender");
+  }
   if (!Array.isArray(body.units)) throw new ValidationError("bad_schema", "units must be an array");
   checkTerrain(body.terrain);
   if (!isObject(body.economy)) throw new ValidationError("bad_schema", "economy must be an object");

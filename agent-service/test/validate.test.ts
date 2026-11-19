@@ -85,3 +85,25 @@ test("validateAction 拒绝超出机动力 / 点数的动作", () => {
   const poorPoker = req.units.map((u) => (u.id === 12 ? { ...u, poker: 0 } : u));
   assert.throws(() => validateAction("s7", live({ units: poorPoker }), budget), /exceeds poker_point/);
 });
+
+test("validateTurnRequest 接受缺 side / 缺 economy.enemy 的旧请求体", () => {
+  const old = sampleRequest();
+  delete (old as any).side;
+  delete (old as any).economy.enemy;
+  assert.equal(validateTurnRequest(old).visibility, "omniscient");
+});
+
+test("validateToolResult 原样透传含 enemy 的 economy", () => {
+  const r = validateToolResult({
+    ok: true, outcome: "ok", units: [], legal_actions: [],
+    economy: { rice: 400, enemy: { rice: 300, money: 900 } },
+  });
+  assert.deepEqual((r.economy as any).enemy, { rice: 300, money: 900 });
+});
+
+test("validateTurnRequest 拒绝非法 side", () => {
+  assert.throws(
+    () => validateTurnRequest({ ...sampleRequest(), side: "neutral" }),
+    ValidationError,
+  );
+});

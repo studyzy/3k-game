@@ -47,6 +47,8 @@ export interface TurnRequest {
   static_bundle_id: string;
   turn_key: string;
   controlled_vstate_id: number;
+  /** 我方为攻方还是守方，复用白兵战 BattleRequest.side 取值；旧请求体可缺省。 */
+  side?: "attacker" | "defender";
   diffculities: number;
   session_id?: string;
   units: Array<Record<string, unknown>>;

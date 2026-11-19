@@ -7,6 +7,7 @@ export function sampleRequest(overrides: Partial<TurnRequest> = {}): TurnRequest
     static_bundle_id: "v1",
     turn_key: "w2-d7-s1",
     controlled_vstate_id: 2,
+    side: "defender",
     diffculities: 3,
     session_id: "sgz-test",
     units: [
@@ -19,7 +20,7 @@ export function sampleRequest(overrides: Partial<TurnRequest> = {}): TurnRequest
       [9, 15, "树林"],
       [10, 15, "米屋"],
     ],
-    economy: { rice: 420, money: 1800, day: 7, max_days: 30, main_city_pos: [3, 9] },
+    economy: { rice: 420, money: 1800, day: 7, max_days: 30, main_city_pos: [3, 9], enemy: { rice: 310, money: 900 } },
     // move 不再由 Godot 出候选（路径由 LLM 规划，直接给 path）
     legal_actions: [
       { id: "a1", tool: "attack", actor: 12, target: 31, cost: { ap: 2 } },
@@ -63,6 +64,7 @@ export function toolResult(
     outcome: action ? `${action.tool} 执行完毕` : "无动作",
     units: units ?? base.units,
     legal_actions: legal ?? base.legal_actions,
+    economy: base.economy,
   };
 }
 
