@@ -25,6 +25,14 @@ const DIFFICULTIES_INFO = [
 	"AI 规则的实验室，会不断调整和尝试", 
 ]
 
+# 修改：AI Agent 接入（战争场景）
+# 「大模型」是额外的难度选项，但不新增 diffculities 数值档位——
+# 该值被大量规则数组按下标取值（内政/白兵战/单挑等），新增档位会越界。
+# 因此复用「挑战」档(4)的规则参数，仅用 ai_agent_mode 标记把战争层决策换成远程 Agent。
+const AI_AGENT_DIFFICULTY_NAME = "大模型"
+const AI_AGENT_DIFFICULTY_LEVEL = 4
+const AI_AGENT_DIFFICULTY_INFO = "由大模型指挥敌军（仅战争场景），需连接 Agent 服务；服务不可用时自动回退规则 AI"
+
 
 func _ready() -> void :
 	Global.change_speed(1.0, true)
@@ -63,6 +71,7 @@ func _ready() -> void :
 		
 		lsc_diffcult_items.items.erase("究极")
 		lsc_diffcult_items.items.erase("挑战")
+		# 修改：AI Agent 接入——「大模型」不参与解锁裁剪，新玩家也能选
 		lsc_diffcult_items._set_data()
 	
 	get_node("3").visible = false;
@@ -153,12 +162,20 @@ func _on_key_event(view_mode: int):
 			if Input.is_action_just_pressed("ANALOG_RIGHT"):
 				lsc_diffcult_items.move_right()
 			var levelName = lsc_diffcult_items.items[lsc_diffcult_items.cursor_index]
+			# 修改：AI Agent 接入——「大模型」复用挑战档(4)规则参数，只切换战争层决策器
+			var is_ai_agent = levelName == AI_AGENT_DIFFICULTY_NAME
 			var level = StaticManager.DIFFICULTY_NAMES.find(levelName)
+			if is_ai_agent:
+				level = AI_AGENT_DIFFICULTY_LEVEL
 			level = max(0, level)
-			get_node("3/lblbwddl").text = DIFFICULTIES_INFO[level]
+			if is_ai_agent:
+				get_node("3/lblbwddl").text = AI_AGENT_DIFFICULTY_INFO
+			else:
+				get_node("3/lblbwddl").text = DIFFICULTIES_INFO[level]
 			if Input.is_action_just_pressed("EMU_START"):
 				cursor_select_index = lsc_diffcult_items.cursor_index
 				DataManager.diffculities = level
+				DataManager.ai_agent_mode = is_ai_agent
 				
 				
 				

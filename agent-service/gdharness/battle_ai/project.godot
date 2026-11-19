@@ -1,0 +1,13 @@
+config_version=4
+
+[application]
+config/name="3k-battle-harness"
+run/main_scene="res://Main.tscn"
+config/features=PackedStringArray("3.6")
+
+[autoload]
+DataManager="*res://stubs/DataManagerStub.gd"
+Global="*res://stubs/GlobalStub.gd"
+FlowManager="*res://stubs/FlowManagerStub.gd"
+SceneManager="*res://stubs/SceneManagerStub.gd"
+StaticManager="*res://stubs/StaticManagerStub.gd"

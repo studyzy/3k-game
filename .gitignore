@@ -41,3 +41,27 @@ Thumbs.db
 __pycache__/
 *.pyc
 tools/avatar_gen/preview/
+# ---- AI Agent 服务 ----
+# Node 依赖与 npm 缓存，不入库
+agent-service/node_modules/
+.npm-cache/
+# 本地密钥与临时探针（绝不入库）
+agent-service/.env
+agent-service/.tools/
+# 测试时从 bwdl/ 复制的真实脚本副本（不入库，避免副本漂移）
+agent-service/gdharness/ai/
+agent-service/gdharness/battle_ai/AIHttpClient.gd
+agent-service/gdharness/battle_ai/BattleAgent.gd
+agent-service/gdharness/battle_ai/BattleProjection.gd
+agent-service/gdharness/battle_ai/.import/
+# 本地下载的 Godot 3.6.3 headless 校验二进制（31MB，不入库）
+.tools/
+# 服务端预编译二进制（由源码 make 构建，不入库）
+server/bin/
+# 测试报告生成产物
+reports/
+# 反编译出来的 Godot 二进制资源副本
+data/
+server/data/
+# Serena AI 助手本地配置
+.serena/

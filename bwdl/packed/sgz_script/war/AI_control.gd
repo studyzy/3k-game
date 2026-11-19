@@ -30,6 +30,10 @@ func _init() -> void:
 				wab = Global.load_script(DataManager.mod_path+"sgz_script/war/AI/War_AI_behavior_ng.gd")
 		_:
 			wab = Global.load_script(DataManager.mod_path+"sgz_script/war/AI/War_AI_behavior_new.gd")
+	# 修改：AI Agent 接入（战争场景）——仅标题界面选中「大模型」难度时启用。
+	# 其余难度一律零网络请求，走原有规则 AI；标记随存档持久化。
+	if DataManager.ai_agent_mode:
+		wab = Global.load_script(DataManager.mod_path+"sgz_script/war/AI/War_AI_behavior_llm.gd")
 	iembattle = Global.load_script(DataManager.mod_path+"sgz_script/war/IEmbattle.gd")
 	FlowManager.bind_import_flow("AI_auto_embattle" ,self)
 	FlowManager.bind_import_flow("AI_turn_start", self)
@@ -263,8 +267,8 @@ func _process(delta:float)->void:
 			var nextFlow = DataManager.get_env_str("战争.AI.等待对话流程")
 			if nextFlow == "":
 				nextFlow = "AI_before_ready"
-			if Global.wait_for_confirmation(nextFlow, view_model_name):
-				DataManager.unset_env("战争.AI.等待对话流程")
+			DataManager.unset_env("战争.AI.等待对话流程")
+			Global.wait_for_confirmation(nextFlow, view_model_name)
 	return
 
 #检查空闲对白

@@ -1,0 +1,303 @@
+// 单进程同源服务：静态托管 bwdl/build/web/ + GET /ai/health + 回合会话三路由
+//
+// 服务端驱动的逐步交互：
+//   POST /ai/turn             Godot 开启一个 AI 回合会话（后台跑 agent loop）
+//   GET  /ai/turn/:id/pending 长轮询：取下一个待执行动作 / end / 空闲超时
+//   POST /ai/turn/:id/result  Godot 执行完动作后回传最新状态
+// 设计文档 §2.1 / §4.2。启动：node src/server.ts [--port 8060] [--mode mock|stub|pi]
+import http from "node:http";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseConfig, BUDGETS } from "./config.ts";
+import {
+  validateTurnRequest, validateToolResult, validateBattleRequest, validateBattleResult, ValidationError,
+} from "./validate.ts";
+import { startTurn, ServiceError } from "./agent.ts";
+import { startBattle } from "./battle-agent.ts";
+import { battleStore } from "./battle-session.ts";
+import { traceStore } from "./trace.ts";
+import { turnStore } from "./session.ts";
+
+const MIME: Record<string, string> = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+  ".wasm": "application/wasm",
+  ".pck": "application/octet-stream",
+  ".json": "application/json; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".png": "image/png",
+  ".svg": "image/svg+xml",
+  ".ico": "image/x-icon",
+};
+
+const MAX_BODY = 1024 * 1024;
+
+function json(res: http.ServerResponse, status: number, body: unknown): void {
+  const data = JSON.stringify(body);
+  res.writeHead(status, {
+    "content-type": "application/json; charset=utf-8",
+    "content-length": Buffer.byteLength(data),
+    "access-control-allow-origin": "*",
+  });
+  res.end(data);
+}
+
+async function readBody(req: http.IncomingMessage): Promise<string> {
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of req) {
+    const buf = Buffer.from(chunk);
+    size += buf.length;
+    if (size > MAX_BODY) throw new ServiceError(413, "body_too_large", "request body exceeds 1 MiB");
+    chunks.push(buf);
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+async function parseJsonBody(req: http.IncomingMessage): Promise<unknown> {
+  const raw = await readBody(req);
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new ServiceError(400, "bad_json", "body must be valid JSON");
+  }
+}
+
+async function serveStatic(webDir: string, urlPath: string, res: http.ServerResponse): Promise<void> {
+  const root = path.resolve(webDir);
+  const rel = decodeURIComponent(urlPath === "/" ? "/index.html" : urlPath).replace(/^\/+/, "");
+  const target = path.resolve(root, rel);
+  if (target !== root && !target.startsWith(root + path.sep)) {
+    json(res, 403, { error: "forbidden" });
+    return;
+  }
+  try {
+    const stat = await fs.stat(target);
+    if (stat.isDirectory()) {
+      json(res, 404, { error: "not_found" });
+      return;
+    }
+    const data = await fs.readFile(target);
+    res.writeHead(200, {
+      "content-type": MIME[path.extname(target).toLowerCase()] ?? "application/octet-stream",
+      "content-length": data.length,
+      "cache-control": "no-cache",
+    });
+    res.end(data);
+  } catch {
+    json(res, 404, { error: "not_found", path: rel });
+  }
+}
+
+export function createServer(config = parseConfig(process.argv.slice(2), process.env as Record<string, string | undefined>)) {
+  return http.createServer(async (req, res) => {
+    try {
+      const url = new URL(req.url ?? "/", "http://localhost");
+
+      if (req.method === "OPTIONS") {
+        res.writeHead(204, {
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "GET,POST,OPTIONS",
+          "access-control-allow-headers": "content-type,x-mock-case",
+        });
+        res.end();
+        return;
+      }
+
+      if (url.pathname === "/ai/health") {
+        // 探活/预算表：禁止缓存，避免浏览器或反向代理把探活结果固化
+        res.setHeader("cache-control", "no-store");
+        json(res, 200, { ok: true, mode: config.mode, bundle: "v1", node: ">=22.19", budgets: BUDGETS });
+        return;
+      }
+
+      // ---- 调试面板：决策轨迹 API ----
+      if (url.pathname === "/ai/traces") {
+        if (req.method === "DELETE") {
+          traceStore.clear();
+          json(res, 200, { ok: true });
+          return;
+        }
+        if (req.method === "GET") {
+          json(res, 200, { traces: traceStore.list(), total: traceStore.size(), limit: Number(process.env.TRACE_LIMIT ?? 50) });
+          return;
+        }
+        json(res, 405, { error: "method_not_allowed" });
+        return;
+      }
+
+      if (url.pathname.startsWith("/ai/traces/")) {
+        const id = decodeURIComponent(url.pathname.slice("/ai/traces/".length));
+        const t = traceStore.get(id);
+        if (!t) {
+          json(res, 404, { error: "not_found" });
+          return;
+        }
+        json(res, 200, t);
+        return;
+      }
+
+      if (url.pathname === "/ai/dashboard" || url.pathname === "/ai/dashboard/") {
+        const htmlPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../dashboard/index.html");
+        try {
+          const html = await fs.readFile(htmlPath, "utf8");
+          const data = Buffer.from(html, "utf8");
+          res.writeHead(200, {
+            "content-type": "text/html; charset=utf-8",
+            "content-length": data.length,
+            "cache-control": "no-cache",
+          });
+          res.end(data);
+        } catch {
+          json(res, 500, { error: "dashboard_missing", path: htmlPath });
+        }
+        return;
+      }
+
+      // ---- 回合会话：开启 ----
+      if (url.pathname === "/ai/turn") {
+        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
+        const body = await parseJsonBody(req);
+        const request = validateTurnRequest(body);
+        const mockCase = req.headers["x-mock-case"] as string | undefined;
+        const { session, budget } = startTurn(request, { mode: config.mode, config, mockCase });
+        json(res, 200, {
+          session_id: session.id,
+          idle_timeout_ms: budget.idle_timeout_ms,
+          poll_timeout_ms: Math.min(budget.idle_timeout_ms, 15000),
+        });
+        return;
+      }
+
+      // ---- 回合会话：长轮询取动作 ----
+      if (url.pathname.startsWith("/ai/turn/") && url.pathname.endsWith("/pending")) {
+        const id = decodeURIComponent(url.pathname.slice("/ai/turn/".length, -"/pending".length));
+        const session = turnStore.get(id);
+        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        const cap = Number(url.searchParams.get("wait_ms") ?? 15000);
+        const wait = Math.max(0, Math.min(cap, session.idleRemaining()));
+        const r = await session.nextAction(wait);
+        if (r.type === "action") { json(res, 200, r); return; }
+        if (r.type === "end") { json(res, 200, r); turnStore.delete(id); return; }
+        if (r.type === "error") { json(res, 200, r); turnStore.delete(id); return; }
+        // 本次轮询到点仍无动作：若已超出空闲预算，回传 idle_timeout 让 Godot 回退
+        if (session.idleRemaining() <= 0) {
+          json(res, 200, { type: "idle_timeout" });
+          session.fail(new ServiceError(504, "agent_idle_timeout", "agent 空闲超时"));
+          turnStore.delete(id);
+          return;
+        }
+        // 否则让 Godot 重新挂起
+        json(res, 200, { type: "retry" });
+        return;
+      }
+
+      // ---- 回合会话：回传执行结果 ----
+      if (url.pathname.startsWith("/ai/turn/") && url.pathname.endsWith("/result")) {
+        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
+        const id = decodeURIComponent(url.pathname.slice("/ai/turn/".length, -"/result".length));
+        const session = turnStore.get(id);
+        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        const body = await parseJsonBody(req);
+        const seq = Number((body as Record<string, unknown>)?.seq);
+        if (!Number.isInteger(seq) || seq <= 0) {
+          json(res, 400, { error: "bad_schema", message: "seq required" });
+          return;
+        }
+        const payload = validateToolResult(body);
+        session.submitResult(seq, payload);
+        json(res, 200, { ok: true });
+        return;
+      }
+
+      // ---- 白兵战会话（独立 Agent / 提示词 / 工具） ----
+      if (url.pathname === "/ai/battle") {
+        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
+        const body = await parseJsonBody(req);
+        const request = validateBattleRequest(body);
+        const { session, budget } = startBattle(request, { mode: config.mode, config });
+        json(res, 200, {
+          battle_session_id: session.id,
+          idle_timeout_ms: budget.idle_timeout_ms,
+          poll_timeout_ms: Math.min(budget.idle_timeout_ms, 15000),
+        });
+        return;
+      }
+
+      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/pending")) {
+        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/pending".length));
+        const session = battleStore.get(id);
+        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        const cap = Number(url.searchParams.get("wait_ms") ?? 15000);
+        const wait = Math.max(0, Math.min(cap, session.idleRemaining()));
+        const r = await session.nextCommand(wait);
+        if (r.type === "error") { json(res, 200, r); battleStore.delete(id); return; }
+        if (r.type === "end_battle") { json(res, 200, r); battleStore.delete(id); return; }
+        if (r.type === "idle_timeout") {
+          if (session.idleRemaining() <= 0) {
+            session.fail(new ServiceError(504, "battle_idle_timeout", "白兵战 agent 空闲超时"));
+            json(res, 200, { type: "idle_timeout" });
+            battleStore.delete(id);
+            return;
+          }
+          json(res, 200, { type: "retry" });
+          return;
+        }
+        json(res, 200, r);
+        return;
+      }
+
+      // 引擎结算完毕、进入下一个战斗回合
+      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/resume")) {
+        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
+        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/resume".length));
+        const session = battleStore.get(id);
+        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        session.resumeNextTurn();
+        json(res, 200, { ok: true });
+        return;
+      }
+
+      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/result")) {
+        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
+        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/result".length));
+        const session = battleStore.get(id);
+        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        const body = await parseJsonBody(req);
+        const seq = Number((body as Record<string, unknown>)?.seq);
+        if (!Number.isInteger(seq) || seq <= 0) {
+          json(res, 400, { error: "bad_schema", message: "seq required" });
+          return;
+        }
+        const payload = validateBattleResult(body);
+        session.submitResult(seq, payload);
+        json(res, 200, { ok: true });
+        return;
+      }
+
+      if (req.method === "GET" || req.method === "HEAD") {
+        await serveStatic(config.webDir, url.pathname, res);
+        return;
+      }
+
+      json(res, 404, { error: "not_found" });
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        json(res, 400, { error: err.code, message: err.message });
+      } else if (err instanceof ServiceError) {
+        json(res, err.status, { error: err.code, message: err.message });
+      } else {
+        json(res, 500, { error: "internal_error", message: err instanceof Error ? err.message : String(err) });
+      }
+    }
+  });
+}
+
+const invokedDirectly = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) {
+  const config = parseConfig(process.argv.slice(2), process.env as Record<string, string | undefined>);
+  createServer(config).listen(config.port, () => {
+    console.log(`[3k-war-agent] mode=${config.mode} http://localhost:${config.port}/ webDir=${config.webDir}`);
+  });
+}
