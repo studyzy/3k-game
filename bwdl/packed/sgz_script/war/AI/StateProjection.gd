@@ -67,6 +67,8 @@ func build(wv) -> Dictionary:
 			"ap": wa.action_point,
 			"poker": wa.poker_point,
 			"soldiers": wa.get_soldiers(),
+			# 军种（平/山/水/仙）：决定各行军地形的移动消耗
+			"troops": wa.get_troops_type(),
 			"hp": actor.get_hp() if actor != null else 0,
 			"power": actor.get_power() if actor != null else 0,
 			"wisdom": actor.get_wisdom() if actor != null else 0,

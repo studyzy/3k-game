@@ -90,6 +90,10 @@ test("Godot 3.6.3 → HTTP → Agent 服务 全链路契约", async (t) => {
       [9, 15, "树林"],
       [10, 15, "米屋"],
     ], "terrain 只列非平原格，且按行优先（y 小在前）排列");
+    // 军种决定行军消耗，必须随单位一起投影
+    for (const u of req.units) {
+      assert.ok(["平", "山", "水", "仙"].includes(String(u.troops)), `unit ${u.id} 缺 troops 军种`);
+    }
 
     // Godot 侧 accept_action 结果 → 服务侧 validateAction 同规则
     const accepted = JSON.parse(marker(out, "AI_NORMALIZED"));
