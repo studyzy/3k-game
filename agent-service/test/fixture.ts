@@ -1,5 +1,18 @@
 import type { LegalAction, TurnRequest } from "../src/types.ts";
 
+/** 界面可见的武将全量信息（除头像与字），与 StateProjection.gd 的 unit 形状一致。 */
+const unitExtras = {
+  ap_max: 19,
+  hp_max: 60,
+  level: 2,
+  exp: 2000,
+  attrs: { 体: 51, 武: 30, 知: 72, 德: 49, 政: 78, 忠: 76, 统: 34, 胆: 54 },
+  equips: { 武器: "短剑", 防具: "纶巾", 道具: "兵书", 坐骑: "黄鬃" },
+  equip_briefs: { 武器: "短剑，攻：12，重：3", 防具: "防：4，重：1", 道具: "兵书", 坐骑: "马力：5，机动：2" },
+  status: ["迟滞:3"],
+  terrain_at: "平原",
+};
+
 export function sampleRequest(overrides: Partial<TurnRequest> = {}): TurnRequest {
   return {
     state_version: 1,
@@ -11,9 +24,9 @@ export function sampleRequest(overrides: Partial<TurnRequest> = {}): TurnRequest
     diffculities: 3,
     session_id: "sgz-test",
     units: [
-      { id: 12, name: "张飞", vstate: 2, pos: [8, 14], ap: 7, poker: 3, soldiers: 1200, disabled: false },
-      { id: 13, name: "赵云", vstate: 2, pos: [7, 14], ap: 5, poker: 2, soldiers: 800, disabled: false },
-      { id: 31, name: "曹操", vstate: 1, pos: [9, 15], ap: 6, poker: 2, soldiers: 900, disabled: false },
+      { id: 12, name: "张飞", vstate: 2, pos: [8, 14], ap: 7, poker: 3, soldiers: 1200, disabled: false, ...unitExtras },
+      { id: 13, name: "赵云", vstate: 2, pos: [7, 14], ap: 5, poker: 2, soldiers: 800, disabled: false, ...unitExtras },
+      { id: 31, name: "曹操", vstate: 1, pos: [9, 15], ap: 6, poker: 2, soldiers: 900, disabled: false, ...unitExtras },
     ],
     // 地形只列非平原格：[x, y, "地形名"]
     terrain: [

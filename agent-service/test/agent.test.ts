@@ -143,3 +143,31 @@ test("开场消息包含武将姓名", () => {
   assert.ok(msg.includes("张飞"), "我方武将姓名应出现在消息里");
   assert.ok(msg.includes("曹操"), "敌方武将姓名应出现在消息里");
 });
+
+test("开场消息包含武将全量属性、装备与状态", () => {
+  const msg = buildUserMessage(sampleRequest(), null);
+  for (const key of ["attrs", "体", "武", "知", "德", "政", "忠", "统", "胆", "hp_max", "ap_max", "level", "exp", "equips", "武器", "防具", "道具", "坐骑", "equip_briefs", "status", "terrain_at"]) {
+    assert.ok(msg.includes(key), `开场消息应含 ${key}`);
+  }
+});
+
+test("动作工具结果同步最新敌方粮草到摘要、live 与 inspect_economy", async () => {
+  const { session, live, tools } = sessionFor();
+  const move: any = tools.tools.find((t) => t.name === "move");
+  const p = move.execute("c1", { actor: 12, path: [[8, 15]], reasoning: "同步敌方粮草" });
+  const got = await session.nextAction(1000);
+  assert.equal(got.type, "action");
+  // 与开场值不同，才能验证「刷新」而不是「碰巧相同」
+  const changed = {
+    ...toolResult(got.action.seq, got.action.action),
+    economy: { rice: 400, enemy: { rice: 250, money: 700 } },
+  };
+  session.submitResult(got.action.seq, changed);
+  const res = await p;
+  const body = JSON.parse((res.content[0] as any).text);
+  assert.deepEqual(body.economy?.enemy, { rice: 250, money: 700 }, "工具结果摘要必须带最新敌方粮草");
+  assert.deepEqual((live.economy as any).enemy, { rice: 250, money: 700 }, "live.economy 必须刷新");
+  const econ: any = tools.tools.find((t) => t.name === "inspect_economy");
+  const r = await econ.execute("c2", {});
+  assert.deepEqual(JSON.parse((r.content[0] as any).text).enemy, { rice: 250, money: 700 }, "inspect_economy 必须返回最新敌方粮草");
+});

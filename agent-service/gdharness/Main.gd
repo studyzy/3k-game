@@ -41,6 +41,8 @@ func _ready():
     var proj = load("res://ai/StateProjection.gd").new()
     var payload = proj.build(wv)
     print("AI_PAYLOAD=", to_json(payload))
+    var tool_res = proj.build_tool_result(wv, true, "契约测试")
+    print("AI_TOOL_RESULT=", to_json(tool_res))
 
     var val = load("res://ai/ActionValidator.gd").new()
     var legal = payload["legal_actions"]

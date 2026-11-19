@@ -67,23 +67,55 @@ func build(wv) -> Dictionary:
 		if wa == null:
 			continue
 		var actor = wa.actor()
+		# 界面可见的武将全量信息（除头像与字）：都可能影响战斗判断，一次性随开场
+		# 请求下发；build_tool_result 走同一 build()，动作执行后自动刷新。
+		var statuses = []
+		if wa.is_puppet():
+			statuses.append("人偶")
+		for buff in StaticManager.WAR_BUFF_STATUSES:
+			var turn = wa.get_buff(buff)["回合数"]
+			if turn > 0:
+				statuses.append("{0}:{1}".format([buff, min(99, turn)]))
+		var equips = {}
+		var equip_briefs = {}
+		for equip_type in ["武器", "防具", "道具", "坐骑"]:
+			var equip = actor.get_equip(equip_type) if actor != null else null
+			equips[equip_type] = equip.name() if equip != null else ""
+			equip_briefs[equip_type] = equip.get_attrs_brief() if equip != null else ""
 		var unit = {
 			"id": wa.actorId,
+			"name": actor.get_name() if actor != null else "",
 			"vstate": wa.wvId,
 			"pos": [int(wa.position.x), int(wa.position.y)],
 			"ap": wa.action_point,
+			"ap_max": wa.get_max_action_ap(),
 			"poker": wa.poker_point,
 			"soldiers": wa.get_soldiers(),
-			# 武将姓名：只给数字 id 模型无法判断谁是谁，必须随单位投影。
-			"name": actor.get_name() if actor != null else "",
 			# 军种（平/山/水/仙）：决定各行军地形的移动消耗。
 			# 必须与 DataManager.get_move_cost 内部取军种的方式一致
 			# （get_move_cost 用的是 actor().get_troops_type()，不含临时军种），
 			# 否则提示词里的消耗表和实际扣费对不上。
 			"troops": actor.get_troops_type() if actor != null else "",
 			"hp": actor.get_hp() if actor != null else 0,
+			"hp_max": actor.get_max_hp() if actor != null else 0,
 			"power": actor.get_power() if actor != null else 0,
 			"wisdom": actor.get_wisdom() if actor != null else 0,
+			"attrs": {
+				"体": int(ceil(actor.get_hp())) if actor != null else 0,
+				"武": actor.get_power() if actor != null else 0,
+				"知": actor.get_wisdom() if actor != null else 0,
+				"德": actor.get_moral() if actor != null else 0,
+				"政": actor.get_politics() if actor != null else 0,
+				"忠": actor.get_loyalty() if actor != null else 0,
+				"统": actor.get_leadership() if actor != null else 0,
+				"胆": actor.get_courage() if actor != null else 0,
+			},
+			"level": actor.get_level() if actor != null else 0,
+			"exp": actor.get_exp() if actor != null else 0,
+			"equips": equips,
+			"equip_briefs": equip_briefs,
+			"status": statuses,
+			"terrain_at": map.get_blockCN_by_position(wa.position),
 			"disabled": wa.disabled,
 		}
 		units.append(unit)

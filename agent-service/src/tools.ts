@@ -193,6 +193,8 @@ export function buildTools(
       outcome: outcome.outcome,
       units: outcome.units,
       legal_actions: outcome.legal_actions,
+      // 敌方粮草会在回合内变化（夺米转金等），摘要里同步最新值避免模型读到过期数据。
+      economy: outcome.economy,
       hint: "继续决定下一个动作；全部武将与机动力都无事可做时调用 end。",
     };
     return result(summary, { action, ok: outcome.ok });

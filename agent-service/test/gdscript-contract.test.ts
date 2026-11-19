@@ -108,6 +108,29 @@ test("Godot 3.6.3 → HTTP → Agent 服务 全链路契约", async (t) => {
       assert.equal(typeof (u as any).name, "string", `unit ${u.id} 缺 name 武将姓名`);
       assert.ok((u as any).name.length > 0, `unit ${u.id} 的 name 不能为空`);
     }
+    // 界面可见的武将全量信息（除头像与字）都必须随单位投影
+    for (const u of req.units) {
+      const a = u as any;
+      assert.equal(typeof a.attrs, "object", `unit ${a.id} 缺 attrs 属性组`);
+      for (const k of ["体", "武", "知", "德", "政", "忠", "统", "胆"]) {
+        assert.equal(typeof a.attrs[k], "number", `unit ${a.id} 缺属性 ${k}`);
+      }
+      assert.equal(typeof a.hp_max, "number", `unit ${a.id} 缺 hp_max`);
+      assert.equal(typeof a.ap_max, "number", `unit ${a.id} 缺 ap_max`);
+      assert.equal(typeof a.level, "number", `unit ${a.id} 缺 level`);
+      assert.equal(typeof a.exp, "number", `unit ${a.id} 缺 exp`);
+      assert.equal(typeof a.equips, "object", `unit ${a.id} 缺 equips`);
+      for (const k of ["武器", "防具", "道具", "坐骑"]) {
+        assert.equal(typeof a.equips[k], "string", `unit ${a.id} 缺装备 ${k}`);
+      }
+      assert.equal(typeof a.equip_briefs, "object", `unit ${a.id} 缺 equip_briefs`);
+      assert.ok(Array.isArray(a.status), `unit ${a.id} 缺 status`);
+      assert.equal(typeof a.terrain_at, "string", `unit ${a.id} 缺 terrain_at`);
+    }
+    // 工具结果走同一 build()，必须同样携带全量属性与敌方粮草
+    const toolRes = JSON.parse(marker(out, "AI_TOOL_RESULT"));
+    assert.equal(typeof toolRes.units[0].attrs, "object", "build_tool_result 的 units 也必须带全量属性");
+    assert.deepEqual(toolRes.economy.enemy, payload.economy.enemy, "build_tool_result 必须携带同一 economy.enemy");
 
     // Godot 侧 accept_action 结果 → 服务侧 validateAction 同规则
     const accepted = JSON.parse(marker(out, "AI_NORMALIZED"));
