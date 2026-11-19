@@ -89,6 +89,7 @@ func build(wv) -> Dictionary:
 		_append_attack_actions(legal, wa, wf)
 		_append_stratagem_actions(legal, wa)
 		_append_retreat_action(legal, wa)
+		_append_move_hint(legal, wa, map)
 		legal.append({
 			"id": _next_id("e"), "tool": "end", "actor": wa.actorId, "cost": {},
 		})
@@ -156,6 +157,27 @@ func _append_stratagem_actions(legal: Array, wa) -> void:
 				"target": int(tid), "skill": scheme.name,
 				"cost": {"ap": 2, "poker": 1},
 			})
+	return
+
+# 移动不由 Godot 出候选（路径由 LLM 规划），但如果该武将还能走，
+# 就在 legal_actions 里留一条 move 提示项，避免 LLM 看到「只剩 end」就判定无事可做。
+# 提示项不带 path：真正的路径由 LLM 自己给出。
+func _append_move_hint(legal: Array, wa, map) -> void:
+	for dir in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+		var pos = wa.position + dir
+		if not map.is_valid_position(pos):
+			continue
+		if not wa.can_move_to_position(pos):
+			continue
+		var cost = DataManager.get_move_cost(wa.actorId, pos)
+		if cost["机"] > wa.action_point or cost["点"] > wa.poker_point:
+			continue
+		legal.append({
+			"id": _next_id("mv"), "tool": "move", "actor": wa.actorId,
+			"cost": {"ap": cost["机"], "poker": cost["点"]},
+			"hint": "可移动：path 由你自己规划（也可走远，本项只是提示还能动）",
+		})
+		return
 	return
 
 func _append_retreat_action(legal: Array, wa) -> void:
