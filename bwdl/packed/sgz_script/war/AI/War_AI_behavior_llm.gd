@@ -168,7 +168,10 @@ func _accept_action(act) -> void:
 	if _actions_done >= MAX_ACTIONS:
 		_fallback("max_actions")
 		return
-	_ready = {"seq": seq, "action": action}
+	# LLM 在工具参数里给的思考（reasoning），随动作一起交给游戏内提示条展示
+	var reasoning = str(act.get("reasoning", "")).strip_edges()
+	_ready = {"seq": seq, "action": action, "reasoning": reasoning}
+	DataManager.ai_debug_log("ACTION accepted seq={0} reason={1} {2}".format([seq, reasoning, to_json(action)]))
 	FlowManager.add_flow("AI_before_ready")
 	return
 
@@ -193,6 +196,16 @@ func _on_result_posted(result: int, response_code: int, _body: PoolByteArray) ->
 		_fallback("result_http_{0}".format([response_code]))
 		return
 	FlowManager.add_flow("AI_before_ready")
+	return
+
+# 游戏内显示 LLM 的思考理由。
+# 改用常驻提示（不走 _show_tips 的 _tips_shown 标记），否则本回合后续动作的
+# 「敌方思考中……」会被该标记挡住而显示不出来。
+# 调用时机是 behavior()（AI_ready 之后），此时 hide_all_tool / _process_tips 已过，不会被立即清掉。
+func _show_reason(reasoning: String) -> void:
+	if reasoning == "":
+		return
+	SceneManager.show_special_tips("敌方AI：{0}".format([reasoning]))
 	return
 
 func _show_tips() -> void:
@@ -239,6 +252,7 @@ func behavior(wvId: int) -> void:
 	var entry = _ready
 	_ready = {}
 	var act = entry["action"]
+	_show_reason(str(entry.get("reasoning", "")))
 	var seq = int(entry["seq"])
 	var actorId = int(act["actor"])
 	DataManager.set_env(VAR_CUR_ACTOR, actorId)
