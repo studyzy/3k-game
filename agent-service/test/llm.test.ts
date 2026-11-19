@@ -70,7 +70,6 @@ test("真实端点端到端（仅当 LLM_BASE_URL + LLM_API_KEY 已在环境中�
   const req = sampleRequest({
     diffculities: 4,
     legal_actions: [
-      { id: "m1", tool: "move", actor: 12, pos: [8, 15], cost: { ap: 1, poker: 0 } },
       { id: "e0", tool: "end", actor: 12, cost: {} },
     ],
   });

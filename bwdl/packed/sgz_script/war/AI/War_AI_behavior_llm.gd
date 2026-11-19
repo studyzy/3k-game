@@ -34,6 +34,8 @@ var _current_actor: int = -1
 var _actions_done: int = 0
 var _tips_shown: bool = false
 var _posting: bool = false
+# 最近一次移动的实际结果（走到哪/扣多少/为何停下），用于替换 outcome
+var _last_move_outcome: String = ""
 
 func _ensure_helpers() -> void:
 	if _projector == null:
@@ -65,6 +67,7 @@ func turn_start() -> void:
 func next_behavior_actor(wv) -> int:
 	_ensure_helpers()
 	if _local:
+		_ensure_fallback_wab()
 		return _fallback_wab.next_behavior_actor(wv)
 
 	# 有待执行动作：交给 AI_control 选中该武将
@@ -76,6 +79,7 @@ func next_behavior_actor(wv) -> int:
 		if _open_session(wv):
 			return _current_actor if _current_actor >= 0 else wv.main_actorId
 		if _local:
+			_ensure_fallback_wab()
 			return _fallback_wab.next_behavior_actor(wv)
 
 	# 有未回传的结果：先回传，再继续轮询
@@ -114,6 +118,7 @@ func _on_session_opened(result: int, response_code: int, body: PoolByteArray) ->
 		return
 	_session_id = str(reply["session_id"])
 	DataManager.game_trace("[AI] session opened: " + _session_id)
+	DataManager.ai_debug_log("SESSION opened " + _session_id)
 	FlowManager.add_flow("AI_before_ready")
 	return
 
@@ -148,6 +153,7 @@ func _on_polled(result: int, response_code: int, body: PoolByteArray) -> void:
 		"end":
 			_reset_tips()
 			DataManager.game_trace("[AI] session end: " + str(reply.get("reason", "")))
+			DataManager.ai_debug_log("SESSION end reason=" + str(reply.get("reason", "")))
 			_local = true   # 交由 AI_control 正常走完本回合收尾
 			FlowManager.add_flow("AI_before_ready")
 		"idle_timeout":
@@ -203,9 +209,11 @@ func _on_result_posted(result: int, response_code: int, _body: PoolByteArray) ->
 # 「敌方思考中……」会被该标记挡住而显示不出来。
 # 调用时机是 behavior()（AI_ready 之后），此时 hide_all_tool / _process_tips 已过，不会被立即清掉。
 func _show_reason(reasoning: String) -> void:
+	DataManager.ai_debug_log("SHOW_REASON len={0} text={1}".format([reasoning.length(), reasoning]))
 	if reasoning == "":
 		return
 	SceneManager.show_special_tips("敌方AI：{0}".format([reasoning]))
+	DataManager.ai_debug_log("SHOW_REASON done tips_visible={0}".format([SceneManager.tips.visible]))
 	return
 
 func _show_tips() -> void:
@@ -229,6 +237,7 @@ func _mark_local(reason: String) -> void:
 	_pending.clear()
 	_reset_tips()
 	DataManager.game_trace("[AI] fallback to local hard: " + reason)
+	DataManager.ai_debug_log("FALLBACK to local hard: " + reason)
 	return
 
 func _fallback(reason: String) -> void:
@@ -236,9 +245,13 @@ func _fallback(reason: String) -> void:
 	FlowManager.add_flow("AI_before_ready")
 	return
 
-func _delegate_to_local(wvId: int) -> void:
+func _ensure_fallback_wab() -> void:
 	if _fallback_wab == null:
 		_fallback_wab = Global.load_script(DataManager.mod_path + "sgz_script/war/AI/War_AI_behavior_hard.gd")
+	return
+
+func _delegate_to_local(wvId: int) -> void:
+	_ensure_fallback_wab()
 	_fallback_wab.behavior(wvId)
 	return
 
@@ -248,6 +261,12 @@ func behavior(wvId: int) -> void:
 		_delegate_to_local(wvId)
 		return
 	if _ready.empty():
+		# 本轮没有可执行动作：HTTP 回调（_on_session_opened / _on_polled /
+		# _on_result_posted）到达时会自己 add_flow("AI_before_ready")，不需要在这里补。
+		# 但要防「请求已结束、动作却没落到 _ready」的空转：
+		# 此时没人会再驱动 flow，AI 回合会永久停在 AI_ready（画面不动、回合结束不了）。
+		if not _posting:
+			FlowManager.add_flow("AI_before_ready")
 		return
 	var entry = _ready
 	_ready = {}
@@ -264,12 +283,16 @@ func behavior(wvId: int) -> void:
 	var outcome = _describe(act)
 	_actions_done += 1
 	_pending.append({"seq": seq, "ok": true, "outcome": outcome})
+	DataManager.ai_debug_log("ACTION exec seq={0} {1} -> {2}".format([seq, str(act["tool"]), outcome]))
 	if not _execute(act, wa):
 		# 执行失败：仍回传失败结果，然后回退
 		_pending[_pending.size() - 1]["ok"] = false
 		_pending[_pending.size() - 1]["outcome"] = "执行失败：" + outcome
 		_fallback("exec_failed:" + str(act["tool"]))
 		return
+	# 移动的 outcome 用实际结果（走到哪、扣多少、为何停下），而不是计划描述
+	if str(act["tool"]) == "move" and _last_move_outcome != "":
+		_pending[_pending.size() - 1]["outcome"] = _last_move_outcome
 	return
 
 func _describe(act: Dictionary) -> String:
@@ -307,54 +330,79 @@ func _execute(act: Dictionary, wa) -> bool:
 			return true
 	return false
 
-# 逐格移动：一次性规划好的路径，逐格转移到相邻格。
-# 每格的合法性由 StateProjection 的 _path_stepwise 预先保证（无斜向、无障碍）。
-# 这里逐格写 position 并即时重绘，保持与 play_move 一致的最终状态；
-# 机动力消耗沿用 get_move_cost（游戏按目标格地形计价）。
+# 逐格移动：LLM 自己规划整条路径，这里不做前置校验，直接照着走。
+# 每一步：相邻才走 → 界内 → 该格可站（无武将/墙）→ 机动力够 → 扣该格费用 → 落地。
+# 任何一步不满足就【停在当前格】，已走部分照常扣费，不当作失败、不降级。
+# 实际走到哪、消耗多少，写进 _last_move_outcome，随 tool result 回传给 Agent。
+# 计价口径与玩家手操一致（player_move.gd:_push_move）：进入一格算一次 get_move_cost。
 func _move_stepwise(wa, path: Array) -> bool:
+	_last_move_outcome = ""
 	if not wa.can_move():
-		return false
+		_last_move_outcome = "该武将现在无法移动"
+		return true
+	if path.empty():
+		_last_move_outcome = "路径为空，未移动"
+		return true
 	var map = SceneManager.current_scene().war_map
 	var start = wa.position
-	# 先校验整条路径，避免走一半卡死
-	var cur = start
-	for point in path:
-		var next = Vector2(point[0], point[1])
-		var d = next - cur
-		if abs(d.x) + abs(d.y) != 1:
-			return false
-		if not map.is_valid_position(next):
-			return false
-		if next != Vector2(path[path.size() - 1][0], path[path.size() - 1][1]) and not wa.can_move_to_position(next):
-			return false
-		cur = next
-	var target = cur
-	if target == start:
-		return false
-	var cost = DataManager.get_move_cost(wa.actorId, target)
-	if cost["机"] > wa.action_point or cost["点"] > wa.poker_point:
-		return false
-	if _bad_movement(wa, target):
-		return false
-
-	# 记录移动前后坐标，供既有 flow（技能 20003 等）使用
 	DataManager.set_env("当前坐标", {"x": start.x, "y": start.y})
-	DataManager.set_env("目标坐标", {"x": target.x, "y": target.y})
-	if cost["机"] > 0:
-		wa.action_point = max(0, wa.action_point - cost["机"])
-	if cost["点"] > 0:
-		wa.poker_point = max(0, wa.poker_point - cost["点"])
-	wa.set_tmp_variable("MOVE_COST", cost)
 
-	# 逐格落地
-	wa.position = target
-	map.cursor_position = target
+	var cur = start
+	var total = {"机": 0, "点": 0}
+	var walked = 0
+	var stop_reason = ""
+	for point in path:
+		if typeof(point) != TYPE_ARRAY or point.size() != 2:
+			stop_reason = "路径里有非法坐标"
+			break
+		var next = Vector2(int(point[0]), int(point[1]))
+		var d = next - cur
+		# 只能上下左右走一格，不能斜走、不能跳跃
+		if abs(d.x) + abs(d.y) != 1:
+			stop_reason = "第{0}步 {1} 与当前格 {2} 不相邻（只能上下左右一格）".format([walked + 1, str(next), str(cur)])
+			break
+		if not map.is_valid_position(next):
+			stop_reason = "第{0}步 {1} 超出地图边界".format([walked + 1, str(next)])
+			break
+		if not wa.can_move_to_position(next):
+			stop_reason = "第{0}步 {1} 无法进入（有武将或地形阻挡）".format([walked + 1, str(next)])
+			break
+		var step_cost = DataManager.get_move_cost(wa.actorId, next)
+		if step_cost["机"] > wa.action_point or step_cost["点"] > wa.poker_point:
+			stop_reason = "第{0}步 {1} 机动力不足（需要 {2}，剩余 {3}）".format([
+				walked + 1, str(next), int(step_cost["机"]), int(wa.action_point)
+			])
+			break
+		wa.action_point = max(0, wa.action_point - step_cost["机"])
+		wa.poker_point = max(0, wa.poker_point - step_cost["点"])
+		total["机"] = int(total["机"]) + int(step_cost["机"])
+		total["点"] = int(total["点"]) + int(step_cost["点"])
+		wa.position = next
+		cur = next
+		walked += 1
+
+	var reached = "%s→%s" % [str(start), str(cur)]
+	if walked == 0:
+		_last_move_outcome = "未移动（%s）；原因：%s" % [str(start), stop_reason]
+		return true
+	var msg = "移动 %s，共 %d 格，消耗机动力 %d、点数 %d" % [
+		reached, walked, int(total["机"]), int(total["点"])
+	]
+	if stop_reason != "":
+		msg += "；提前停下：%s" % [stop_reason]
+	if cur != Vector2(path[path.size() - 1][0], path[path.size() - 1][1]):
+		msg += "；未到达预定终点"
+	_last_move_outcome = msg
+
+	DataManager.set_env("目标坐标", {"x": cur.x, "y": cur.y})
+	wa.set_tmp_variable("MOVE_COST", total)
+	map.cursor_position = cur
 	map.draw_actors()
 	map.update_ap()
 	map.fix_cursor_camer()
 
 	DataManager.set_env("移动", 1)
-	DataManager.set_env("移动消耗", cost)
+	DataManager.set_env("移动消耗", total)
 	DataManager.unset_env("结束移动")
 	DataManager.set_env("移动", 0)
 	DataManager.set_env("结束移动", 1)
@@ -379,6 +427,7 @@ func AI_end() -> void:
 	_posting = false
 	_reset_tips()
 	DataManager.game_trace("[AI] turn end")
+	DataManager.ai_debug_log("TURN END")
 	return
 
 # wab 接口：每帧调用。复用父类实现处理对话确认等

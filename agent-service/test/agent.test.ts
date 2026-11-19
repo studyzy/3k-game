@@ -55,13 +55,15 @@ test("工具注册表恰好 9 个：4 只读 + 4 动作 + end；无 read/write/e
   }
 });
 
-test("动作工具：按自然参数在 legal_actions 中定位，不发明动作", async () => {
+test("动作工具：move 直接用 LLM 给的 path，attack 等按 legal_actions 定位", async () => {
   const { session, tools } = sessionFor();
   const move: any = tools.tools.find((t) => t.name === "move");
-  const p = move.execute("c1", { actor: 12, pos: [8, 15], reasoning: "靠近" });
+  const p = move.execute("c1", { actor: 12, path: [[8, 15]], reasoning: "靠近" });
   const got = await session.nextAction(1000);
   assert.equal(got.type, "action");
-  assert.equal(got.action.id, "m3");
+  // move 不再按 legal_actions 的 id 查找，直接用路径
+  assert.equal(got.action.tool, "move");
+  assert.deepEqual(got.action.action.path, [[8, 15]]);
 
   session.submitResult(got.action.seq, toolResult(got.action.seq, got.action.action));
   const res = await p;
@@ -71,10 +73,11 @@ test("动作工具：按自然参数在 legal_actions 中定位，不发明动�
   assert.ok(Array.isArray(body.units), "应包含最新 units");
   assert.ok(Array.isArray(body.legal_actions), "应包含最新 legal_actions");
 
-  // 不存在的坐标
+  // 缺 path / path 结构错误 → 工具层拒绝
+  await assert.rejects(() => move.execute("c2", { actor: 12, reasoning: "x" }), /非空 path/);
   await assert.rejects(
-    () => move.execute("c2", { actor: 12, pos: [0, 0], reasoning: "x" }),
-    /没有匹配该参数的合法 move 动作/,
+    () => move.execute("c3", { actor: 12, path: [[8]], reasoning: "x" }),
+    /必须是 \[x, y\]/,
   );
 });
 

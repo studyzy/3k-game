@@ -52,6 +52,29 @@ function findAction(
   });
 }
 
+/**
+ * move 由 LLM 直接给路径，不经 legal_actions 候选。
+ * 服务端只做结构检查（actor 存在、path 是 [x,y] 数组），
+ * 可达性/占位/机动力由 Godot 逐格判断——走不动就停，结果回传。
+ * 这里不发明坐标，也不替 LLM 规划。
+ */
+function buildMoveAction(params: Record<string, unknown>): LegalAction {
+  const actor = params.actor;
+  if (typeof actor !== "number") throw new Error("move 需要 actor（武将 id）");
+  const path = params.path;
+  if (!Array.isArray(path) || path.length === 0) {
+    throw new Error("move 需要非空 path（[[x,y], ...]，不含起点，每步上下左右一格）");
+  }
+  for (const step of path) {
+    if (!Array.isArray(step) || step.length !== 2 ||
+        typeof step[0] !== "number" || typeof step[1] !== "number") {
+      throw new Error("move.path 每项必须是 [x, y]");
+    }
+  }
+  // id 只用于会话内追踪（Godot 不再按 id 查候选）
+  return { id: `move-${actor}-${path.length}`, tool: "move", actor, path: path as Array<[number, number]> };
+}
+
 export function buildTools(
   live: LiveState,
   session: TurnSession,
@@ -130,21 +153,27 @@ export function buildTools(
   // ---------------- 动作工具：交给 Godot 执行，await 结果 ----------------
   /**
    * 执行一个动作：
-   *  1. 在最新 legal_actions 中定位
+   *  1. move 由 LLM 自己给路径，直接交给 Godot 逐格执行（Godot 走不动就停，
+   *     并把实际到达的位置回传）；其余动作在最新 legal_actions 中定位。
    *  2. 交给 Godot（长轮询取走）
    *  3. 等结果回来后刷新 live，把最新 units / legal_actions 摘要回给 LLM
    * 注意：不设置 terminate，loop 继续，让 LLM 决定下一个动作。
    */
   async function runAction(tool: Exclude<ToolName, "end">, params: Record<string, unknown>) {
-    const target = findAction(live.legal_actions, tool, params);
-    if (!target) {
-      throw new Error(`没有匹配该参数的合法 ${tool} 动作（请先 list_legal_actions 确认）`);
+    let action: LegalAction;
+    if (tool === "move") {
+      action = buildMoveAction(params);
+    } else {
+      const target = findAction(live.legal_actions, tool, params);
+      if (!target) {
+        throw new Error(`没有匹配该参数的合法 ${tool} 动作（请先 list_legal_actions 确认）`);
+      }
+      action = validateAction(target.id, {
+        controlled_vstate_id: session.req.controlled_vstate_id,
+        units: live.units,
+        legal_actions: live.legal_actions,
+      } as never, budget);
     }
-    const action = validateAction(target.id, {
-      controlled_vstate_id: session.req.controlled_vstate_id,
-      units: live.units,
-      legal_actions: live.legal_actions,
-    } as never, budget);
 
     const reasoning = typeof params.reasoning === "string" ? params.reasoning : "";
     state.executed++;
@@ -174,15 +203,25 @@ export function buildTools(
   const move: AgentTool<any> = {
     name: "move",
     label: "移动",
-    description: "让一个武将移动到指定坐标并立即执行，返回执行后的战场状态。执行后可以继续调用其它动作。",
+    description: [
+      "让一个武将按你规划的路径逐格移动并立即执行，返回执行后的战场状态。",
+      "path 是从当前位置的下一格开始、依次相邻的坐标，最后一格是目的地；不含起点。",
+      "只能上下左右走一格，不能斜走。Godot 会逐格走、逐格扣机动力；",
+      "遇到墙、其他武将或机动力不足会停在那一格，结果里会告诉你实际走到哪、扣了多少。",
+    ].join(""),
     parameters: {
       type: "object",
       properties: {
-        actor: { type: "number" },
-        pos: { type: "array", items: { type: "number" }, minItems: 2, maxItems: 2 },
+        actor: { type: "number", description: "武将 id" },
+        path: {
+          type: "array",
+          description: "逐格路径 [[x,y], ...]，不含起点，每步上下左右相邻一格，最后一格是目的地",
+          minItems: 1,
+          items: { type: "array", items: { type: "number" }, minItems: 2, maxItems: 2 },
+        },
         ...ACT_PROPS,
       },
-      required: ["actor", "pos", "reasoning"],
+      required: ["actor", "path", "reasoning"],
       additionalProperties: false,
     },
     execute: async (_id, params) => runAction("move", params),

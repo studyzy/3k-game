@@ -135,7 +135,7 @@ test("pi 模式缺密钥 → 会话以 error 结束，不静默降级到 mock", 
 test("pi 模式端到端：工具声明齐全、tool 消息回灌、回合内可执行多个动作", async (t) => {
   const endpoint = await startFakeModelEndpoint((ctx) => {
     if (ctx.callIndex === 0) return calls(toolCall("inspect_economy", {}), toolCall("list_legal_actions", {}));
-    if (ctx.callIndex === 1) return calls(toolCall("move", { actor: 12, pos: [8, 15], reasoning: "推进" }));
+    if (ctx.callIndex === 1) return calls(toolCall("move", { actor: 12, path: [[8, 15]], reasoning: "推进" }));
     return calls(toolCall("end", { reason: "打完了" }));
   });
   t.after(() => endpoint.close());

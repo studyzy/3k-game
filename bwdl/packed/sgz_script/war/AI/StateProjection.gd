@@ -9,15 +9,21 @@
 #   米屋 / 装备店 / 医馆 / 太守府 等地形名同样出现在这里，所以店面坐标不需要额外字段。
 #   地图在一场战斗内不会变化，因此只在开场请求里下发一次，
 #   动作执行后的 tool result 不再携带地形。
+#
+# 移动不由本文件出候选：地图与单位位置已全量下发，路径由 LLM 自己规划并直接
+# 把 path 交给 Godot 逐格执行（War_AI_behavior_llm._move_stepwise）。
+# legal_actions 只含 attack / stratagem / retreat / end。
 # ==============================================================================
 extends Resource
 
-const MOVE_RADIUS: int = 6
-const MAX_MOVE_CANDIDATES: int = 24
 const CELL_COLUMNS: int = 32
 const CELL_ROWS: int = 19
 # 平原是默认地形：不列出，未出现的格子一律按平原理解
 const DEFAULT_BLOCK: String = "平原"
+# 引擎 is_valid_position 只认 y < 有效行数（cell_rows-1），最后一行永远不可进入。
+# 不改引擎逻辑，而是在投影里把这一行标成不可进入，
+# 避免 LLM 把「未列出 = 平原」误用到这行上。
+const OUT_OF_BOUNDS: String = "不可进入"
 
 var _seq: int = 0
 
@@ -67,8 +73,11 @@ func build(wv) -> Dictionary:
 			"ap": wa.action_point,
 			"poker": wa.poker_point,
 			"soldiers": wa.get_soldiers(),
-			# 军种（平/山/水/仙）：决定各行军地形的移动消耗
-			"troops": wa.get_troops_type(),
+			# 军种（平/山/水/仙）：决定各行军地形的移动消耗。
+			# 必须与 DataManager.get_move_cost 内部取军种的方式一致
+			# （get_move_cost 用的是 actor().get_troops_type()，不含临时军种），
+			# 否则提示词里的消耗表和实际扣费对不上。
+			"troops": actor.get_troops_type() if actor != null else "",
 			"hp": actor.get_hp() if actor != null else 0,
 			"power": actor.get_power() if actor != null else 0,
 			"wisdom": actor.get_wisdom() if actor != null else 0,
@@ -77,7 +86,6 @@ func build(wv) -> Dictionary:
 		units.append(unit)
 		if wa.wvId != controlled_id or wa.disabled or not wa.has_position():
 			continue
-		_append_move_actions(legal, wa, map)
 		_append_attack_actions(legal, wa, wf)
 		_append_stratagem_actions(legal, wa)
 		_append_retreat_action(legal, wa)
@@ -122,64 +130,6 @@ func _controlled_leader_id(wv) -> int:
 		return -1
 	return wv.main_actorId
 
-func _append_move_actions(legal: Array, wa, map) -> void:
-	var count = 0
-	var origin = wa.position
-	for dx in range(-MOVE_RADIUS, MOVE_RADIUS + 1):
-		for dy in range(-MOVE_RADIUS, MOVE_RADIUS + 1):
-			if dx == 0 and dy == 0:
-				continue
-			if abs(dx) + abs(dy) > MOVE_RADIUS:
-				continue
-			var pos = Vector2(origin.x + dx, origin.y + dy)
-			if not map.is_valid_position(pos):
-				continue
-			if not wa.can_move_to_position(pos):
-				continue
-			var cost = DataManager.get_move_cost(wa.actorId, pos)
-			if cost["机"] > wa.action_point or cost["点"] > wa.poker_point:
-				continue
-			# 路径必须逐格合法（只走上下左右，不能斜穿或飞越障碍）。
-			# 与 War_AI_behavior_new.gd:287 的 AI 常规移动一致：aStar 给出完整路径。
-			var path = _path_stepwise(wa, map, origin, pos)
-			if path.empty():
-				continue
-			legal.append({
-				"id": _next_id("m"), "tool": "move", "actor": wa.actorId,
-				"pos": [int(pos.x), int(pos.y)],
-				# 不含起点，路径的每一格都是合法的一步
-				"path": path,
-				"cost": {"ap": cost["机"], "poker": cost["点"]},
-			})
-			count += 1
-			if count >= MAX_MOVE_CANDIDATES:
-				return
-	return
-
-# 返回从 origin 到 target 的逐格路径（不含 origin，含 target）。
-# 只接受 4 邻域单步，确保没有斜向移动；任一步不合法则整条路径作废。
-func _path_stepwise(wa, map, origin: Vector2, target: Vector2) -> Array:
-	var route = map.aStar.get_path(origin, target)
-	if route.size() < 2:
-		return []
-	var out = []
-	var prev = origin
-	for i in range(1, route.size()):
-		var step = route[i]
-		var d = step - prev
-		# 必须恰好是上下左右中的一步
-		if abs(d.x) + abs(d.y) != 1:
-			return []
-		if not map.is_valid_position(step):
-			return []
-		if step != target and not wa.can_move_to_position(step):
-			return []
-		out.append([int(step.x), int(step.y)])
-		prev = step
-	if prev != target:
-		return []
-	return out
-
 # 不调用 IWar_Attack.get_can_attack_actors（会触发技能 20030 等副作用），
 # 只按攻击距离粗筛；最终合法性由 War_AI_behavior.gd:_attack 再次判定。
 func _append_attack_actions(legal: Array, wa, wf) -> void:
@@ -220,12 +170,17 @@ func _append_retreat_action(legal: Array, wa) -> void:
 # 地形全量投影：[[x, y, "地形名"], ...]。
 # 只列非平原格——平原是默认地形，不列出可以把 prompt 体积砍掉近一半；
 # 米屋 / 装备店 / 医馆 / 太守府 是地形名，也会出现在这里。
-# 整张地图 32x19，一场战斗内不变，所以只调用一次。
+# 地图 32x20，但引擎只允许进入前 CELL_ROWS(19) 行；
+# 最后一行照常渲染、有地形，却不可进入，所以显式标成 OUT_OF_BOUNDS，
+# 让「未列出 = 平原」这条约定对全图严格成立。
 func _build_terrain(_units: Array, map) -> Array:
 	var rows = []
-	for y in range(CELL_ROWS):
+	for y in range(CELL_ROWS + 1):
 		for x in range(CELL_COLUMNS):
 			var pos = Vector2(x, y)
+			if y >= CELL_ROWS:
+				rows.append([x, y, OUT_OF_BOUNDS])
+				continue
 			if not map.is_valid_position(pos):
 				continue
 			var kind = map.get_blockCN_by_position(pos)

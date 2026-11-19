@@ -20,8 +20,8 @@ export function sampleRequest(overrides: Partial<TurnRequest> = {}): TurnRequest
       [10, 15, "米屋"],
     ],
     economy: { rice: 420, money: 1800, day: 7, max_days: 30, main_city_pos: [3, 9] },
+    // move 不再由 Godot 出候选（路径由 LLM 规划，直接给 path）
     legal_actions: [
-      { id: "m3", tool: "move", actor: 12, pos: [8, 15], cost: { ap: 1, poker: 0 } },
       { id: "a1", tool: "attack", actor: 12, target: 31, cost: { ap: 2 } },
       { id: "s7", tool: "stratagem", actor: 12, target: 31, skill: "火计", cost: { ap: 2, poker: 1 } },
       { id: "r2", tool: "retreat", actor: 13, city: 5, cost: {} },

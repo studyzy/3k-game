@@ -19,7 +19,7 @@ const live = (over: Partial<{ controlled_vstate_id: number; units: any[]; legal_
 test("validateTurnRequest 接受合法全知请求", () => {
   const req = validateTurnRequest(sampleRequest());
   assert.equal(req.visibility, "omniscient");
-  assert.equal(req.legal_actions.length, 5);
+  assert.equal(req.legal_actions.length, 4);
 });
 
 test("validateTurnRequest 拒绝非全知 / 缺字段 / 重复 id / 未知 tool", () => {
@@ -49,12 +49,14 @@ test("validateToolResult 接受合法执行结果，拒绝缺字段", () => {
   );
 });
 
-test("validateAction 接受合法动作并返回副本", () => {
-  const action = validateAction("m3", live(), budget);
-  assert.equal(action.id, "m3");
-  assert.equal(action.tool, "move");
-  assert.deepEqual(action.pos, [8, 15]);
+test("validateAction 接受合法动作并返回副本（move 已不走此路径）", () => {
+  const action = validateAction("a1", live(), budget);
+  assert.equal(action.id, "a1");
+  assert.equal(action.tool, "attack");
+  assert.equal(action.target, 31);
   assert.notEqual(action, sampleRequest().legal_actions[0], "必须返回副本");
+  // move 已由 LLM 直接给 path，不再经 legal_actions 查找
+  assert.throws(() => validateAction("m3", live(), budget), /unknown action id/);
 });
 
 test("validateAction 拒绝未知 id / 非受控武将 / 禁用武将", () => {
@@ -72,13 +74,13 @@ test("validateAction 拒绝未知 id / 非受控武将 / 禁用武将", () => {
   );
 
   const disabled = req.units.map((u) => (u.id === 12 ? { ...u, disabled: true } : u));
-  assert.throws(() => validateAction("m3", live({ units: disabled }), budget), /disabled/);
+  assert.throws(() => validateAction("a1", live({ units: disabled }), budget), /disabled/);
 });
 
 test("validateAction 拒绝超出机动力 / 点数的动作", () => {
   const req = sampleRequest();
   const poorAp = req.units.map((u) => (u.id === 12 ? { ...u, ap: 0 } : u));
-  assert.throws(() => validateAction("m3", live({ units: poorAp }), budget), /exceeds action_point/);
+  assert.throws(() => validateAction("a1", live({ units: poorAp }), budget), /exceeds action_point/);
 
   const poorPoker = req.units.map((u) => (u.id === 12 ? { ...u, poker: 0 } : u));
   assert.throws(() => validateAction("s7", live({ units: poorPoker }), budget), /exceeds poker_point/);

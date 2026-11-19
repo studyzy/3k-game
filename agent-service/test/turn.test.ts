@@ -93,7 +93,7 @@ test("会话内可以连续执行多个动作（一回合一个会话）", async
 });
 
 function toolCallMove() {
-  return calls(toolCall("move", { actor: 12, pos: [8, 15], reasoning: "推进" }));
+  return calls(toolCall("move", { actor: 12, path: [[8, 15]], reasoning: "推进" }));
 }
 function toolCallAttack() {
   return calls(toolCall("attack", { actor: 12, target: 31, reasoning: "趁势进攻" }));

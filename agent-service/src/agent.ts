@@ -60,9 +60,14 @@ const SYSTEM_PROMPT = [
   "  · 河流：平 5/3，山 6/5，水 3/2，仙 1/1。",
   "  · 沼泽：平 5/4，山 4/3，水 4/3，仙 1/1。",
   "  · 城墙、城门、太守府：平/山/水 一律 6/4，仙 1/1。",
+  "- **行军路线由你自己规划**：地图（terrain）、所有武将位置（units[].pos）与剩余机动力都已经给你，",
+  "  move 工具需要你直接给出 path（不含起点、每步一格、最后一格是目的地），Godot 照你的路径逐格执行。",
+  "- **只能上下左右走一格，绝对不能斜走**；斜向一步会被判为非法路径而停下。",
   "- **行军铁律：永远选总消耗最低的路线到达目的地**，而不是直线或格数最少的路线。",
   "  直线多走 1 格平原（2 机）远比翻 1 格山地（5 机）便宜；绕开城墙街区通常也更快。",
-  "  先按地形表算出每条候选路线的总消耗，再决定走哪条；预算不够就说清而不是硬走。",
+  "  先按地形表和每格移动消耗算出整条路线的总价，再决定怎么走；预算不够就别规划走不到的路。",
+  "- Godot 只会停在走不动的地方（墙、其他武将、机动力不足），不会替你绕路或改道；",
+  "  结果里的 outcome 会写明实际走到哪、扣了多少、为何停下，请据此调整下一步。",
   "- 开场消息已经给了全量单位、地形、合法动作与经济，不必反复用只读工具试探；",
   "  工具结果会带回执行后的最新单位与合法动作，直接依据它决策即可。",
   "- 不要用挂机的武将乱动；没收益的移动不如 end 或留着机动力，让更有用的武将先动。",
@@ -97,6 +102,7 @@ const SYSTEM_PROMPT = [
   "- 计策造成兵力损失 = 知×(9~13)/10 + (等-1)×10 + 30，乘 min(1, 兵力/1000)。",
   "- 站【城墙】上只在带 weakenedTerrian 的计策上生效（如火力类）；精力有限，别把它当通用规律。",
   "- 地形数据（terrain）只在开场给一次，格式是 [x, y, 地形名]；**平原不列出，未出现的格子一律是平原**。",
+  "  地形名为「不可进入」的格子是地图边缘的无效区，**永远不能走进去，也不能作为移动终点**。",
   "  米屋/装备店/医馆/太守府 也作为地形名出现在列表里，用它们的坐标买米、买装备、治伤；地图不随战斗变化。",
   "- 己方兵力 < 1000 的武将伤害骤降，**先用计再补兵**；智力低的武将用计是浪费。",
   "- 地形是硬门槛（用错地形计策直接不可用）：火计→平原/树林；陷阱&虚兵→山地/树林；水攻/乱水/连环→河流；",
@@ -132,7 +138,8 @@ const SYSTEM_PROMPT = [
   "5. 有武将但没得打时，end 比乱动更好。",
   "",
   "## 九、你必须遵守的红线",
-  "- 每次出动作前先复核 legal_actions：skill 必须出现在 skill 里，target/pos 必须在合法候选内。",
+  "- attack/stratagem/retreat 必须来自 legal_actions（skill、target 都要在里面）；",
+  "  move 不查 legal_actions，由你按地图自己规划 path。",
   "- 所有概率、结果以引擎为准；你只需要判断更优动作。",
   "- reasoning 只写一句理由，不写诗、不寒暄。",
 ].join("\n");
@@ -267,17 +274,29 @@ function createStubRuntime(req: TurnRequest): Runtime {
   const faux = fauxProvider();
   const models = createModels();
   models.setProvider(faux.provider);
+  // move 已不再由 Godot 出候选：stub 与真实 Agent 一样自己规划路径。
+  // 先规划一次移动（往上一步），再执行候选里的动作，最后 end。
+  const controlled = req.units.find(
+    (u) => u.vstate === req.controlled_vstate_id && u.disabled !== true,
+  );
+  const responses: any[] = [fauxAssistantMessage(fauxToolCall("list_legal_actions", {}), { stopReason: "toolUse" })];
+  if (controlled && Array.isArray(controlled.pos)) {
+    const pos = controlled.pos as number[];
+    responses.push(fauxAssistantMessage(
+      fauxToolCall("move", { actor: controlled.id, path: [[pos[0], pos[1] - 1]], reasoning: "stub 移动" }),
+      { stopReason: "toolUse" },
+    ));
+  }
   const candidates = req.legal_actions.filter((a) => a.tool !== "end");
-  const pick = candidates[0] ?? req.legal_actions[0];
-  const params: Record<string, unknown> = { actor: pick.actor, reasoning: "stub 脚本动作" };
-  if (pick.tool === "move" && Array.isArray(pick.pos)) params.pos = pick.pos;
-  if (pick.target !== undefined) params.target = pick.target;
-  if (pick.tool === "stratagem" && pick.skill !== undefined) params.skill = pick.skill;
-  faux.setResponses([
-    fauxAssistantMessage(fauxToolCall("list_legal_actions", {}), { stopReason: "toolUse" }),
-    fauxAssistantMessage(fauxToolCall(pick.tool, params), { stopReason: "toolUse" }),
-    fauxAssistantMessage(fauxToolCall("end", { reason: "stub 结束" }), { stopReason: "toolUse" }),
-  ]);
+  const pick = candidates[0];
+  if (pick) {
+    const params: Record<string, unknown> = { actor: pick.actor, reasoning: "stub 脚本动作" };
+    if (pick.target !== undefined) params.target = pick.target;
+    if (pick.tool === "stratagem" && pick.skill !== undefined) params.skill = pick.skill;
+    responses.push(fauxAssistantMessage(fauxToolCall(pick.tool, params), { stopReason: "toolUse" }));
+  }
+  responses.push(fauxAssistantMessage(fauxToolCall("end", { reason: "stub 结束" }), { stopReason: "toolUse" }));
+  faux.setResponses(responses);
   return { model: faux.getModel(), streamFn: models.streamSimple.bind(models), modelId: "faux-1" };
 }
 

@@ -85,11 +85,16 @@ test("Godot 3.6.3 → HTTP → Agent 服务 全链路契约", async (t) => {
     }
 
     // 地形投影格式：[x, y, "地形名"]，只列非平原格（FakeMap 里定义了 3 个非平原格）
-    assert.deepEqual(req.terrain, [
+    const inBounds = req.terrain.filter((c) => c[2] !== "不可进入");
+    assert.deepEqual(inBounds, [
       [3, 4, "河流"],
       [9, 15, "树林"],
       [10, 15, "米屋"],
     ], "terrain 只列非平原格，且按行优先（y 小在前）排列");
+    // 引擎 is_valid_position 只认 y < 19，最后一行整行不可进入，必须显式标出来
+    const blocked = req.terrain.filter((c) => c[2] === "不可进入");
+    assert.equal(blocked.length, 32, "不可进入的一行应有 32 格");
+    assert.ok(blocked.every((c) => c[1] === 19), "只有 y=19 这一行不可进入");
     // 军种决定行军消耗，必须随单位一起投影
     for (const u of req.units) {
       assert.ok(["平", "山", "水", "仙"].includes(String(u.troops)), `unit ${u.id} 缺 troops 军种`);
