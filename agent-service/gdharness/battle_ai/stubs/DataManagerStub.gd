@@ -8,6 +8,7 @@ var traces = []
 func get_current_battle_fight(): return battle
 func get_war_actor(id): return war_actor
 func game_trace(msg): traces.append(str(msg))
+func ai_debug_log(msg: String, always: bool = false): pass
 func set_env(k, v): pass
 func unset_env(k): pass
 func get_env_int(k, d=0): return d

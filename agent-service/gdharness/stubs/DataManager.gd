@@ -12,3 +12,4 @@ func set_env(k, v): pass
 func unset_env(k): pass
 func get_env_int(k, d=0): return d
 func get_env_dict(k): return {}
+func ai_debug_log(msg: String, always: bool = false): pass
