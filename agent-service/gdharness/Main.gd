@@ -27,6 +27,14 @@ func _ready():
     wf.actors = [wa1, wa2]
     DataManager.current_war_fight = wf
     var wv = WV.new()
+    wv.side = "防守方"
+    var enemy = WV.new()
+    enemy.id = 1
+    enemy.rice = 310
+    enemy.money = 900
+    enemy.side = "攻击方"
+    wv.enemy_wv = enemy
+    enemy.enemy_wv = wv
 
     var proj = load("res://ai/StateProjection.gd").new()
     var payload = proj.build(wv)

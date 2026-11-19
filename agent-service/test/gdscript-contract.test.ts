@@ -77,6 +77,10 @@ test("Godot 3.6.3 → HTTP → Agent 服务 全链路契约", async (t) => {
 
     const payload = JSON.parse(marker(out, "AI_PAYLOAD"));
     const req = validateTurnRequest(payload);
+    assert.ok(["attacker", "defender"].includes(payload.side), "side 必须是 attacker|defender");
+    assert.equal(typeof payload.economy.enemy.rice, "number", "economy.enemy.rice 必须投影");
+    assert.equal(typeof payload.economy.enemy.money, "number", "economy.enemy.money 必须投影");
+    assert.notEqual(payload.economy.attacker_vstate, payload.controlled_vstate_id, "守方时攻方 id 不应等于受控方 id");
     assert.equal(req.visibility, "omniscient");
     assert.ok(req.legal_actions.length > 0);
     assert.equal(new Set(req.legal_actions.map((a) => a.id)).size, req.legal_actions.length);

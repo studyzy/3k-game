@@ -38,6 +38,7 @@ func _next_id(prefix: String) -> String:
 # 动作执行后重新投影工具结果（服务端驱动逐步交互的 D1/D2）：
 # Godot 负责计算执行后的真实状态，沙盒返回给服务端喂回 LLM。
 # 返回 {"ok", "outcome", "units", "legal_actions", "economy"}
+# economy 含敌方粮草（economy.enemy），每次动作都重新投影，避免模型读到过期值。
 # 地形不随战斗变化，这里不重复下发（开场请求已给过全量）。
 func build_tool_result(wv, ok: bool, outcome: String) -> Dictionary:
 	var fresh = build(wv)
@@ -99,16 +100,26 @@ func build(wv) -> Dictionary:
 		legal.append({"id": "e0", "tool": "end", "actor": _controlled_leader_id(wv), "cost": {}})
 
 	var main_city = map.get_position_by_buildCN("太守府")
+	var enemy = wv.get_enemy_vstate()
+	var side = "attacker" if wv.is_attacker() else "defender"
+	var attacker_id = controlled_id
+	if not wv.is_attacker():
+		attacker_id = enemy.id if enemy != null else -1
 	var economy = {
 		"rice": wv.rice,
 		"money": wv.money,
 		"day": wf.date,
 		"max_days": 30,
-		"attacker_vstate": controlled_id,
+		"attacker_vstate": attacker_id,
 		"main_city_pos": [int(main_city.x), int(main_city.y)],
 	}
+	# 敌方（玩家方）粮草：此前模型看不到「任一方粮尽即判负」的关键变量。
+	# 敌方 vstate 缺失时不加该键，由提示词层按「未知」兜底。
+	if enemy != null:
+		economy["enemy"] = {"rice": enemy.rice, "money": enemy.money}
 
 	return {
+		"side": side,
 		"state_version": 1,
 		"visibility": "omniscient",
 		"static_bundle_id": "v1",
