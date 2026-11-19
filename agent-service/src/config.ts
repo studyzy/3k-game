@@ -11,9 +11,11 @@ import type { Budget } from "./types.ts";
 const IDLE_TIMEOUT_MS = 30000;
 
 export const BUDGETS: Record<number, Budget> = {
-  2: { max_actions: 16, max_tokens: 512, max_turns: 4, max_tool_calls: 8, lookahead: 0, allow_memory: false, idle_timeout_ms: IDLE_TIMEOUT_MS },
-  3: { max_actions: 24, max_tokens: 1024, max_turns: 4, max_tool_calls: 8, lookahead: 1, allow_memory: false, idle_timeout_ms: IDLE_TIMEOUT_MS },
-  4: { max_actions: 32, max_tokens: 2048, max_turns: 5, max_tool_calls: 10, lookahead: 2, allow_memory: true, idle_timeout_ms: IDLE_TIMEOUT_MS },
+  // max_turns / max_tool_calls 的 100 只作死循环兜底：
+  // max_tool_calls 只统计动作工具（只读侦察不计数），真正的动作上限由 max_actions 控制。
+  2: { max_actions: 16, max_tokens: 512, max_turns: 100, max_tool_calls: 100, lookahead: 0, allow_memory: false, idle_timeout_ms: IDLE_TIMEOUT_MS },
+  3: { max_actions: 24, max_tokens: 1024, max_turns: 100, max_tool_calls: 100, lookahead: 1, allow_memory: false, idle_timeout_ms: IDLE_TIMEOUT_MS },
+  4: { max_actions: 32, max_tokens: 2048, max_turns: 100, max_tool_calls: 100, lookahead: 2, allow_memory: true, idle_timeout_ms: IDLE_TIMEOUT_MS },
 };
 
 export function budgetFor(diffculities: number, overrides?: Partial<Budget>): Budget {

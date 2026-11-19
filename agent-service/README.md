@@ -30,7 +30,7 @@ Godot                             服务端
 - **`end` 是唯一终止工具**，结束整个回合。游戏里没有「让单个武将结束行动」——某个武将机动力耗尽不影响其他人，LLM 会继续指挥还有机动力的人。
 - **Godot 只提供「工具实现」**：执行动作、计算执行后状态、回传；决策全在服务端循环里。
 - **战斗的胜负不确定结果**会随结果回传给 LLM，由它决定继续攻击还是改做别的。
-- **空闲超时 30s**：每次回传结果后开始计时，30s 内 Agent 没产出下一个动作 → 判定 LLM 已死，本回合剩余全部回退 `hard` 规则 AI。
+- **空闲超时 30s**：每次 Agent 工具调用（含只读侦察）或 Godot 回传结果后重置；30s 内完全没有 Agent 活动 → 判定 LLM 已死，本回合剩余全部回退 `hard` 规则 AI。
 - 等待期间显示「敌方思考中……」。
 
 ### 白兵战（两军对垒）
@@ -201,9 +201,9 @@ LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=... npm test
 | 多轮工具 | 后一轮模型能看到前一轮 `tool_result` |
 | 非法动作自纠错 | 拒绝原因回传给模型，模型改给合法动作后成功 |
 | 只回文本不给动作 | 422 `agent_budget_exhausted`，轨迹记为 error |
-| 死循环（永远回只读工具） | 恰好在 `max_turns`（难度 4 = 4，难度 2 = 3）处收敛 |
+| 死循环（永远回只读工具） | 恰好在 `max_turns`（100）处收敛 |
 | 推理中模型报错 | 不产生伪成功动作，`status=error` |
-| `max_tool_calls` | 超出那次被 `beforeToolCall` 拦下（`ok:false`），成功执行数等于预算 |
+| `max_tool_calls` | 只统计动作工具；超出那次被 `beforeToolCall` 拦下（`ok:false`）。只读侦察不计数 |
 | 跨回合记忆 | 难度 4 第二次请求带上上一回合 `intent` / `turns` |
 | 多侧并发 | 两个决策同时进行，`action` / `intent` / 会话记忆互不串线 |
 | `history` 回灌 | 上一轮动作与结果进入本次 user message，模型据实调整 |
@@ -213,7 +213,7 @@ LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=... npm test
 | pi 端点端到端 | 假 `/v1/chat/completions` 走真实 `createCustomRuntime`，校验 9 个工具声明与 `tool` 消息回灌 |
 | 用户可编辑文本注入 | 指令注入载荷不改变决策，面板不内联轨迹 |
 
-**逐步交互的预算**：每次决策只定一个动作，推理量远小于整侧计划，故三档统一为 `max_turns` 3/3/4、`max_tool_calls` 6/6/8；超时是**每动作独立 30s**（不是回合总预算），Godot 客户端 32s，服务端恒早 2s 返回 `504 agent_timeout`。回合内动作序列由 Godot 用 `history` 回传，服务端无状态。
+**逐步交互的预算**：每次决策只定一个动作，推理量远小于整侧计划，故三档为 `max_turns` 100/100/100、`max_tool_calls` 100/100/100（只统计动作工具，只读侦察不占预算，两个 100 都只作死循环兜底，实际节奏受 30s 空闲超时约束）；超时是**每动作独立 30s**（不是回合总预算），Godot 客户端 32s，服务端恒早 2s 返回 `504 agent_timeout`。回合内动作序列由 Godot 用 `history` 回传，服务端无状态。
 
 > 两侧超时常量必须同步修改：`agent-service/src/config.ts` 的 `BUDGETS` 与 `bwdl/packed/sgz_script/war/AI/War_AI_behavior_llm.gd` 的 `TIMEOUT_SEC`，`test/scenarios.test.ts` 会断言两者差 ≥1s。
 

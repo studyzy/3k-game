@@ -43,7 +43,7 @@ export class TurnSession {
   private doneReason = "";
   private failError: Error | null = null;
 
-  /** 距上次 Godot 回传结果（或会话开始）的毫秒数，用于空闲超时判定。 */
+  /** 距上次 Agent 活动（任何工具调用）或 Godot 回传结果的毫秒数，用于空闲超时判定。 */
   lastActivityAt = Date.now();
   idleTimeoutMs: number;
 
@@ -59,6 +59,14 @@ export class TurnSession {
   /** 距离空闲超时还剩多少毫秒；<=0 表示已超时。 */
   idleRemaining(): number {
     return this.idleTimeoutMs - (Date.now() - this.lastActivityAt);
+  }
+
+  /**
+   * Agent 仍在活动：任何工具调用（含只读侦察）都证明 loop 没死，
+   * 重置空闲计时，避免 Godot 把「正在查询」误判成「Agent 掉线」。
+   */
+  touch(): void {
+    this.lastActivityAt = Date.now();
   }
 
   /** 由工具 execute 调用：登记一个动作并挂起，直到 Godot 回传结果。 */

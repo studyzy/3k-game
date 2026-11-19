@@ -11,7 +11,7 @@ import { builtinModels } from "@earendil-works/pi-ai/providers/all";
 import { fauxProvider, fauxAssistantMessage, fauxToolCall } from "@earendil-works/pi-ai/providers/faux";
 import type { Budget, LegalAction, TurnRequest } from "./types.ts";
 import { budgetFor, type ServiceConfig } from "./config.ts";
-import { buildTools, ACT_TOOL_NAMES, type LiveState } from "./tools.ts";
+import { buildTools, ACT_TOOL_NAMES, READ_TOOL_NAMES, type LiveState } from "./tools.ts";
 import { turnStore, sessionStore, type TurnSession } from "./session.ts";
 import { createCustomRuntime } from "./llm.ts";
 import { traceStore, type DecisionTrace } from "./trace.ts";
@@ -376,10 +376,16 @@ async function piTurn(
     streamFn: runtime.streamFn as never,
     getApiKey: runtime.getApiKey,
     toolExecution: "sequential",
-    beforeToolCall: async () => {
-      counters.toolCalls++;
-      if (counters.toolCalls > budget.max_tool_calls) {
-        return { block: true, reason: "max_tool_calls exceeded", terminate: true };
+    beforeToolCall: async ({ toolCall }) => {
+      // 任何工具调用都说明 Agent 还活着：重置 30s 空闲计时（只读侦察同样算）。
+      session.touch();
+      // 只读侦察是决策前提（看清全部单位往往要十几次），不占工具预算；
+      // 只有动作工具（move/attack/stratagem/retreat/end）计入 max_tool_calls。
+      if (!(READ_TOOL_NAMES as readonly string[]).includes(toolCall.name)) {
+        counters.toolCalls++;
+        if (counters.toolCalls > budget.max_tool_calls) {
+          return { block: true, reason: "max_tool_calls exceeded", terminate: true };
+        }
       }
       if (state.executed >= budget.max_actions) {
         return { block: true, reason: "max_actions exceeded", terminate: true };

@@ -241,6 +241,8 @@ async function piBattle(
     getApiKey: runtime.getApiKey,
     toolExecution: "sequential",
     beforeToolCall: async () => {
+      // 任何工具调用（含 inspect_battlefield）都说明 Agent 还活着，重置空闲计时。
+      session.touch();
       counters.toolCalls++;
       if (counters.toolCalls > budget.max_tool_calls) {
         return { block: true, reason: "max_tool_calls exceeded", terminate: true };

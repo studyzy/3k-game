@@ -8,7 +8,7 @@
 #   3. 执行该动作（移动/攻击/用计/撤退），由游戏流程播完
 #   4. 重新投影战场（units + legal_actions）→ POST /ai/turn/:id/result 回传
 #   5. 回到 2，直到服务端返回 end
-#   └─ 任一动作失败 / 30s 无新动作 → 回退本地 hard 规则 AI 接管本回合剩余
+#   └─ 任一动作失败 / 30s 无 Agent 活动（任何工具调用都算）→ 回退本地 hard 规则 AI 接管本回合剩余
 #
 # 决策完全在服务端循环里，Godot 只提供「工具实现 + 执行结果」。
 # 依据设计文档 docs/plans/2026-11-18-ai-agent-enemy-design.md §3.7 / §4.3。

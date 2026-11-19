@@ -71,6 +71,11 @@ export class BattleSession {
     return this.idleTimeoutMs - (Date.now() - this.lastActivityAt);
   }
 
+  /** Agent 仍在活动：任何工具调用（含 inspect_battlefield）都重置空闲计时。 */
+  touch(): void {
+    this.lastActivityAt = Date.now();
+  }
+
   // ---------------- agent 侧：产出一条指令 ----------------
   private emit(payload: BattlePending, kind: BattleCommand["kind"]): Promise<BattleOutcome> {
     const seq = ++this.seq;

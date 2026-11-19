@@ -189,6 +189,66 @@ test("max_actions 预算：超出后 loop 终止，会话结束", async () => {
   assert.ok(session.actions.length <= 2, `实际执行 ${session.actions.length} 个动作，超出预算`);
 });
 
+test("只读工具不占 max_tool_calls：批量侦察后仍能执行动作", async () => {
+  // 复现真实战局：模型先一口气 inspect 十几个单位，预算不应被侦察吃光。
+  const req = sampleRequest({ diffculities: 4, budget: { max_tool_calls: 2 } });
+  const { session } = openWith((ctx) => {
+    if (ctx.callIndex === 0) {
+      return calls(...Array.from({ length: 12 }, () => toolCall("list_legal_actions", {})));
+    }
+    if (ctx.callIndex === 1) return toolCallMove();
+    return calls(toolCall("end", { reason: "都动完了" }));
+  }, req);
+
+  const a1 = await takeAction(session);
+  assert.equal(a1.type, "action", "只读调用不应耗尽工具预算");
+  session.submitResult(a1.action.seq, toolResult(a1.action.seq, a1.action.action));
+  const done = await takeAction(session);
+  assert.equal(done.type, "end");
+  assert.equal(session.actions.length, 1);
+});
+
+test("只读工具调用会重置空闲计时（Agent 还在查询不算掉线）", async () => {
+  // 模型先想 120ms 再查一次（空闲预算 200ms）：查询必须把剩余时间重置回满，
+  // 否则 Godot 会把「正在侦察」误判成「Agent 已死」。
+  const req = sampleRequest({ diffculities: 4, budget: { idle_timeout_ms: 200 } });
+  let observed = -1;
+  const holder: { session?: TurnSession } = {};
+  const { session } = openWith(async (ctx) => {
+    if (ctx.callIndex === 0) {
+      await new Promise((r) => setTimeout(r, 120));
+      return calls(toolCall("list_legal_actions", {}));
+    }
+    if (ctx.callIndex === 1) {
+      observed = holder.session!.idleRemaining();
+      return toolCallMove();
+    }
+    return calls(toolCall("end", { reason: "x" }));
+  }, req);
+  holder.session = session;
+
+  const a1 = await takeAction(session, 3000);
+  assert.equal(a1.type, "action", "只读工具调用后不应被判空闲超时");
+  assert.ok(observed >= 150, `只读工具调用应重置空闲计时，实际剩余 ${observed}ms`);
+  session.submitResult(a1.action.seq, toolResult(a1.action.seq, a1.action.action));
+  const done = await takeAction(session, 3000);
+  assert.equal(done.type, "end");
+});
+
+test("动作工具仍计入 max_tool_calls：超出后 loop 终止", async () => {
+  const req = sampleRequest({ diffculities: 4, budget: { max_tool_calls: 1 } });
+  const { session } = openWith(
+    (ctx) => (ctx.callIndex < 5 ? toolCallMove() : calls(toolCall("end", { reason: "x" }))),
+    req,
+  );
+  const a1 = await takeAction(session);
+  assert.equal(a1.type, "action");
+  session.submitResult(a1.action.seq, toolResult(a1.action.seq, a1.action.action));
+  const done = await takeAction(session);
+  assert.equal(done.type, "error", "第 2 个动作超出 max_tool_calls，且未调用 end，应走失败路径");
+  assert.equal(session.actions.length, 1);
+});
+
 test("模型报错：会话以 error 结束，挂起的工具调用被拒绝", async () => {
   const model = scriptedModel(() => text("x"), { throwOnCall: 0 });
   const { session } = startTurn(HIGH, { mode: "pi", config: testConfig, runtime: model.runtime });

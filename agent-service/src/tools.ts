@@ -306,3 +306,8 @@ export const TOOL_NAMES = [
 
 /** 会交给 Godot 执行的工具（不含 end）。 */
 export const ACT_TOOL_NAMES = ["move", "attack", "stratagem", "retreat"] as const;
+
+/** 只读侦察工具：查询当前状态，不推进战局，不占 max_tool_calls 预算。 */
+export const READ_TOOL_NAMES = [
+  "list_legal_actions", "inspect_unit", "inspect_terrain", "inspect_economy",
+] as const;
