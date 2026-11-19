@@ -9,6 +9,7 @@ var _info = null
 func has_position(): return true
 func can_move_to_position(p): return true
 func get_soldiers(): return 1000
+func get_troops_type(): return "平"
 func actor(): return _info
 func get_attack_distance(): return 3
 func get_stratagems(): return []

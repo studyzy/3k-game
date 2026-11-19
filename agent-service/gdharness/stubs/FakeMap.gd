@@ -6,6 +6,11 @@ var blocks = {
 	Vector2(10, 15): "米屋",
 	Vector2(3, 4): "河流",
 }
+var aStar = null
+
+func _init():
+	aStar = load("res://stubs/FakeAStar.gd").new()
+
 func is_valid_position(p): return p.x >= 0 and p.x < 32 and p.y >= 0 and p.y < 19
 func get_blockCN_by_position(p):
 	if blocks.has(Vector2(int(p.x), int(p.y))):
