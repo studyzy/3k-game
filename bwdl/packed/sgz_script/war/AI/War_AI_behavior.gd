@@ -61,22 +61,22 @@ func _init() -> void:
 func _input_key(delta: float):
 	match get_view_model():
 		10: # AI用计确认
-			Global.wait_for_confirmation("AI_stratagem_confirmed", view_model_name)
+			Global.wait_for_confirmation("AI_stratagem_confirmed", view_model_name, delta)
 		101: # AI 用计插入对话确认
-			Global.wait_for_confirmation("AI_strategem_execute_trigger", view_model_name)
+			Global.wait_for_confirmation("AI_strategem_execute_trigger", view_model_name, delta)
 		11: # AI用计结果确认
-			if Global.wait_for_confirmation("", view_model_name):
+			if Global.wait_for_confirmation("", view_model_name, delta):
 				var msgs = DataManager.get_env_array("对话PENDING")
 				if not msgs.empty():
 					FlowManager.add_flow("AI_strategem_1")
 					return
 				FlowManager.add_flow("AI_strategem_end_1_trigger")
 		20:#AI攻击确认
-			Global.wait_for_confirmation("AI_attack_1", view_model_name)
+			Global.wait_for_confirmation("AI_attack_1", view_model_name, delta)
 		30:#AI撤退确认
-			Global.wait_for_confirmation("AI_retreat_1", view_model_name)
+			Global.wait_for_confirmation("AI_retreat_1", view_model_name, delta)
 		41:#减兵确认
-			Global.wait_for_confirmation("AI_move_2")
+			Global.wait_for_confirmation("AI_move_2", "", delta)
 	return
 
 func AI_move_0():
