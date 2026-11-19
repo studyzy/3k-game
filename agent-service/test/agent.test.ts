@@ -137,3 +137,9 @@ test("开场消息按敌我分组，动态字段在分界之后", () => {
   assert.ok(ownBlock.includes('"id":12') && ownBlock.includes('"id":13'), "我方块应含 12/13");
   assert.ok(!ownBlock.includes('"id":31'), "我方块不得含敌方武将 31");
 });
+
+test("开场消息包含武将姓名", () => {
+  const msg = buildUserMessage(sampleRequest(), null);
+  assert.ok(msg.includes("张飞"), "我方武将姓名应出现在消息里");
+  assert.ok(msg.includes("曹操"), "敌方武将姓名应出现在消息里");
+});

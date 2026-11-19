@@ -74,6 +74,8 @@ func build(wv) -> Dictionary:
 			"ap": wa.action_point,
 			"poker": wa.poker_point,
 			"soldiers": wa.get_soldiers(),
+			# 武将姓名：只给数字 id 模型无法判断谁是谁，必须随单位投影。
+			"name": actor.get_name() if actor != null else "",
 			# 军种（平/山/水/仙）：决定各行军地形的移动消耗。
 			# 必须与 DataManager.get_move_cost 内部取军种的方式一致
 			# （get_move_cost 用的是 actor().get_troops_type()，不含临时军种），

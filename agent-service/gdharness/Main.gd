@@ -20,8 +20,10 @@ func _ready():
 
     var wa1 = Actor.new()
     wa1.actorId = 12; wa1.wvId = 2; wa1.position = Vector2(8, 14); wa1._info = Info.new()
+    wa1._info.name = "张飞"
     var wa2 = Actor.new()
     wa2.actorId = 31; wa2.wvId = 1; wa2.position = Vector2(9, 15); wa2._info = Info.new()
+    wa2._info.name = "曹操"
 
     var wf = WF.new()
     wf.actors = [wa1, wa2]

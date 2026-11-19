@@ -103,6 +103,11 @@ test("Godot 3.6.3 → HTTP → Agent 服务 全链路契约", async (t) => {
     for (const u of req.units) {
       assert.ok(["平", "山", "水", "仙"].includes(String(u.troops)), `unit ${u.id} 缺 troops 军种`);
     }
+    // 武将姓名：模型只看到数字 id 无法判断谁是谁，必须随单位投影
+    for (const u of req.units) {
+      assert.equal(typeof (u as any).name, "string", `unit ${u.id} 缺 name 武将姓名`);
+      assert.ok((u as any).name.length > 0, `unit ${u.id} 的 name 不能为空`);
+    }
 
     // Godot 侧 accept_action 结果 → 服务侧 validateAction 同规则
     const accepted = JSON.parse(marker(out, "AI_NORMALIZED"));

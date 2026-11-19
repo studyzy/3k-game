@@ -11,9 +11,9 @@ export function sampleRequest(overrides: Partial<TurnRequest> = {}): TurnRequest
     diffculities: 3,
     session_id: "sgz-test",
     units: [
-      { id: 12, vstate: 2, pos: [8, 14], ap: 7, poker: 3, soldiers: 1200, disabled: false },
-      { id: 13, vstate: 2, pos: [7, 14], ap: 5, poker: 2, soldiers: 800, disabled: false },
-      { id: 31, vstate: 1, pos: [9, 15], ap: 6, poker: 2, soldiers: 900, disabled: false },
+      { id: 12, name: "张飞", vstate: 2, pos: [8, 14], ap: 7, poker: 3, soldiers: 1200, disabled: false },
+      { id: 13, name: "赵云", vstate: 2, pos: [7, 14], ap: 5, poker: 2, soldiers: 800, disabled: false },
+      { id: 31, name: "曹操", vstate: 1, pos: [9, 15], ap: 6, poker: 2, soldiers: 900, disabled: false },
     ],
     // 地形只列非平原格：[x, y, "地形名"]
     terrain: [
