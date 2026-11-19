@@ -29,6 +29,7 @@ func get_url(url: String, owner: Object, method: String, timeout_sec: int = 15) 
 	_owner = owner
 	_owner_method = method
 	_pending = true
+	DataManager.ai_debug_log("HTTP GET " + url)
 	var err = _http.request(url, PoolStringArray(["Cache-Control: no-cache"]), true, HTTPClient.METHOD_GET, "")
 	if err != OK:
 		_fail(err)
@@ -55,6 +56,7 @@ func post(url: String, body_text: String, owner: Object, method: String, timeout
 	_owner = owner
 	_owner_method = method
 	_pending = true
+	DataManager.ai_debug_log("HTTP POST " + url + " body=" + body_text)
 	# Godot 3.5 签名：request(url, custom_headers, ssl_validate_domain, method, request_data)
 	# 第 4 参是 method(int)，请求体是第 5 参；text/plain 为 CORS 安全列表内容类型，同源下不触发 OPTIONS 预检
 	var err = _http.request(url, PoolStringArray(["Content-Type: text/plain; charset=utf-8"]), true, HTTPClient.METHOD_POST, body_text)
@@ -66,6 +68,7 @@ func post(url: String, body_text: String, owner: Object, method: String, timeout
 func _fail(err: int) -> void:
 	_pending = false
 	DataManager.game_trace("[AI] http start failed: {0}".format([err]))
+	DataManager.ai_debug_log("HTTP START FAILED err={0}".format([err]))
 	if _owner != null and _owner.has_method(_owner_method):
 		_owner.call(_owner_method, -1, 0, PoolByteArray())
 	return
@@ -80,6 +83,9 @@ func _on_completed(result: int, response_code: int, headers: PoolStringArray, bo
 	if not _pending:
 		return
 	_pending = false
+	DataManager.ai_debug_log("HTTP DONE result={0} code={1} body={2}".format([
+		result, response_code, body.get_string_from_utf8(),
+	]))
 	if _owner != null and _owner.has_method(_owner_method):
 		_owner.call(_owner_method, result, response_code, body)
 	return

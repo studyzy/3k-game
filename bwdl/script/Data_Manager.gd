@@ -218,6 +218,48 @@ func _init() -> void :
 func _ready() -> void :
 	loading_version_resource(DEFAULT_MOD_PATH)
 	load_ai_agent_config()
+	load_ai_agent_debug()
+	return
+
+# 修改：AI Agent 接入——调试日志开关（网页版调试用）
+# 开启方式（优先级从高到低）：
+#   1. 页面 URL 带 ?ai_debug=1（或 #ai_debug=1）
+#   2. 浏览器控制台执行：window.__k3gAiDebug = 1
+#   3. user://ai_agent_debug.txt 内容为 1
+# 开启后 ai_debug_log() 会直接 print()，在 Chrome 控制台可见（不受 is_developer 限制）。
+const AI_AGENT_DEBUG_PATH = "user://ai_agent_debug.txt"
+
+var ai_debug_enabled: bool = false
+var ai_debug_checked: bool = false
+
+func is_ai_debug() -> bool:
+	if ai_debug_checked:
+		return ai_debug_enabled
+	ai_debug_checked = true
+	ai_debug_enabled = false
+	if OS.has_feature("HTML5"):
+		# window.__k3gAiDebug 允许运行时在控制台临时打开，无需刷新
+		var flag = String(JavaScript.eval(
+			"(window.__k3gAiDebug === 1 || window.__k3gAiDebug === true) ? 1 : "
+			+ "((/[?#&]ai_debug=1/.test(location.href)) ? 1 : 0)",
+			true))
+		if flag == "1":
+			ai_debug_enabled = true
+	if not ai_debug_enabled:
+		var text = Global.get_file_text(AI_AGENT_DEBUG_PATH)
+		if text.strip_edges() == "1":
+			ai_debug_enabled = true
+	return ai_debug_enabled
+
+func load_ai_agent_debug() -> void:
+	ai_debug_checked = false
+	return
+
+# AI Agent 调试日志：优先走控制台可见的 print()，并带 [AI] 前缀便于筛选
+func ai_debug_log(msg: String, always: bool = false) -> void:
+	if not always and not is_ai_debug():
+		return
+	print("[AI] ", msg)
 	return
 
 # 修改：AI Agent 接入——远程服务地址的读取与保存
