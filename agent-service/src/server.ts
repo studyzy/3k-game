@@ -48,12 +48,17 @@ async function readBody(req: http.IncomingMessage, limit = MAX_BODY): Promise<st
   const chunks: Buffer[] = [];
   let size = 0;
   let overflow = false;
+  // 超限后继续读一小段再抛：直接 throw 会销毁请求流，客户端拿到连接重置而不是 413。
+  // 但不能无上限排水，否则超大 body 会把带宽/IO 吃光。
+  const drainCap = limit * 4 + 1024 * 1024;
   for await (const chunk of req) {
     const buf = Buffer.from(chunk);
     size += buf.length;
-    // 超限后继续读完但不缓存（内存仍受 limit 约束）：若在循环内直接 throw，
-    // 异步迭代器的 return() 会销毁请求流，客户端拿到的是连接重置而不是 413。
-    if (size > limit) { overflow = true; continue; }
+    if (size > limit) {
+      overflow = true;
+      if (size > drainCap) break;
+      continue;
+    }
     chunks.push(buf);
   }
   if (overflow) throw new ServiceError(413, "body_too_large", `request body exceeds ${limit} bytes`);
