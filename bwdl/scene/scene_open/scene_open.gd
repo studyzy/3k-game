@@ -19,6 +19,7 @@ func _ready():
 		StaticManager.game_init_done = true
 		DataManager.game_trace("RESTART", true)
 	DataManager.grouped_trace_output(false, "OPENING")
+	CloudSave.begin_session(self, "_on_cloud_fetched")
 	$HTTPRequest.request("https://bwdl.fun/gd/version.json")
 	return
 
@@ -29,6 +30,8 @@ func _process(delta):
 
 
 func _on_key_event():
+	if SceneManager.popuped or SceneManager.Quit.visible:
+		return
 	match model_view:
 		0:
 			
@@ -59,4 +62,27 @@ func reset_layout_portrait():
 func reset_layout_landscape():
 	rect_position = Vector2(192, 0)
 	rect_scale = Vector2(1, 1)
+	return
+
+func _on_cloud_fetched(result: Dictionary) -> void :
+	if not result.get("ok", false):
+		return
+	var slots = result.get("slots", {})
+	if typeof(slots) != TYPE_DICTIONARY or slots.empty():
+		return
+	var merged = CloudSave.merge_into_local(slots)
+	var total = int(merged["total"])
+	if total <= 0:
+		return
+	var msg = "云端发现{0}个网络存档位，已恢复{1}个，保留本地较新{2}个。\n是否打开读档列表？".format([
+		total, int(merged["restored"]), int(merged["kept"])
+	])
+	SceneManager.confirm(msg, self, "_on_cloud_merge_confirmed", Vector2(420, 240), "打开", "取消")
+	return
+
+func _on_cloud_merge_confirmed() -> void :
+	# 等确认框真正关闭再开菜单：show_menu() 在 popuped 时会直接 return
+	yield(get_tree(), "idle_frame")
+	SceneManager.Quit.show_menu()
+	SceneManager.Quit._on_btnLoadGame_pressed()
 	return
