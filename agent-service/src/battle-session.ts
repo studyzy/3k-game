@@ -123,7 +123,6 @@ export class BattleSession {
         if (this.done) { resolve({ type: "end_battle", reason: this.doneReason } as never); return; }
         resolve({ type: "idle_timeout" });
       }, Math.max(0, maxWaitMs));
-      timer.unref?.();
       this.poller = (v) => { clearTimeout(timer); resolve(v); };
     });
   }
@@ -171,7 +170,6 @@ export class BattleSession {
         this.resume = null;
         resolve(false);
       }, Math.max(0, maxWaitMs));
-      timer.unref?.();
       this.resume = (v) => { clearTimeout(timer); resolve(v); };
     });
   }

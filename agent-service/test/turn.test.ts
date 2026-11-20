@@ -28,9 +28,16 @@ function openWith(script: Parameters<typeof scriptedModel>[0], req = HIGH) {
   return { session, budget, model };
 }
 
-/** 取会话产出的下一个动作（绕过 HTTP，直接驱动 TurnSession）。 */
+/**
+ * 取会话产出的下一个动作（绕过 HTTP，直接驱动 TurnSession）。
+ * 中间进度只用于界面展示，这里跳过；超时/重试/结束等其它响应原样返回。
+ */
 async function takeAction(session: TurnSession, waitMs = 3000) {
-  return session.nextAction(waitMs);
+  for (let i = 0; i < 20; i++) {
+    const r = await session.nextAction(waitMs);
+    if (r.type !== "progress") return r;
+  }
+  throw new Error("会话持续返回进度，未产出动作");
 }
 
 test.beforeEach(fresh);

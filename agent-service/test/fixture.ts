@@ -95,6 +95,8 @@ export async function driveTurn(
     if (r.type === "idle_timeout") return { actions, endReason: "__idle_timeout__" };
     if (r.type === "error") return { actions, endReason: "__error__:" + r.message };
     if (r.type === "retry") continue;
+    // 中间进度只用于界面展示，不占动作预算
+    if (r.type === "progress") continue;
     actions.push(r.action);
     opts.onAction?.(r.action);
     await fetch(`${baseUrl}/ai/turn/${sessionId}/result`, {

@@ -7,6 +7,10 @@ onready var war_map = get_node("war_map")
 onready var war_communique = get_node("War_Communique")
 onready var war_status = get_node("war_status")
 onready var war_log = get_node("war_log")
+onready var lbl_agent_message = get_node("lblAgentMessage")
+
+# AI Agent 的思考进度：显示在底部黄色消息区，只保留最新一条
+const AGENT_MAX_CHARS: int = 44
 
 var war_auto_run
 
@@ -17,6 +21,28 @@ func _ready() -> void :
 	war_communique.hide()
 	war_status.hide()
 	war_log.hide()
+	lbl_agent_message.add_font_override("normal_font", Global.get_font(20))
+	lbl_agent_message.hide()
+	return
+
+
+# 新增：显示 AI Agent 的最新一条思考进度（战争界面底部消息区）。
+# 只显示最新一条，不累计历史；新消息直接替换旧消息。
+func show_agent_progress(text: String) -> void :
+	var s = text.replace("\n", " ").strip_edges()
+	if s == "":
+		return
+	if s.length() > AGENT_MAX_CHARS:
+		s = s.substr(0, AGENT_MAX_CHARS - 1) + "…"
+	lbl_agent_message.text = "敌方AI：" + s
+	lbl_agent_message.show()
+	return
+
+
+# 新增：AI 回合结束 / 回退本地 AI 时清空，避免把旧进度带进玩家回合
+func clear_agent_progress() -> void :
+	lbl_agent_message.text = ""
+	lbl_agent_message.hide()
 	return
 
 

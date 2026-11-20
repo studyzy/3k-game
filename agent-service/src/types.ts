@@ -93,6 +93,8 @@ export interface PendingAction {
 /** 长轮询结果。 */
 export type PendingResponse =
   | { type: "action"; action: PendingAction }
+  /** Agent 的中间进度（思考文本 / 只读工具调用），只用于界面展示，不需要 Godot 执行。 */
+  | { type: "progress"; seq: number; text: string }
   | { type: "end"; reason: string }
   | { type: "end_battle"; reason: string }
   | { type: "idle_timeout" }

@@ -5,6 +5,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createServer } from "../src/server.ts";
+import { turnStore } from "../src/session.ts";
 import { sampleRequest, testConfig, toolResult } from "./fixture.ts";
 
 let server: http.Server;
@@ -74,6 +75,21 @@ test("完整回合：开会话 → 取动作 → 回传结果 → end", async ()
 
   const done = await fetch(`${base}/ai/turn/${sid}/pending?wait_ms=3000`).then((r) => r.json() as any);
   assert.equal(done.type, "end");
+});
+
+test("中间进度：pending 返回 progress 且会话继续可用", async () => {
+  const start = await post(sampleRequest(), { "x-mock-case": "timeout" }).then((r) => r.json() as any);
+  const sid = start.session_id;
+  const session = turnStore.get(sid);
+  assert.ok(session, "会话应存在");
+  session!.emitProgress("查看粮草与经济");
+
+  const progress = await fetch(`${base}/ai/turn/${sid}/pending?wait_ms=1000`).then((r) => r.json() as any);
+  assert.equal(progress.type, "progress");
+  assert.equal(progress.text, "查看粮草与经济");
+
+  const again = await fetch(`${base}/ai/turn/${sid}/pending?wait_ms=20`).then((r) => r.json() as any);
+  assert.equal(again.type, "retry");
 });
 
 test("回传结果缺 seq 或字段非法 → 400", async () => {

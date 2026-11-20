@@ -31,6 +31,7 @@ Godot                             服务端
 - **Godot 只提供「工具实现」**：执行动作、计算执行后状态、回传；决策全在服务端循环里。
 - **战斗的胜负不确定结果**会随结果回传给 LLM，由它决定继续攻击还是改做别的。
 - **空闲超时 30s**：每次 Agent 工具调用（含只读侦察）或 Godot 回传结果后重置；30s 内完全没有 Agent 活动 → 判定 LLM 已死，本回合剩余全部回退 `hard` 规则 AI。
+- **界面进度**：模型每轮的思考文本与只读侦察（`inspect_*` / `list_legal_actions`）会以 `{type:"progress"}` 下发，Godot 在战争界面**底部黄色消息区**显示最新一条。进度不占决策预算、不需要回传结果，且排在动作之前下发；动作本身的理由会覆盖同一区域。
 - 等待期间显示「敌方思考中……」。
 
 ### 白兵战（两军对垒）
@@ -82,7 +83,7 @@ node src/server.ts --mode stub --port 8060 --web-dir ../bwdl/build/web
 | `GET /` | 静态托管 `bwdl/build/web/`（`index.html` / `.js` / `.wasm` / `.pck`，MIME 正确） |
 | `GET /ai/health` | 探活 + 返回难度预算表 |
 | `POST /ai/turn` | 开启一个 AI 回合会话，返回 `session_id` |
-| `GET /ai/turn/:id/pending` | 长轮询取下一个待执行动作 / `end` / `idle_timeout` |
+| `GET /ai/turn/:id/pending` | 长轮询取下一个待执行动作 / `progress` / `end` / `idle_timeout` |
 | `POST /ai/turn/:id/result` | 回传执行结果（最新 `units` + `legal_actions`） |
 | `POST /ai/battle` | 白兵战：开启战斗会话（独立 Agent / 提示词 / 工具） |
 | `GET /ai/battle/:id/pending` | 白兵战：长轮询取指令（`order`/`tactic`/`end_turn`） |

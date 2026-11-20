@@ -61,6 +61,7 @@ func turn_start() -> void:
 	_actions_done = 0
 	_posting = false
 	_reset_tips()
+	_clear_agent_message()
 	return
 
 # wab 接口：AI_control.AI_before_ready 每轮调用
@@ -147,6 +148,10 @@ func _on_polled(result: int, response_code: int, body: PoolByteArray) -> void:
 	match kind:
 		"action":
 			_accept_action(reply["action"])
+		"progress":
+			# Agent 的中间进度（思考文本 / 只读侦察），只展示，不执行
+			_show_progress(str(reply.get("text", "")))
+			FlowManager.add_flow("AI_before_ready")
 		"retry":
 			# 服务端尚无动作：重新挂起
 			FlowManager.add_flow("AI_before_ready")
@@ -205,22 +210,47 @@ func _on_result_posted(result: int, response_code: int, _body: PoolByteArray) ->
 	return
 
 # 游戏内显示 LLM 的思考理由。
-# 改用常驻提示（不走 _show_tips 的 _tips_shown 标记），否则本回合后续动作的
-# 「敌方思考中……」会被该标记挡住而显示不出来。
-# 调用时机是 behavior()（AI_ready 之后），此时 hide_all_tool / _process_tips 已过，不会被立即清掉。
+# 战争界面的顶部提示条会被 SceneManager._process_tips 立刻隐藏（只对 10000 场景生效），
+# 所以进度/理由统一写到 scene_war 底部的黄色消息区，并保留最近几步。
+# 调用时机是 behavior()（AI_ready 之后）。
 func _show_reason(reasoning: String) -> void:
 	DataManager.ai_debug_log("SHOW_REASON len={0} text={1}".format([reasoning.length(), reasoning]))
 	if reasoning == "":
 		return
-	SceneManager.show_special_tips("敌方AI：{0}".format([reasoning]))
-	DataManager.ai_debug_log("SHOW_REASON done tips_visible={0}".format([SceneManager.tips.visible]))
+	_agent_message(reasoning)
+	return
+
+func _show_progress(text: String) -> void:
+	DataManager.ai_debug_log("PROGRESS " + text)
+	var s = text.replace("\n", " ").strip_edges()
+	if s == "":
+		return
+	# 只取第一句，避免把模型的长段落整段塞进消息区
+	var dot = s.find("。")
+	if dot > 0:
+		s = s.substr(0, dot)
+	_agent_message(s)
+	return
+
+# 新增：把文本交给战争场景的底部消息区（scene_war.show_agent_progress）
+func _agent_message(text: String) -> void:
+	var scene = SceneManager.current_scene()
+	if scene != null and scene.has_method("show_agent_progress"):
+		scene.show_agent_progress(text)
+	return
+
+func _clear_agent_message() -> void:
+	var scene = SceneManager.current_scene()
+	if scene != null and scene.has_method("clear_agent_progress"):
+		scene.clear_agent_progress()
 	return
 
 func _show_tips() -> void:
 	if _tips_shown:
 		return
 	_tips_shown = true
-	SceneManager.show_special_tips("敌方思考中……")
+	# 首轮决策要等模型数秒，先在底部消息区给个反馈（顶部 tips 在战争场景会被立即隐藏）
+	_agent_message("正在分析战况…")
 	return
 
 func _reset_tips() -> void:
@@ -236,6 +266,7 @@ func _mark_local(reason: String) -> void:
 	_ready = {}
 	_pending.clear()
 	_reset_tips()
+	_clear_agent_message()
 	DataManager.game_trace("[AI] fallback to local hard: " + reason)
 	DataManager.ai_debug_log("FALLBACK to local hard: " + reason)
 	return
@@ -426,6 +457,7 @@ func AI_end() -> void:
 	_actions_done = 0
 	_posting = false
 	_reset_tips()
+	_clear_agent_message()
 	DataManager.game_trace("[AI] turn end")
 	DataManager.ai_debug_log("TURN END")
 	return

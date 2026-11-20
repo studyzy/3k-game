@@ -80,6 +80,7 @@ test("真实端点端到端（仅当 LLM_BASE_URL + LLM_API_KEY 已在环境中�
   for (let i = 0; i < 4; i++) {
     const r = await session.nextAction(120000);
     if (r.type === "end") { endSeen = true; break; }
+    if (r.type === "progress") continue;
     if (r.type !== "action") { break; }
     seen.push(String(r.action.tool));
     session.submitResult(r.action.seq, toolResult(r.action.seq, r.action.action, req.units, req.legal_actions));

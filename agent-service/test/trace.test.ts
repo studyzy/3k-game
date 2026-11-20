@@ -35,6 +35,7 @@ test("stub 回合产生完整对话事件（system/user/turn/assistant/tool_call
   const { session } = startTurn(req, { mode: "stub", config: testConfig });
   for (let i = 0; i < 10; i++) {
     const r = await session.nextAction(3000);
+    if (r.type === "progress") continue;
     if (r.type !== "action") break;
     session.submitResult(r.action.seq, toolResult(r.action.seq, r.action.action));
   }
@@ -75,6 +76,7 @@ test("调试面板 API：列表 / 详情 / 清空 / HTML", async () => {
   const { session } = startTurn(sampleRequest(), { mode: "stub", config: testConfig });
   for (let i = 0; i < 10; i++) {
     const r = await session.nextAction(3000);
+    if (r.type === "progress") continue;
     if (r.type !== "action") break;
     session.submitResult(r.action.seq, toolResult(r.action.seq, r.action.action));
   }

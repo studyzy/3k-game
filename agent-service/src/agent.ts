@@ -383,6 +383,21 @@ export function buildUserMessage(req: TurnRequest, memory: Record<string, unknow
   return [staticPart, "──", dynamicPart].join("\n");
 }
 
+/** 只读工具在界面上的进度文案（不参与决策，只给玩家看 AI 到哪一步）。 */
+function readToolProgress(tool: string, args: unknown): string {
+  const a = (args ?? {}) as Record<string, unknown>;
+  switch (tool) {
+    case "inspect_economy": return "查看粮草与经济";
+    case "list_legal_actions": return "查看合法动作";
+    case "inspect_unit": return `查看武将 #${a.id ?? "?"}`;
+    case "inspect_terrain": {
+      const pos = Array.isArray(a.pos) ? a.pos.join(",") : "?";
+      return `查看地形 [${pos}]`;
+    }
+    default: return `查看 ${tool}`;
+  }
+}
+
 async function piTurn(
   session: TurnSession, budget: Budget, opts: TurnOptions, tr: DecisionTrace,
 ): Promise<void> {
@@ -447,6 +462,8 @@ async function piTurn(
       const blocks: any[] = event.message.content ?? [];
       const text = blocks.filter((c) => c.type === "text").map((c) => c.text).join("").trim();
       const calls = blocks.filter((c) => c.type === "toolCall");
+      // 中间进度：模型这轮的思考文本，随长轮询下发到游戏界面。
+      if (text) session.emitProgress(text);
       traceStore.add(tr, "assistant", {
         turn: counters.turns,
         text: text || (calls.length ? `（调用 ${calls.map((c) => c.name).join(", ")}）` : ""),
@@ -455,6 +472,10 @@ async function piTurn(
     }
     if (event.type === "tool_execution_start") {
       const tool = String(event.toolName ?? event.toolCall?.name ?? "unknown");
+      // 只读侦察也向玩家展示进度；动作工具的理由随 action 一起下发。
+      if ((READ_TOOL_NAMES as readonly string[]).includes(tool)) {
+        session.emitProgress(readToolProgress(tool, event.args));
+      }
       traceStore.add(tr, "tool_call", { turn: counters.turns, tool, args: event.args });
     }
     if (event.type === "tool_execution_end") {

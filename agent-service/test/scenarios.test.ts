@@ -27,6 +27,7 @@ async function drive(base: string, sessionId: string, max = 10) {
   const actions: any[] = [];
   for (let i = 0; i < max; i++) {
     const r = await fetch(`${base}/ai/turn/${sessionId}/pending?wait_ms=5000`).then((x) => x.json()) as any;
+    if (r.type === "progress") continue;
     if (r.type !== "action") return { actions, end: r };
     actions.push(r.action);
     await fetch(`${base}/ai/turn/${sessionId}/result`, {

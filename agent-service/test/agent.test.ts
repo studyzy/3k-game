@@ -88,6 +88,7 @@ test("stub 模式：一个会话内连续执行动作后 end", async () => {
   while (guard++ < 10) {
     const r = await session.nextAction(3000);
     if (r.type === "end") { endSeen = true; break; }
+    if (r.type === "progress") continue;
     if (r.type !== "action") break;
     session.submitResult(r.action.seq, toolResult(r.action.seq, r.action.action));
   }

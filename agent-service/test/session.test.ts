@@ -78,6 +78,33 @@ test("TurnSession：失败会拒绝挂起的工具调用", async () => {
   await assert.rejects(() => p, /模型崩了/);
 });
 
+test("TurnSession：中间进度可立即唤醒等待中的轮询", async () => {
+  const s = new TurnSession("t", sampleRequest(), GODOT_IDLE_TIMEOUT_MS);
+  const pending = s.nextAction(5000);
+  s.emitProgress("查看粮草与经济");
+  const r = await pending;
+  assert.equal(r.type, "progress");
+  assert.equal((r as any).text, "查看粮草与经济");
+});
+
+test("TurnSession：进度先于动作下发，动作仍需回传结果", async () => {
+  const s = new TurnSession("t", sampleRequest(), GODOT_IDLE_TIMEOUT_MS);
+  s.emitProgress("先侦察");
+  s.emitAction({
+    tool: "move", actor: 12, id: "m3",
+    action: { id: "m3", tool: "move", actor: 12, pos: [8, 15] }, reasoning: "r",
+  });
+
+  const first = await s.nextAction(1000);
+  assert.equal(first.type, "progress");
+  assert.equal((first as any).text, "先侦察");
+
+  const second = await s.nextAction(1000);
+  assert.equal(second.type, "action");
+  assert.equal((second as any).action.seq, 1);
+  s.submitResult(1, { ok: true, outcome: "ok", units: [], legal_actions: [] });
+});
+
 test("sessionStore 单例可用", () => {
   sessionStore.clear();
   sessionStore.update("z", "i", "a");

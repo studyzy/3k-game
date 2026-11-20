@@ -179,6 +179,7 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
         const wait = Math.max(0, Math.min(cap, session.idleRemaining()));
         const r = await session.nextAction(wait);
         if (r.type === "action") { json(res, 200, r); return; }
+        if (r.type === "progress") { json(res, 200, r); return; }
         if (r.type === "end") { json(res, 200, r); turnStore.delete(id); return; }
         if (r.type === "error") { json(res, 200, r); turnStore.delete(id); return; }
         // 本次轮询到点仍无动作：若已超出空闲预算，回传 idle_timeout 让 Godot 回退

@@ -18,6 +18,15 @@ margin_right = 600.0
 margin_bottom = 600.0
 color = Color( 0.988235, 0.737255, 0.690196, 1 )
 
+[node name="lblAgentMessage" type="RichTextLabel" parent="."]
+visible = false
+margin_left = 20.0
+margin_top = 420.0
+margin_right = 580.0
+margin_bottom = 596.0
+custom_colors/default_color = Color( 0.117647, 0.0784314, 0.0392157, 1 )
+rect_clip_content = true
+
 [node name="war_map" parent="." instance=ExtResource( 1 )]
 
 [node name="War_Communique" parent="." instance=ExtResource( 3 )]

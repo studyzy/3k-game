@@ -29,6 +29,8 @@ export class TurnSession {
 
   /** 已产出、尚未被 Godot 取走的动作。 */
   private queue: PendingAction[] = [];
+  /** 已产出、尚未被 Godot 取走的中间进度（思考 / 只读工具）。 */
+  private readonly progressQueue: Array<{ seq: number; text: string }> = [];
   /** 正在等待下一个动作的长轮询。 */
   private pollWaiter: Waiter<PendingResponse> | null = null;
 
@@ -39,6 +41,7 @@ export class TurnSession {
 
   readonly actions: PendingAction[] = [];
   private seq = 0;
+  private progressSeq = 0;
   private done = false;
   private doneReason = "";
   private failError: Error | null = null;
@@ -91,6 +94,22 @@ export class TurnSession {
   }
 
   /**
+   * Agent 中间进度（思考文本 / 只读工具调用）：只用于界面展示，不推进战局。
+   * 有长轮询在等时立即返回，否则排队等下一次轮询。
+   */
+  emitProgress(text: string): void {
+    const t = text.trim();
+    if (t === "") return;
+    this.progressQueue.push({ seq: ++this.progressSeq, text: t });
+    if (this.pollWaiter) {
+      const w = this.pollWaiter;
+      this.pollWaiter = null;
+      const p = this.progressQueue.shift()!;
+      w.resolve({ type: "progress", ...p });
+    }
+  }
+
+  /**
    * Godot 长轮询：等到下一个动作 / 会话结束 / 空闲超时。
    * maxWaitMs 是本次轮询最多挂多久（服务端侧上限），到点无动作返回 idle_timeout，
    * 由调用方结合 idleRemaining() 判断是继续轮询还是回退。
@@ -98,6 +117,13 @@ export class TurnSession {
   nextAction(maxWaitMs: number): Promise<PendingResponse> {
     if (this.failError) return Promise.resolve({ type: "error", message: this.failError.message });
     if (this.done) return Promise.resolve({ type: "end", reason: this.doneReason });
+
+    // 先交付中间进度，保持「思考 → 动作」的展示顺序；
+    // 进度不占决策预算，也不要求 Godot 回传结果。
+    const progress = this.progressQueue.shift();
+    if (progress) {
+      return Promise.resolve({ type: "progress", ...progress });
+    }
 
     const queued = this.queue.shift();
     if (queued) {
@@ -112,7 +138,6 @@ export class TurnSession {
         if (this.done) { resolve({ type: "end", reason: this.doneReason }); return; }
         resolve({ type: "idle_timeout" });
       }, Math.max(0, maxWaitMs));
-      timer.unref?.();
 
       this.pollWaiter = {
         resolve: (v) => { clearTimeout(timer); resolve(v); },
