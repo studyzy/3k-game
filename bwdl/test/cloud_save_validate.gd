@@ -49,6 +49,37 @@ func _init():
 		print("CLOUD_SAVE FAIL is_newer 云端为空")
 		bad += 1
 
+	# 兜底 UUID：必须是合法 v4（第 3 组首位 4、第 4 组首位 8/9/a/b），且不重复。
+	var seen = {}
+	var uuid_bad = 0
+	for i in 200:
+		var u = inst._fallback_uuid()
+		if not inst.is_valid_uuid(u):
+			uuid_bad += 1
+			if uuid_bad <= 3:
+				print("CLOUD_SAVE FAIL fallback uuid 非法: ", u)
+			continue
+		seen[u] = true
+		var segs = u.split("-")
+		if segs.size() != 5:
+			uuid_bad += 1
+			if uuid_bad <= 3:
+				print("CLOUD_SAVE FAIL fallback uuid 段数: ", u)
+			continue
+		if segs[2].substr(0, 1) != "4":
+			uuid_bad += 1
+			if uuid_bad <= 3:
+				print("CLOUD_SAVE FAIL fallback uuid 版本位不是 4: ", u)
+		if "89ab".find(segs[3].substr(0, 1)) < 0:
+			uuid_bad += 1
+			if uuid_bad <= 3:
+				print("CLOUD_SAVE FAIL fallback uuid 变体位非法: ", u)
+	if uuid_bad > 0:
+		bad += uuid_bad
+	if seen.size() != 200:
+		print("CLOUD_SAVE FAIL fallback uuid 重复: 唯一数=", seen.size())
+		bad += 1
+
 	inst.free()
 	print("CLOUD_SAVE_RESULT=", bad)
 	quit()
