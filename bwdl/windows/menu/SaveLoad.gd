@@ -245,6 +245,8 @@ func reset_layout_portrait() -> void :
 	gv.rect_scale = Vector2(1.7, 1.7)
 	gv.columns = 1
 	gv.rect_position.x = 240
+	if btnCopyLink != null:
+		btnCopyLink.rect_position = Vector2(700, 40)
 	return
 
 func _setup_cloud_footer() -> void :
@@ -252,10 +254,11 @@ func _setup_cloud_footer() -> void :
 		return
 	btnCopyLink = Button.new()
 	btnCopyLink.text = "复制链接"
-	btnCopyLink.rect_position = Vector2(770, 58)
-	btnCopyLink.rect_min_size = Vector2(160, 44)
-	btnCopyLink.connect("pressed", self, "_on_btnCopyLink_pressed")
+	btnCopyLink.rect_position = Vector2(812, 4)
+	btnCopyLink.rect_min_size = Vector2(180, 56)
 	$gc / footer.add_child(btnCopyLink)
+	btnCopyLink.add_font_override("font", lblLocation.get_font("font"))
+	btnCopyLink.connect("pressed", self, "_on_btnCopyLink_pressed")
 	refresh_cloud_footer()
 	return
 
