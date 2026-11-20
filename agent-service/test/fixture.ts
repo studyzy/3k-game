@@ -58,6 +58,10 @@ export const testConfig = {
   llmProviderId: "ccr",
   llmContextWindow: 65536,
   llmMaxTokens: 8192,
+  saveDir: "data/saves",
+  saveMaxMb: 32,
+  saveTotalMb: 2048,
+  saveTtlDays: 365,
 };
 
 /** 与 bwdl/packed/sgz_script/war/AI/War_AI_behavior_llm.gd 的空闲超时对齐（毫秒）。 */

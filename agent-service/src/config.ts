@@ -37,6 +37,14 @@ export interface ServiceConfig {
   llmProviderId: string;
   llmContextWindow: number;
   llmMaxTokens: number;
+  /** 云存档目录：每个 ID 一个子目录，每个槽位一个 <slot>.json。 */
+  saveDir: string;
+  /** 单个槽位文件上限（MiB）。 */
+  saveMaxMb: number;
+  /** 单个云存档 ID 的总量上限（MiB）。 */
+  saveTotalMb: number;
+  /** 槽位文件多少天未更新后清理。 */
+  saveTtlDays: number;
 }
 
 function argValue(argv: string[], name: string): string | undefined {
@@ -59,5 +67,9 @@ export function parseConfig(argv: string[], env: Record<string, string | undefin
     llmProviderId: env.LLM_PROVIDER_ID ?? "ccr",
     llmContextWindow: Number(env.LLM_CONTEXT_WINDOW ?? 65536),
     llmMaxTokens: Number(env.LLM_MAX_TOKENS ?? 8192),
+    saveDir: argValue(argv, "save-dir") ?? env.SAVE_DIR ?? "data/saves",
+    saveMaxMb: Number(argValue(argv, "save-max-mb") ?? env.SAVE_MAX_MB ?? 32),
+    saveTotalMb: Number(argValue(argv, "save-total-mb") ?? env.SAVE_TOTAL_MB ?? 2048),
+    saveTtlDays: Number(argValue(argv, "save-ttl-days") ?? env.SAVE_TTL_DAYS ?? 365),
   };
 }
