@@ -33,8 +33,11 @@ func refresh_data() -> void :
 	save_path = common_save_path + save_item_name + ".sav"
 	save_info = StaticManager.saveIdx.get_save_info(save_path)
 
-	var head_point = "[color=yellow]存档点:{0} [/color]".format([
-		save_item_desc
+	var slot_tag = ""
+	if CloudSave.is_web() and save_item_name.is_valid_integer():
+		slot_tag = "（网络）" if CloudSave.is_network_slot(save_item_name) else "（本地）"
+	var head_point = "[color=yellow]存档点:{0}{1} [/color]".format([
+		save_item_desc, slot_tag
 	])
 	
 	var point_msg = "[center]空存档点[/center]";
@@ -128,4 +131,10 @@ func save_data_confirmed() -> void :
 	save_path = DataManager.save_game_data(save_item_name)
 	refresh_data()
 	get_parent().emit_signal("saved")
+	if not save_item_name.is_valid_integer():
+		return
+	if CloudSave.is_network_slot(save_item_name):
+		CloudSave.upload_slot(save_item_name, save_path)
+		return
+	SceneManager.show_system_notice("已保存到本地（双数槽位）")
 	return
