@@ -50,10 +50,13 @@ test("覆盖一个槽位不影响另一个槽位", async () => {
 });
 
 test("非法 UUID / 非法槽位都拒绝", async () => {
-  assert.throws(() => assertId("nope"), SaveError);
-  assert.throws(() => assertSlot("2"), SaveError);
-  assert.throws(() => assertSlot("52"), SaveError);
-  assert.throws(() => assertSlot("endless"), SaveError);
+  const is400 = (code: string) => (err: any) =>
+    err instanceof SaveError && err.status === 400 && err.code === code;
+  assert.throws(() => assertId("nope"), is400("bad_id"));
+  assert.throws(() => assertId(ID.toUpperCase()), is400("bad_id"));
+  assert.throws(() => assertSlot("2"), is400("bad_slot"));
+  assert.throws(() => assertSlot("52"), is400("bad_slot"));
+  assert.throws(() => assertSlot("endless"), is400("bad_slot"));
   assertSlot("1");
   assertSlot("51");
 });
@@ -61,7 +64,7 @@ test("非法 UUID / 非法槽位都拒绝", async () => {
 test("单槽超限 → 413", async () => {
   await assert.rejects(
     writeSlot({ root, id: ID2, slot: "1", raw: "x".repeat(200), maxBytes: 100, maxTotalBytes: 1000 }),
-    (err: any) => err instanceof SaveError && err.status === 413,
+    (err: any) => err instanceof SaveError && err.status === 413 && err.code === "slot_too_large",
   );
 });
 
@@ -70,11 +73,23 @@ test("单 ID 总量超限 → 413，且不写坏已有槽位", async () => {
   await writeSlot({ root, id, slot: "1", raw: JSON.stringify({ a: "a".repeat(60) }), maxBytes: 1000, maxTotalBytes: 100 });
   await assert.rejects(
     writeSlot({ root, id, slot: "3", raw: JSON.stringify({ b: "b".repeat(60) }), maxBytes: 1000, maxTotalBytes: 100 }),
-    (err: any) => err instanceof SaveError && err.status === 413,
+    (err: any) => err instanceof SaveError && err.status === 413 && err.code === "id_quota_exceeded",
   );
   const bundle = await readAll(root, id);
   assert.ok(bundle);
   assert.equal(bundle.syncedSlots, 1);
+});
+
+test("覆盖已有槽位时配额扣掉目标文件自身", async () => {
+  const id = "44444444-5555-4666-8777-888888888888";
+  const raw = JSON.stringify({ a: "a".repeat(60) }); // 68 字节
+  assert.equal(Buffer.byteLength(raw), 68);
+  await writeSlot({ root, id, slot: "1", raw, maxBytes: 1000, maxTotalBytes: 100 });
+  const wrote = await writeSlot({ root, id, slot: "1", raw, maxBytes: 1000, maxTotalBytes: 100 });
+  assert.equal(wrote.syncedSlots, 1);
+  const bundle = await readAll(root, id);
+  assert.ok(bundle);
+  assert.deepEqual(bundle.slots["1"], { a: "a".repeat(60) });
 });
 
 test("损坏文件被跳过而不是整包失败", async () => {

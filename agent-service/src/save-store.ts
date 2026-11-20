@@ -3,13 +3,15 @@
 // 为什么不是「一个 ID 一个 JSON」：单文件方案每次 PUT 都要读-改-写整个文件，
 // 两台设备各存一个槽位会互相覆盖。分文件后每个槽位独立原子写（tmp + rename）。
 import fs from "node:fs/promises";
+import type { Dirent } from "node:fs";
+import { randomBytes } from "node:crypto";
 import path from "node:path";
 
-/** 只接受 UUID v4：crypto.randomUUID() 的产物。 */
-export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+/** 只接受小写 UUID v4：crypto.randomUUID() 的产物。大小写会变成两个目录，故不忽略大小写。 */
+export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 /** 手动槽位 0..51。 */
 export const SLOT_RE = /^(?:0|[1-9]|[1-4][0-9]|5[01])$/;
-const SLOT_FILE_RE = /^([0-9]{1,2})\.json$/;
+export const SLOT_FILE_RE = /^([0-9]{1,2})\.json$/;
 
 export class SaveError extends Error {
   status: number;
@@ -34,7 +36,7 @@ export function maskId(id: string): string {
 }
 
 export function assertId(id: string): void {
-  if (!UUID_RE.test(id)) throw new SaveError(400, "bad_id", "id must be a UUID v4");
+  if (!UUID_RE.test(id)) throw new SaveError(400, "bad_id", "id must be a lowercase UUID v4");
 }
 
 export function assertSlot(slot: string): void {
@@ -85,9 +87,11 @@ export async function writeSlot(opts: WriteSlotOptions): Promise<{ syncedSlots: 
   let previous = 0;
   try { previous = (await fs.stat(target)).size; } catch { previous = 0; }
   const used = (await dirSize(dir)) - previous;
+  // 配额是软限制：并发写不同槽位时可能短暂超出，单机自用场景接受，不做按 ID 串行化。
   if (used + bytes > maxTotalBytes) throw new SaveError(413, "id_quota_exceeded", `id exceeds ${maxTotalBytes} bytes`);
 
-  const tmp = `${target}.${process.pid}.${Date.now()}.tmp`;
+  // 随机后缀避免同一毫秒内两次写同一槽位撞名（tmp 会互相覆盖/删除）。
+  const tmp = `${target}.${process.pid}.${Date.now()}.${randomBytes(6).toString("hex")}.tmp`;
   try {
     await fs.writeFile(tmp, raw, "utf8");
     await fs.rename(tmp, target);
@@ -96,8 +100,14 @@ export async function writeSlot(opts: WriteSlotOptions): Promise<{ syncedSlots: 
     throw err;
   }
 
-  const stat = await fs.stat(target);
-  return { syncedSlots: await countSlots(dir), updatedAt: stat.mtime.toISOString() };
+  // rename 成功后文件仍可能被并发清理删掉；此时退化为当前时间，不让成功写入报错。
+  let updatedAt: string;
+  try {
+    updatedAt = (await fs.stat(target)).mtime.toISOString();
+  } catch {
+    updatedAt = new Date().toISOString();
+  }
+  return { syncedSlots: await countSlots(dir), updatedAt };
 }
 
 export interface SaveBundle {
@@ -141,19 +151,22 @@ export async function readAll(root: string, id: string): Promise<SaveBundle | nu
 /** 删除 mtime 早于 ttlDays 的槽位文件，并删掉空 ID 目录；返回删除的文件数。 */
 export async function cleanupExpired(root: string, ttlDays: number, now = Date.now()): Promise<number> {
   const cutoff = now - ttlDays * 86400_000;
-  let entries: string[] = [];
-  try { entries = await fs.readdir(root); } catch { return 0; }
+  let entries: Dirent[] = [];
+  try { entries = await fs.readdir(root, { withFileTypes: true }); } catch { return 0; }
 
   let removed = 0;
-  for (const name of entries) {
-    const dir = path.join(root, name);
-    let files: string[] = [];
-    try { files = await fs.readdir(dir); } catch { continue; }
+  for (const entry of entries) {
+    // 只处理 UUID 目录：跳过符号链接、杂项文件和非法名字，避免清理跑到 root 之外。
+    if (!entry.isDirectory() || !UUID_RE.test(entry.name)) continue;
+    const dir = path.join(root, entry.name);
+    let files: Dirent[] = [];
+    try { files = await fs.readdir(dir, { withFileTypes: true }); } catch { continue; }
     for (const f of files) {
-      const file = path.join(dir, f);
+      if (!f.isFile() || !SLOT_FILE_RE.test(f.name)) continue;
+      const file = path.join(dir, f.name);
       try {
         const stat = await fs.stat(file);
-        if (stat.isFile() && stat.mtimeMs < cutoff) {
+        if (stat.mtimeMs < cutoff) {
           await fs.unlink(file);
           removed++;
         }
