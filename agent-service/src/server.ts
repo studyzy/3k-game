@@ -18,6 +18,7 @@ import { startBattle } from "./battle-agent.ts";
 import { battleStore } from "./battle-session.ts";
 import { traceStore } from "./trace.ts";
 import { turnStore } from "./session.ts";
+import { writeSlot, readAll, assertId, assertSlot, SaveError, cleanupExpired } from "./save-store.ts";
 
 const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -43,13 +44,13 @@ function json(res: http.ServerResponse, status: number, body: unknown): void {
   res.end(data);
 }
 
-async function readBody(req: http.IncomingMessage): Promise<string> {
+async function readBody(req: http.IncomingMessage, limit = MAX_BODY): Promise<string> {
   const chunks: Buffer[] = [];
   let size = 0;
   for await (const chunk of req) {
     const buf = Buffer.from(chunk);
     size += buf.length;
-    if (size > MAX_BODY) throw new ServiceError(413, "body_too_large", "request body exceeds 1 MiB");
+    if (size > limit) throw new ServiceError(413, "body_too_large", `request body exceeds ${limit} bytes`);
     chunks.push(buf);
   }
   return Buffer.concat(chunks).toString("utf8");
@@ -98,7 +99,7 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
       if (req.method === "OPTIONS") {
         res.writeHead(204, {
           "access-control-allow-origin": "*",
-          "access-control-allow-methods": "GET,POST,OPTIONS",
+          "access-control-allow-methods": "GET,POST,PUT,OPTIONS",
           "access-control-allow-headers": "content-type,x-mock-case",
         });
         res.end();
@@ -277,6 +278,46 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
         return;
       }
 
+      // ---- 云存档：PUT 单槽 / GET 整包 ----
+      const saveMatch = /^\/save\/([^/]+)(?:\/([^/]+))?$/.exec(url.pathname);
+      if (saveMatch) {
+        const id = decodeURIComponent(saveMatch[1]);
+        const slot = saveMatch[2] === undefined ? null : decodeURIComponent(saveMatch[2]);
+
+        if (slot === null) {
+          if (req.method !== "GET") { json(res, 405, { error: "method_not_allowed" }); return; }
+          const bundle = await readAll(config.saveDir, id);
+          if (!bundle) { json(res, 404, { error: "not_found" }); return; }
+          json(res, 200, {
+            id, updatedAt: bundle.updatedAt, syncedSlots: bundle.syncedSlots, slots: bundle.slots,
+          });
+          return;
+        }
+
+        if (req.method !== "PUT") { json(res, 405, { error: "method_not_allowed" }); return; }
+        // 先校验再读 body：非法槽位不该先吃掉 32MiB 的上传
+        assertId(id);
+        assertSlot(slot);
+        const limitBytes = config.saveMaxMb * 1024 * 1024;
+        const raw = await readBody(req, limitBytes);
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(raw);
+        } catch {
+          throw new SaveError(400, "bad_json", "body must be valid JSON");
+        }
+        if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+          throw new SaveError(400, "bad_json", "body must be a JSON object");
+        }
+        const result = await writeSlot({
+          root: config.saveDir, id, slot, raw,
+          maxBytes: limitBytes,
+          maxTotalBytes: config.saveTotalMb * 1024 * 1024,
+        });
+        json(res, 200, { ok: true, slot, ...result });
+        return;
+      }
+
       if (req.method === "GET" || req.method === "HEAD") {
         await serveStatic(config.webDir, url.pathname, res);
         return;
@@ -287,6 +328,8 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
       if (err instanceof ValidationError) {
         json(res, 400, { error: err.code, message: err.message });
       } else if (err instanceof ServiceError) {
+        json(res, err.status, { error: err.code, message: err.message });
+      } else if (err instanceof SaveError) {
         json(res, err.status, { error: err.code, message: err.message });
       } else {
         json(res, 500, { error: "internal_error", message: err instanceof Error ? err.message : String(err) });
@@ -299,6 +342,13 @@ const invokedDirectly = process.argv[1] && path.resolve(process.argv[1]) === fil
 if (invokedDirectly) {
   const config = parseConfig(process.argv.slice(2), process.env as Record<string, string | undefined>);
   createServer(config).listen(config.port, () => {
-    console.log(`[3k-war-agent] mode=${config.mode} http://localhost:${config.port}/ webDir=${config.webDir}`);
+    console.log(`[3k-war-agent] mode=${config.mode} http://localhost:${config.port}/ webDir=${config.webDir} saveDir=${config.saveDir}`);
   });
+  const runCleanup = () => {
+    cleanupExpired(config.saveDir, config.saveTtlDays)
+      .then((n) => { if (n > 0) console.log(`[save] cleanup removed ${n} expired slot(s)`); })
+      .catch((err) => console.warn(`[save] cleanup failed: ${err instanceof Error ? err.message : String(err)}`));
+  };
+  void runCleanup();
+  setInterval(runCleanup, 6 * 3600_000).unref();
 }
