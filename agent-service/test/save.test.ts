@@ -19,7 +19,8 @@ before(async () => {
   tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "3k-saveweb-"));
   saveDir = path.join(tmpDir, "saves");
   await fs.writeFile(path.join(tmpDir, "index.html"), "<html>3k</html>");
-  server = createServer({ ...testConfig, webDir: tmpDir, saveDir, saveMaxMb: 1, saveTotalMb: 2 });
+  // saveMaxMb 故意与 MAX_BODY(1MiB) 不同，才能区分「单槽上限」与「传输层默认上限」
+  server = createServer({ ...testConfig, webDir: tmpDir, saveDir, saveMaxMb: 2, saveTotalMb: 8 });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const addr = server.address();
   assert.ok(addr && typeof addr === "object");
@@ -39,6 +40,11 @@ function put(id: string, slot: string, body: unknown) {
   });
 }
 
+function assertIsoDate(value: unknown): void {
+  assert.equal(typeof value, "string");
+  assert.ok(!Number.isNaN(Date.parse(value as string)), `not a parseable date: ${String(value)}`);
+}
+
 test("没有存档时 GET 返回 404", async () => {
   const res = await fetch(`${base}/save/${ID}`);
   assert.equal(res.status, 404);
@@ -51,8 +57,11 @@ test("PUT 单槽 → 200 且 GET 能取回", async () => {
   assert.equal(body.ok, true);
   assert.equal(body.slot, "1");
   assert.equal(body.syncedSlots, 1);
+  assertIsoDate(body.updatedAt);
 
   const got = await fetch(`${base}/save/${ID}`).then((r) => r.json() as any);
+  assert.equal(got.id, ID);
+  assertIsoDate(got.updatedAt);
   assert.equal(got.syncedSlots, 1);
   assert.equal(got.slots["1"].lordName, "曹操");
 });
@@ -66,38 +75,89 @@ test("写另一个槽位不会覆盖已有槽位", async () => {
 });
 
 test("非法 UUID / 双数槽位 / 越界槽位 → 400", async () => {
-  assert.equal((await put("nope", "1", SAVE)).status, 400);
-  assert.equal((await put(ID, "0", SAVE)).status, 400);
-  assert.equal((await put(ID, "2", SAVE)).status, 400);
-  assert.equal((await put(ID, "52", SAVE)).status, 400);
-  assert.equal((await put(ID, "abc", SAVE)).status, 400);
+  const badId = await put("nope", "1", SAVE);
+  assert.equal(badId.status, 400);
+  assert.equal((await badId.json() as any).error, "bad_id");
+
+  for (const slot of ["0", "2", "52", "abc"]) {
+    const res = await put(ID, slot, SAVE);
+    assert.equal(res.status, 400);
+    assert.equal((await res.json() as any).error, "bad_slot");
+  }
+});
+
+test("非法百分号编码 → 400 而不是 500", async () => {
+  const badId = await fetch(`${base}/save/%E0%A4%A/1`, {
+    method: "PUT",
+    headers: { "content-type": "text/plain; charset=utf-8" },
+    body: JSON.stringify(SAVE),
+  });
+  assert.equal(badId.status, 400);
+  assert.equal((await badId.json() as any).error, "bad_id");
+
+  const badSlot = await put(ID, "%E0%A4%A", SAVE);
+  assert.equal(badSlot.status, 400);
+  assert.equal((await badSlot.json() as any).error, "bad_slot");
 });
 
 test("非 JSON / 数组 / null → 400", async () => {
-  assert.equal((await put(ID, "5", "{not json")).status, 400);
-  assert.equal((await put(ID, "5", "[1,2]")).status, 400);
-  assert.equal((await put(ID, "5", "null")).status, 400);
-});
-
-test("单槽超过 saveMaxMb → 413", async () => {
-  const huge = "x".repeat(1024 * 1024 + 10);
-  assert.equal((await put(ID, "7", huge)).status, 413);
+  for (const body of ["{not json", "[1,2]", "null"]) {
+    const res = await put(ID, "5", body);
+    assert.equal(res.status, 400);
+    assert.equal((await res.json() as any).error, "bad_json");
+  }
 });
 
 test("目录里的坏文件不影响 GET", async () => {
   const dir = path.join(saveDir, ID);
+  await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(dir, "9.json"), "broken", "utf8");
   await fs.writeFile(path.join(dir, "readme.txt"), "x", "utf8");
   const res = await fetch(`${base}/save/${ID}`);
   assert.equal(res.status, 200);
   const got: any = await res.json();
+  assert.equal(got.syncedSlots, 2);
+  assert.ok(got.slots["1"]);
+  assert.ok(got.slots["3"]);
   assert.equal(got.slots["9"], undefined);
+});
+
+test("单槽大小按 saveMaxMb 而非 MAX_BODY：1.5 MiB 通过，2.5 MiB 拒绝", async () => {
+  // 独立 ID：前一个用例在 ID 目录里留了坏文件 9.json，会被 countSlots 计入槽位数
+  const ID2 = "8c4d2e6a-1b3f-4a9c-9e7d-2f5b6c8a0d13";
+  // 1.5 MiB < saveMaxMb(2MiB)，但 > MAX_BODY(1MiB)：能过说明用了独立上限
+  const ok = await put(ID2, "11", { 存档时间: "2026-11-21 10:00:00", blob: "x".repeat(1572864 - 128) });
+  assert.equal(ok.status, 200);
+  assert.equal((await ok.json() as any).syncedSlots, 1);
+
+  // 2.5 MiB > saveMaxMb(2MiB)
+  const huge = await put(ID2, "13", { 存档时间: "2026-11-21 10:00:00", blob: "x".repeat(2621440 - 128) });
+  assert.equal(huge.status, 413);
+});
+
+test("方法不对 → 405", async () => {
+  const bundle = await fetch(`${base}/save/${ID}`, { method: "POST" });
+  assert.equal(bundle.status, 405);
+  assert.equal((await bundle.json() as any).error, "method_not_allowed");
+
+  const slot = await fetch(`${base}/save/${ID}/1`, { method: "POST" });
+  assert.equal(slot.status, 405);
+  assert.equal((await slot.json() as any).error, "method_not_allowed");
 });
 
 test("OPTIONS 允许 PUT", async () => {
   const res = await fetch(`${base}/save/${ID}/1`, { method: "OPTIONS" });
   assert.equal(res.status, 204);
   assert.match(String(res.headers.get("access-control-allow-methods")), /PUT/);
+});
+
+test("AI 路由仍受 MAX_BODY(1MiB) 限制", async () => {
+  const res = await fetch(`${base}/ai/turn`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ x: "x".repeat(1.2 * 1024 * 1024) }),
+  });
+  assert.equal(res.status, 413);
 });
 
 test("静态资源不受影响", async () => {

@@ -47,12 +47,16 @@ function json(res: http.ServerResponse, status: number, body: unknown): void {
 async function readBody(req: http.IncomingMessage, limit = MAX_BODY): Promise<string> {
   const chunks: Buffer[] = [];
   let size = 0;
+  let overflow = false;
   for await (const chunk of req) {
     const buf = Buffer.from(chunk);
     size += buf.length;
-    if (size > limit) throw new ServiceError(413, "body_too_large", `request body exceeds ${limit} bytes`);
+    // 超限后继续读完但不缓存（内存仍受 limit 约束）：若在循环内直接 throw，
+    // 异步迭代器的 return() 会销毁请求流，客户端拿到的是连接重置而不是 413。
+    if (size > limit) { overflow = true; continue; }
     chunks.push(buf);
   }
+  if (overflow) throw new ServiceError(413, "body_too_large", `request body exceeds ${limit} bytes`);
   return Buffer.concat(chunks).toString("utf8");
 }
 
@@ -281,8 +285,20 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
       // ---- 云存档：PUT 单槽 / GET 整包 ----
       const saveMatch = /^\/save\/([^/]+)(?:\/([^/]+))?$/.exec(url.pathname);
       if (saveMatch) {
-        const id = decodeURIComponent(saveMatch[1]);
-        const slot = saveMatch[2] === undefined ? null : decodeURIComponent(saveMatch[2]);
+        let id: string;
+        try {
+          id = decodeURIComponent(saveMatch[1]);
+        } catch {
+          throw new SaveError(400, "bad_id", "id is not valid percent-encoding");
+        }
+        let slot: string | null = null;
+        if (saveMatch[2] !== undefined) {
+          try {
+            slot = decodeURIComponent(saveMatch[2]);
+          } catch {
+            throw new SaveError(400, "bad_slot", "slot is not valid percent-encoding");
+          }
+        }
 
         if (slot === null) {
           if (req.method !== "GET") { json(res, 405, { error: "method_not_allowed" }); return; }
