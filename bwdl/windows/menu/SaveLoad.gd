@@ -18,6 +18,8 @@ onready var btnPrev = $gc / footer / gc / btnPrePage
 onready var lblPage = $gc / footer / gc / lblPage
 onready var btnNext = $gc / footer / gc / btnNextPage
 
+var btnCopyLink: Button = null
+
 func _ready() -> void :
 	hide()
 	OS.request_permissions();
@@ -38,6 +40,7 @@ func _ready() -> void :
 		saveItem.connect("saved", self, "item_saved", [i])
 		saveItem.connect("selected", self, "item_selected", [i])
 
+	_setup_cloud_footer()
 	init_data(StaticManager.saveIdx.page)
 	return
 
@@ -78,6 +81,7 @@ func init_data(current: int):
 func item_saved(i: int) -> void :
 	cursor_index = i
 	cursor_change()
+	refresh_cloud_footer()
 	return
 
 func item_selected(i: int) -> void :
@@ -241,4 +245,26 @@ func reset_layout_portrait() -> void :
 	gv.rect_scale = Vector2(1.7, 1.7)
 	gv.columns = 1
 	gv.rect_position.x = 240
+	return
+
+func _setup_cloud_footer() -> void :
+	if not CloudSave.is_web():
+		return
+	btnCopyLink = Button.new()
+	btnCopyLink.text = "复制链接"
+	btnCopyLink.rect_position = Vector2(770, 58)
+	btnCopyLink.rect_min_size = Vector2(160, 44)
+	btnCopyLink.connect("pressed", self, "_on_btnCopyLink_pressed")
+	$gc / footer.add_child(btnCopyLink)
+	refresh_cloud_footer()
+	return
+
+func refresh_cloud_footer() -> void :
+	if not CloudSave.is_web():
+		return
+	lblLocation.text = "云存档：已同步 {0} 个网络存档位".format([CloudSave.get_synced_count()])
+	return
+
+func _on_btnCopyLink_pressed() -> void :
+	CloudSave.copy_link()
 	return
