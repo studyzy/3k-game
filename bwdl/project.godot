@@ -230,6 +230,7 @@ FlowManager="*res://script/Flow_Manager.gd"
 ItemHelper="*res://script/ItemHelper.gd"
 EndlessGame="*res://script/clEndlessGame.gd"
 OrderHistory="*res://script/objects/OrderHistory.gd"
+CloudSave="*res://script/Cloud_Save.gd"
 
 [debug]
 

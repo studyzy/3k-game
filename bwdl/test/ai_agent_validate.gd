@@ -21,6 +21,8 @@ func _init():
 		"res://packed/sgz_script/battle/AI/BattleProjection.gd",
 		"res://packed/sgz_script/battle/AI/BattleAgent.gd",
 		"res://packed/sgz_script/battle/Battle_Auto_Run.gd",
+		# 云存档
+		"res://script/Cloud_Save.gd",
 	]
 	var bad = 0
 	for p in paths:
