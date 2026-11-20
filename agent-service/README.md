@@ -89,8 +89,44 @@ node src/server.ts --mode stub --port 8060 --web-dir ../bwdl/build/web
 | `GET /ai/battle/:id/pending` | 白兵战：长轮询取指令（`order`/`tactic`/`end_turn`） |
 | `POST /ai/battle/:id/result` | 白兵战：回传执行后的战斗态势 |
 | `POST /ai/battle/:id/resume` | 白兵战：引擎推进到下一战斗回合 |
+| `PUT /save/:id/:slot` | 云存档：写入一个槽位（只接受奇数槽位） |
+| `GET /save/:id` | 云存档：读取该 ID 的全部槽位（无存档 404） |
 
-`make serve` 的 `python3 -m http.server` 保留作纯离线对照；`make web` 导出产物由本服务托管即可同源。
+`make serve` 的 `python3 -m http.server` 保留作纯离线对照；`make web` 导出产物由本服务托管即可同源。需要云存档时用 `make serve-agent`（`PORT`/`WEB_DIR` 由 Makefile 传入），仓库根的 `make serve` 只有本地存档。
+
+## 云存档（/save）
+
+网页版把存档写入本服务，换设备/清缓存后可凭 URL 里的 ID 取回。桌面/安卓版不经过这里。
+
+| 接口 | 说明 |
+|---|---|
+| `PUT /save/:id/:slot` | 覆盖写入一个槽位。`id` 为小写 UUID v4，`slot` 只接受奇数 `1/3/…/51`（偶数槽位是本地存档），body 为 JSON 对象 |
+| `GET /save/:id` | 返回 `{id, updatedAt, syncedSlots, slots}`；该 ID 无任何存档时 `404 not_found` |
+
+存储布局为 `<SAVE_DIR>/<uuid>/<slot>.json`，一槽一文件——分文件而非单文件整包，是为了避免两台设备各存一个槽位时互相覆盖。每个槽位独立原子写（先写 tmp 再 `rename`），并发 PUT 不会读到半个文件。
+
+| 配置 | 环境变量 | 命令行 | 默认 |
+|---|---|---|---|
+| 存档根目录 | `SAVE_DIR` | `--save-dir` | `data/saves`（相对 agent-service 的 cwd） |
+| 单槽上限 | `SAVE_MAX_MB` | `--save-max-mb` | `32`（MiB） |
+| 全库总量上限 | `SAVE_TOTAL_MB` | `--save-total-mb` | `2048`（MiB） |
+| 过期天数 | `SAVE_TTL_DAYS` | `--save-ttl-days` | `365`，启动时清理过期槽位 |
+
+容器部署**必须**把可写卷挂到 `/app/data`（根文件系统只读）：
+
+```bash
+docker run --rm --read-only --tmpfs /tmp -p 8060:8060 \
+  -v "$PWD/bwdl/build/web:/app/web:ro" \
+  -v "$PWD/agent-service/data:/app/data" \
+  3k-war-agent
+```
+
+> **链接即钥匙**：拿到带 `?save=<uuid>` 的 URL 就能读、覆盖该玩家的网络存档，没有账号体系，也没有口令。分享链接等于交出存档写权限，只发给信任的人。
+
+浏览器限制（网页版降级行为）：
+
+- 非 HTTPS 且非 `localhost`/`127.0.0.1` 时不是安全上下文，`crypto.randomUUID` 不可用，存档 ID 由本地随机兜底生成；
+- 同样的环境里 `navigator.clipboard` 不可用，「复制链接」退化为弹框显示 URL 供手动复制。
 
 ## 三种模式
 
@@ -244,11 +280,12 @@ make check GODOT="$PWD/.tools/Godot_v3.6.3-stable_linux_headless.64"
 docker build -t 3k-war-agent agent-service/
 docker run --rm --read-only --tmpfs /tmp -p 8060:8060 \
   -v "$PWD/bwdl/build/web:/app/web:ro" \
+  -v "$PWD/agent-service/data:/app/data" \
   -e K3G_AGENT_MODE=mock \
   3k-war-agent
 ```
 
-非 root 运行、只读根文件系统、web 资源只读挂载；出站白名单由外层网络策略控制（`--network=none` 可用于 mock/stub，`pi` 模式需放行 LLM provider）。
+非 root 运行、只读根文件系统、web 资源只读挂载；`/app/data` 是云存档的可写挂载点（不挂则该功能不可用）。出站白名单由外层网络策略控制（`--network=none` 可用于 mock/stub，`pi` 模式需放行 LLM provider）。
 
 已实测：`docker build` 成功；`docker run --rm --read-only --tmpfs /tmp -p 8060:8060` 下 `/ai/health` 返回 200。构建时统一 `chmod a+rX /app/src`，避免宿主机源文件 600 权限导致容器内非 root 用户读不到 `.ts`。
 

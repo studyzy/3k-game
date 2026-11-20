@@ -11,6 +11,7 @@
 #   - build 导出 macOS app（运行前自动导入资源）
 #   - web   导出 WebAssembly 网页版（build/web/）
 #   - serve 本地 HTTP 服务预览网页版
+#   - serve-agent 用 agent-service 托管网页版（云存档）
 #   - setup-apk 安装 Android 导出依赖（JDK17 / Android SDK / 导出模板 / keystore）
 #   - apk   导出 Android release APK（脚本编译为字节码 + release 签名，导出前自动导入资源）
 #
@@ -170,6 +171,14 @@ serve: ## 本地 HTTP 服务预览网页版（默认 8060 端口）
 	@if [ ! -f "$(WEB_DIR)/index.html" ]; then echo "错误: 还没有网页版产物，先执行 make web"; exit 1; fi
 	@echo "==> http://localhost:$(WEB_PORT)/ （Ctrl+C 停止）"
 	@cd "$(WEB_DIR)" && python3 -m http.server $(WEB_PORT) --bind 0.0.0.0
+
+# 云存档由 agent-service 提供（/save），python 静态服务没有 API。
+# agent-service 以自己的目录为 cwd，WEB_DIR 是仓库根相对路径，须转成绝对路径传入。
+.PHONY: serve-agent
+serve-agent: ## 用 agent-service 托管网页版（含云存档，默认 8060 端口）
+	@if [ ! -f "$(WEB_DIR)/index.html" ]; then echo "错误: 还没有网页版产物，先执行 make web"; exit 1; fi
+	@echo "==> http://localhost:$(WEB_PORT)/ （云存档已启用，Ctrl+C 停止）"
+	cd agent-service && PORT=$(WEB_PORT) WEB_DIR="$(abspath $(WEB_DIR))" node src/server.ts
 
 # ---- Android 导出 ----
 
