@@ -18,8 +18,8 @@ func _ready():
 	if not StaticManager.game_init_done:
 		StaticManager.game_init_done = true
 		DataManager.game_trace("RESTART", true)
+		CloudSave.begin_session(self, "_on_cloud_fetched")
 	DataManager.grouped_trace_output(false, "OPENING")
-	CloudSave.begin_session(self, "_on_cloud_fetched")
 	$HTTPRequest.request("https://bwdl.fun/gd/version.json")
 	return
 
@@ -74,6 +74,9 @@ func _on_cloud_fetched(result: Dictionary) -> void :
 	var total = int(merged["total"])
 	if total <= 0:
 		return
+	if model_view != 0:
+		# 玩家已经离开开场：文件已合并，下次启动生效，不要再弹框盖在新场景上
+		return
 	var msg = "云端发现{0}个网络存档位，已恢复{1}个，保留本地较新{2}个。\n是否打开读档列表？".format([
 		total, int(merged["restored"]), int(merged["kept"])
 	])
@@ -81,8 +84,6 @@ func _on_cloud_fetched(result: Dictionary) -> void :
 	return
 
 func _on_cloud_merge_confirmed() -> void :
-	# 等确认框真正关闭再开菜单：show_menu() 在 popuped 时会直接 return
-	yield(get_tree(), "idle_frame")
 	SceneManager.Quit.show_menu()
 	SceneManager.Quit._on_btnLoadGame_pressed()
 	return
