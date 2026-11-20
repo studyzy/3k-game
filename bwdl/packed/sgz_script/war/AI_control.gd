@@ -8,6 +8,8 @@ var wab
 var iembattle
 
 var temp_time:int = 0;
+# 上一次镜头跟随的 AI 武将，避免同一武将的多次进度回包重复拉镜头
+var last_camera_actor: int = -1
 
 func get_view_model():
 	if(!DataManager.common_variable.has(view_model_name)):
@@ -74,6 +76,7 @@ func AI_auto_embattle():
 # 应只调用一次
 func AI_turn_start() -> void:
 	wab.turn_start()
+	last_camera_actor = -1
 	FlowManager.add_flow("AI_before_ready")
 	return
 
@@ -144,6 +147,11 @@ func AI_before_ready():
 		if allEnded:
 			FlowManager.add_flow("AI_end")
 			return
+	# 修改：AI 行动武将切换时同步镜头（与玩家回合 player_before_ready 对齐）。
+	# 大模型决策需要数秒，不先移动镜头会让玩家以为回合没有切换、画面卡住。
+	if actorId != last_camera_actor:
+		last_camera_actor = actorId
+		war_map.camer_to_actorId(actorId, "")
 	DataManager.set_env(VAR_CUR_ACTOR, actorId)
 	DataManager.player_choose_actor = actorId
 
