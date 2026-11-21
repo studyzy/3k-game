@@ -122,15 +122,15 @@
 
 `bwdl/script/Cloud_Save.gd`，在 `project.godot` 注册为 autoload，名字 `CloudSave`。
 
-- 仅在 `OS.has_feature("HTML5")` 且 `JavaScript` 可用时启用；其它平台 `enabled = false`，所有方法直接返回（保证桌面版与小游戏构建不被牵连）。
-- `HTTPRequest` 节点在首次请求时创建为 **`SceneManager` 的子节点**（照 `AIHttpClient._ensure_http()` 的注释：`/root` 在场景搭建期间 busy），复用 `pause_mode = 2`，存档菜单暂停中仍可工作。
+- 仅在 `OS.get_name() == "HTML5"` 时启用；其它平台 `enabled = false`，所有方法直接返回（保证桌面版与安卓构建不被牵连）。`JavaScript` 单例只在 HTML5 导出里存在，因此必须在调用前就用平台名判掉。
+- `HTTPRequest` 节点在首次请求时创建为 **`SceneManager` 的子节点**（照 `AIHttpClient._ensure_http()` 的注释：`/root` 在场景搭建期间 busy），并显式设 `pause_mode = Node.PAUSE_MODE_PROCESS`——存档菜单会暂停整棵树，不设它上传要等玩家关菜单才推进。
 - 对外接口：
   - `ensure_id()` — 执行上面"ID 与 URL"三步，返回当前 ID。
   - `upload_slot(slot: String, save_path: String) -> void` — 读本地 `.sav` 文本，`PUT /save/<id>/<slot>`。
-  - `fetch_all(owner, method_name) -> void` — `GET /save/<id>`，结果以 `{ ok, status, slots, error }` 回调。
-  - `get_synced_count() -> int` — 最近一次成功响应里的 `syncedSlots`（或 `fetch_all` 的槽位数）。
+  - `begin_session(owner, method_name) -> void` — `GET /save/<id>`，结果以 `{ ok, slots, total, error }` 回调。
+  - `get_synced_count() -> int` — 最近一次成功响应里的 `syncedSlots`（或 `begin_session` 的槽位数）。
   - `copy_link()` — 见界面一节。
-- 串行化：`upload_slot` 记录 `pending = {slot: path}`，同一时刻只有一个 `HTTPRequest` 在飞，飞行中再来请求就覆盖 `pending`（保留最后一个），落地后继续。上传成功/失败都用 `SceneManager.show_system_notice` 提示。
+- 串行化：同一时刻只有一个 `HTTPRequest` 在飞。待上传按**槽位**排队（`pending[slot] = path`），同一槽位重复保存只保留最新一份，不同槽位各自保留一次；GET 优先于 PUT。上传成功/失败都用 `SceneManager.show_system_notice` 提示。
 - 超时 30 秒（存档可能较大）。
 
 ### 5. 保存流程
@@ -147,15 +147,15 @@
 
 ### 6. 启动与合并
 
-挂点：`bwdl/scene/scene_open/scene_open.gd` 的 `_ready`，在 `CloudSave.ensure_id()` 之后发起 `fetch_all`。
+挂点：`bwdl/scene/scene_open/scene_open.gd` 的 `_ready`，在 `if not StaticManager.game_init_done:` 块内调用 `CloudSave.begin_session()`——每个进程只拉一次；回到标题不重复合并。响应迟到时若 `model_view != 0`（玩家已开局）则直接丢弃，不合并也不弹框。
 
 - `404` → 云端还没有存档，静默继续（不弹框）。
 - 网络错误/超时 → 静默继续，不打断开局，只在控制台记一条。
 - 有 `slots` → 逐个槽位比较：
 
-  1. 每个槽位把云端 JSON 与本地 `user://sgz/save/<slot>.sav` 比较，取 `存档时间`（格式 `YYYY-MM-DD HH:MM:SS`，字符串可直接比大小）。本地不存在 → 恢复；本地存在且云端更新 → 覆盖（写入前把旧文件改名备份为 `<slot>.sav.bak`，只在本次启动保留一份）；本地更新或相同 → 保留本地。
+  1. 每个槽位把云端 JSON 与本地 `user://sgz/save/<slot>.sav` 比较，取 `存档时间`（格式 `YYYY-MM-DD HH:MM:SS`，字符串可直接比大小）。本地不存在 → 恢复；本地存在且云端更新 → 覆盖（写入前把旧文件备份为 `<slot>.sav.bak.<存档时间去冒号>`，避免下次恢复把上一份备份冲掉；备份失败则不覆盖）；本地更新或相同 → 保留本地。
   2. 双数槽位即使云端混进来也不处理（服务端已经拒绝写入，这里是第二道闸）。
-  3. 合并完 `SaveDataIndex.probe_all()`/清缓存，让读档列表看到新文件。
+  3. 合并完逐个 `StaticManager.saveIdx.update_save_index(slot)` 清缓存，让读档列表看到新文件。
 
 - 弹框（`SceneManager.confirm`）：
   `云端发现 N 个网络存档位，已恢复 X 个，保留本地较新 Y 个。是否打开读档列表？`
@@ -194,6 +194,7 @@
 - ID 是 UUID v4，不可枚举；但链接泄露 = 存档可读可覆盖，这是设计接受的取舍（用户明确选择，不做账号）。
 - 路径穿越：`id` 用严格 UUID 正则、`slot` 用严格数字正则校验后才拼路径；不接受 `..`、`/`、空串。
 - 请求体大小限制 + 每 ID 总量限制，防止单个 ID 打满磁盘。
+- 整包 GET 一次最多拼 64MiB（`MAX_BUNDLE_BYTES`），超出返回 413：配额上限允许 832MiB 时，全量读入足以打爆进程内存。
 - 日志 ID 脱敏。
 - 不做速率限制（单机自用服务，`agent-service` 本来也没做）。若以后公网高暴露，再补。
 
@@ -251,7 +252,7 @@
 - 存储用"一槽一文件"而不是"一 ID 一个 JSON"：避免读-改-写导致的跨槽位覆盖。
 - 写接口 `PUT /save/:id/:slot`、读接口 `GET /save/:id` 一次返回整包：写要窄、读要省请求。
 - 合并按 `存档时间` 字符串比大小（格式固定，可直接比较），不做时钟偏移校正。
-- 覆盖前把本地旧档备份成 `.sav.bak`，给一次反悔机会。
+- 覆盖前把本地旧档备份成 `.sav.bak.<存档时间>`，给一次反悔机会（固定名会被下一次恢复冲掉）。
 - 合并后不自动进游戏，只问"是否打开读档列表"。
 - 非 HTML5 平台不显示"（网络）/（本地）"后缀与复制链接，避免误导。
 - 失败不做自动重试与离线队列：状态复杂度换不来多少收益，手动再存一次即可覆盖。
