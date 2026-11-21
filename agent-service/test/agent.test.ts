@@ -71,7 +71,7 @@ test("动作工具：move 直接用 LLM 给的 path，attack 等按 legal_action
   const body = JSON.parse((res.content[0] as any).text);
   assert.match(body.outcome, /move 执行完毕/, "应包含 Godot 回传的执行结果");
   assert.ok(Array.isArray(body.units), "应包含最新 units");
-  assert.ok(Array.isArray(body.legal_actions), "应包含最新 legal_actions");
+  assert.ok(!("legal_actions" in body), "动作清单不进模型上下文，模型按需查");
 
   // 缺 path / path 结构错误 → 工具层拒绝
   await assert.rejects(() => move.execute("c2", { actor: 12, reasoning: "x" }), /非空 path/);
@@ -127,7 +127,7 @@ test("开场消息按敌我分组，动态字段在分界之后", () => {
   const dynamicPart = msg.slice(cut);
   assert.ok(!staticPart.includes("turn_key"), "静态段不得含 turn_key");
   assert.ok(dynamicPart.includes("turn_key"), "turn_key 必须在动态段");
-  assert.ok(dynamicPart.includes("legal_actions"), "legal_actions 必须在动态段");
+  assert.ok(!dynamicPart.includes("legal_actions"), "动作清单不得进提示词，改为按需查询");
   const enemyIdx = msg.indexOf("敌方：");
   const ownIdx = msg.indexOf("我方：");
   assert.ok(enemyIdx > cut && ownIdx > enemyIdx, "敌方/我方块必须在动态段且按顺序");
@@ -147,7 +147,7 @@ test("开场消息包含武将姓名", () => {
 
 test("开场消息包含武将全量属性、装备与状态", () => {
   const msg = buildUserMessage(sampleRequest(), null);
-  for (const key of ["attrs", "体", "武", "知", "德", "政", "忠", "统", "胆", "hp_max", "ap_max", "level", "exp", "equips", "武器", "防具", "道具", "坐骑", "equip_briefs", "status", "terrain_at"]) {
+  for (const key of ["attrs", "体", "武", "知", "德", "政", "忠", "统", "胆", "hp_max", "ap_max", "level", "exp", "equips", "武器", "防具", "道具", "坐骑", "equip_briefs", "status", "terrain_at", "main", "skills", "ap_cost", "atk_range"]) {
     assert.ok(msg.includes(key), `开场消息应含 ${key}`);
   }
 });

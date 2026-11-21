@@ -52,6 +52,56 @@ function findAction(
   });
 }
 
+/** 候选清单最多列这么多个目标，避免长清单把上下文吃掉。 */
+const MAX_CANDIDATES = 8;
+
+/**
+ * 猜错动作时的反馈：按同 actor 列出它当前真正能做的事。
+ * 模型看不到全量 legal_actions，靠这条消息在会话内自纠，不必回退 Godot。
+ */
+function candidateHint(
+  legal: LegalAction[],
+  units: Array<Record<string, unknown>>,
+  controlled: number,
+  tool: ToolName,
+  params: Record<string, unknown>,
+): string {
+  const actor = params.actor;
+  const unit = units.find((u) => u.id === actor);
+  const who = `武将 ${String(actor)}`;
+  if (!unit) return `没有 id 为 ${String(actor)} 的武将。`;
+  if (unit.vstate !== controlled) return `${who} 不是你方武将。`;
+  if (unit.disabled === true) return `${who} 已无法行动。`;
+
+  const rows = legal.filter((a) => a.actor === actor && a.tool !== "end");
+  if (rows.length === 0) return `${who} 现在没有任何合法动作（机动力/点数可能已耗尽）。`;
+
+  const lines: string[] = [];
+  const attacks = rows.filter((a) => a.tool === "attack").map((a) => a.target);
+  if (attacks.length > 0) {
+    lines.push(`  attack → ${attacks.slice(0, MAX_CANDIDATES).join(", ")}`);
+  }
+  const bySkill = new Map<string, number[]>();
+  for (const a of rows) {
+    if (a.tool !== "stratagem" || a.skill === undefined) continue;
+    const targets = bySkill.get(a.skill) ?? [];
+    if (a.target !== undefined) targets.push(a.target);
+    bySkill.set(a.skill, targets);
+  }
+  for (const [skill, targets] of bySkill) {
+    lines.push(`  stratagem ${skill} → ${targets.slice(0, MAX_CANDIDATES).join(", ")}`);
+  }
+  const retreat = rows.find((a) => a.tool === "retreat");
+  if (retreat) lines.push(`  retreat → 城${String(retreat.city ?? "?")}`);
+  if (rows.some((a) => a.tool === "move")) lines.push("  move（path 由你自己规划）");
+
+  const what = tool === "stratagem" && params.skill !== undefined
+    ? `「${String(params.skill)}」`
+    : tool;
+  const on = params.target !== undefined ? ` 对 ${String(params.target)}` : "";
+  return `${who} 无法执行 ${what}${on}。当前可选：\n${lines.join("\n")}`;
+}
+
 /**
  * move 由 LLM 直接给路径，不经 legal_actions 候选。
  * 服务端只做结构检查（actor 存在、path 是 [x,y] 数组），
@@ -86,20 +136,35 @@ export function buildTools(
   const list_legal_actions: AgentTool<any> = {
     name: "list_legal_actions",
     label: "列出合法动作",
-    description: "列出当前可执行的合法动作候选（含消耗）。每执行一个动作后都会刷新。可按 actor 或 tool 过滤。",
+    description: "列出你方武将当前可执行的合法动作（只列我方，不含 end；每执行一个动作后刷新）。不确定谁能打谁/能用什么计时用它。",
     parameters: {
       type: "object",
       properties: {
         actor: { type: "number", description: "只列出该武将的动作" },
-        tool: { type: "string", enum: ["move", "attack", "stratagem", "retreat", "end"] },
+        tool: { type: "string", enum: ["move", "attack", "stratagem", "retreat"] },
       },
       additionalProperties: false,
     },
     execute: async (_id, params) => {
-      const rows = live.legal_actions.filter(
-        (a) => (params.actor === undefined || a.actor === params.actor) &&
-               (params.tool === undefined || a.tool === params.tool),
+      const controlled = session.req.controlled_vstate_id;
+      const mine = new Set(
+        live.units.filter((u) => u.vstate === controlled).map((u) => u.id as number),
       );
+      const rows = live.legal_actions
+        .filter((a) => a.tool !== "end" && mine.has(a.actor))
+        .filter(
+          (a) => (params.actor === undefined || a.actor === params.actor) &&
+                 (params.tool === undefined || a.tool === params.tool),
+        )
+        // id 是服务端内部句柄，模型用 actor/target/skill 表达动作即可。
+        .map((a) => {
+          const row: Record<string, unknown> = { tool: a.tool, actor: a.actor };
+          if (a.target !== undefined) row.target = a.target;
+          if (a.skill !== undefined) row.skill = a.skill;
+          if (a.city !== undefined) row.city = a.city;
+          if (a.cost !== undefined) row.cost = a.cost;
+          return row;
+        });
       return result(rows, { count: rows.length });
     },
   };
@@ -166,7 +231,9 @@ export function buildTools(
     } else {
       const target = findAction(live.legal_actions, tool, params);
       if (!target) {
-        throw new Error(`没有匹配该参数的合法 ${tool} 动作（请先 list_legal_actions 确认）`);
+        throw new Error(candidateHint(
+          live.legal_actions, live.units, session.req.controlled_vstate_id, tool, params,
+        ));
       }
       action = validateAction(target.id, {
         controlled_vstate_id: session.req.controlled_vstate_id,
@@ -192,10 +259,9 @@ export function buildTools(
       ok: outcome.ok,
       outcome: outcome.outcome,
       units: outcome.units,
-      legal_actions: outcome.legal_actions,
       // 敌方粮草会在回合内变化（夺米转金等），摘要里同步最新值避免模型读到过期数据。
       economy: outcome.economy,
-      hint: "继续决定下一个动作；全部武将与机动力都无事可做时调用 end。",
+      hint: "继续决定下一个动作；不确定某武将能打谁/能用什么计时调 list_legal_actions。全部武将与机动力都无事可做时调用 end。",
     };
     return result(summary, { action, ok: outcome.ok });
   }

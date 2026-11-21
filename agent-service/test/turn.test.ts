@@ -113,10 +113,10 @@ test("工具结果里的最新 legal_actions 会刷新，影响下一个动作�
     if (ctx.callIndex === 1) return calls(toolCall("list_legal_actions", {}));
     if (ctx.callIndex === 2) {
       assert.ok(
-        ctx.lastToolResults.some((t) => t.includes("ONLY_END_LEFT")),
+        ctx.lastToolResults.some((t) => t.includes("attack") && t.includes('"target":31')),
         `模型应看到刷新后的合法动作，实际：${ctx.lastToolResults.join("|").slice(0, 300)}`,
       );
-      return calls(toolCall("end", { reason: "只剩 end" }));
+      return calls(toolCall("end", { reason: "只剩这一手" }));
     }
     return calls(toolCall("end", { reason: "兜底" }));
   });
@@ -128,11 +128,47 @@ test("工具结果里的最新 legal_actions 会刷新，影响下一个动作�
     ok: true,
     outcome: "移动完成",
     units: sampleRequest().units,
-    legal_actions: [{ id: "ONLY_END_LEFT", tool: "end", actor: 12, cost: {} }],
+    legal_actions: [{ id: "a9", tool: "attack", actor: 12, target: 31, cost: { ap: 4 } }],
   });
 
   const done = await takeAction(session);
   assert.equal(done.type, "end");
+});
+
+test("list_legal_actions 只列我方、不含 end、不带内部 id", async () => {
+  const { session } = openWith((ctx) => {
+    if (ctx.callIndex === 0) return calls(toolCall("list_legal_actions", {}));
+    if (ctx.callIndex === 1) {
+      const joined = ctx.lastToolResults.join("\n");
+      assert.ok(joined.includes("attack"), "应列出我方攻击");
+      assert.ok(!joined.includes('"tool":"end"'), "end 不是武将动作，不应出现在清单");
+      assert.ok(!joined.includes('"id"'), "id 是服务端句柄，不暴露给模型");
+      return calls(toolCall("end", { reason: "看完" }));
+    }
+    return calls(toolCall("end", { reason: "x" }));
+  });
+  const r = await takeAction(session);
+  assert.equal(r.type, "end");
+});
+
+test("猜错目标时返回该武将当前可选的动作，模型可在会话内自纠", async () => {
+  let hint = "";
+  const { session } = openWith((ctx) => {
+    if (ctx.callIndex === 0) {
+      return calls(toolCall("stratagem", { actor: 12, target: 99, skill: "火计", reasoning: "打 99" }));
+    }
+    if (ctx.callIndex === 1) {
+      hint = ctx.lastToolResults.join("\n");
+      return calls(toolCall("end", { reason: "改打 31" }));
+    }
+    return calls(toolCall("end", { reason: "结束" }));
+  });
+
+  const r = await takeAction(session);
+  assert.equal(r.type, "end");
+  assert.ok(hint.includes("当前可选"), `应返回候选清单，实际：${hint.slice(0, 300)}`);
+  assert.ok(hint.includes("stratagem 火计"), "候选里应有该武将能用的计策");
+  assert.ok(hint.includes("attack"), "候选里应有攻击目标");
 });
 
 test("模型只回文本不给动作：会话以 error 结束（不能伪造成回合正常结束）", async () => {

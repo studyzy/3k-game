@@ -34,9 +34,18 @@ func _ready():
     enemy.id = 1
     enemy.rice = 310
     enemy.money = 900
+    enemy.main_actorId = 31
     enemy.side = "攻击方"
     wv.enemy_wv = enemy
     enemy.enemy_wv = wv
+    wa1.vstate = wv
+    wa2.vstate = enemy
+
+    # 计策投影：给受控方武将配一个 6 点消耗的计，目标为敌方主将
+    var Scheme = load("res://stubs/FakeScheme.gd")
+    var scheme = Scheme.new()
+    scheme.targets = [31]
+    wa1._stratagems = [scheme]
 
     var proj = load("res://ai/StateProjection.gd").new()
     var payload = proj.build(wv)

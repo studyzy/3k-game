@@ -48,7 +48,8 @@ test("stub 回合产生完整对话事件（system/user/turn/assistant/tool_call
   assert.equal(t!.budget_used?.cache_read, 0, "stub 模式无 usage.cacheRead 时应记为 0 而不崩");
   assert.equal(t!.budget_used?.cache_write, 0);
   assert.match(t!.system_prompt, /战场指挥官/);
-  assert.match(t!.user_message, /legal_actions/);
+  assert.match(t!.user_message, /本轮次/);
+  assert.ok(!t!.user_message.includes("legal_actions"), "动作清单不该进提示词");
   const types = new Set(t!.events.map((e) => e.type));
   for (const k of ["system", "user", "turn", "assistant", "tool_call", "tool_result", "final"]) {
     assert.ok(types.has(k as never), `缺少事件类型 ${k}`);

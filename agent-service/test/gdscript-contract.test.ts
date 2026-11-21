@@ -126,6 +126,29 @@ test("Godot 3.6.3 → HTTP → Agent 服务 全链路契约", async (t) => {
       assert.equal(typeof a.equip_briefs, "object", `unit ${a.id} 缺 equip_briefs`);
       assert.ok(Array.isArray(a.status), `unit ${a.id} 缺 status`);
       assert.equal(typeof a.terrain_at, "string", `unit ${a.id} 缺 terrain_at`);
+      // 能力投影：模型据此判断「这人会什么计、打多远、是不是主将」
+      assert.equal(typeof a.main, "boolean", `unit ${a.id} 缺 main 主将标识`);
+      assert.equal(typeof a.atk_range, "number", `unit ${a.id} 缺 atk_range`);
+      assert.ok(a.atk_range >= 1, `unit ${a.id} 的 atk_range 必须为正`);
+      assert.ok(Array.isArray(a.skills), `unit ${a.id} 缺 skills`);
+      for (const s of a.skills) {
+        assert.equal(typeof s.name, "string", `unit ${a.id} 的计策缺 name`);
+        assert.equal(typeof s.ap_cost, "number", `unit ${a.id} 的计策 ${s.name} 缺 ap_cost`);
+        assert.ok(s.ap_cost >= 1, `unit ${a.id} 的计策 ${s.name} 消耗至少 1 点`);
+      }
+    }
+    assert.ok(req.units.some((u) => (u as any).main === true), "应至少投影一名主将");
+    // 能力投影与动作清单必须同源：同一武将同一计策的 AP 消耗不得两处不一致
+    const stratagems = req.legal_actions.filter((a) => a.tool === "stratagem");
+    assert.ok(stratagems.length > 0, "harness 应产出至少一条用计动作");
+    for (const act of stratagems) {
+      const u = req.units.find((x) => x.id === act.actor) as any;
+      const skill = u?.skills?.find((k: any) => k.name === act.skill);
+      assert.ok(skill, `动作 ${act.id} 的计策 ${act.skill} 不在 unit ${act.actor} 的 skills 中`);
+      assert.equal(
+        (act.cost as any)?.ap, skill.ap_cost,
+        `动作 ${act.id} 的 cost.ap 应等于 skills.ap_cost`,
+      );
     }
     // 工具结果走同一 build()，必须同样携带全量属性与敌方粮草
     const toolRes = JSON.parse(marker(out, "AI_TOOL_RESULT"));

@@ -82,6 +82,13 @@ func build(wv) -> Dictionary:
 			var equip = actor.get_equip(equip_type) if actor != null else null
 			equips[equip_type] = equip.name() if equip != null else ""
 			equip_briefs[equip_type] = equip.get_attrs_brief() if equip != null else ""
+		# 能力投影：让模型不必先查 legal_actions 就能判断「这人会什么计、花多少、打多远」。
+		# ap_cost 是单价（已含「计策消耗减少」装备），够不够另看 unit.ap。
+		# 已无法行动的单位不再遍历计策表。
+		var skills = []
+		if not wa.disabled and wa.has_position():
+			for scheme in wa.get_stratagems():
+				skills.append({"name": scheme.name, "ap_cost": scheme.get_cost_ap(wa.actorId)})
 		var unit = {
 			"id": wa.actorId,
 			"name": actor.get_name() if actor != null else "",
@@ -117,6 +124,10 @@ func build(wv) -> Dictionary:
 			"status": statuses,
 			"terrain_at": map.get_blockCN_by_position(wa.position),
 			"disabled": wa.disabled,
+			# 主将标识：system 的首要战术是「杀主将」，没有这个字段模型认不出人。
+			"main": wa.get_main_actor_id() == wa.actorId,
+			"skills": skills,
+			"atk_range": wa.get_attack_distance(),
 		}
 		units.append(unit)
 		if wa.wvId != controlled_id or wa.disabled or not wa.has_position():
@@ -196,11 +207,14 @@ func _append_stratagem_actions(legal: Array, wa) -> void:
 		if scheme.is_area_targeting():
 			continue
 		var targets = scheme.get_available_targets(wa.actorId)[0]
+		# 消耗取引擎真值（clStratagem.get_cost_ap 已扣「计策消耗减少」装备）；
+		# 用计不扣点数，所以不投影 poker。
+		var cost_ap = scheme.get_cost_ap(wa.actorId)
 		for tid in targets:
 			legal.append({
 				"id": _next_id("s"), "tool": "stratagem", "actor": wa.actorId,
 				"target": int(tid), "skill": scheme.name,
-				"cost": {"ap": 2, "poker": 1},
+				"cost": {"ap": cost_ap},
 			})
 	return
 

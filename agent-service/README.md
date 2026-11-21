@@ -32,6 +32,7 @@ Godot                             服务端
 - **战斗的胜负不确定结果**会随结果回传给 LLM，由它决定继续攻击还是改做别的。
 - **空闲超时 30s**：每次 Agent 工具调用（含只读侦察）或 Godot 回传结果后重置；30s 内完全没有 Agent 活动 → 判定 LLM 已死，本回合剩余全部回退 `hard` 规则 AI。
 - **界面进度**：模型每轮的思考文本与只读侦察（`inspect_*` / `list_legal_actions`）会以 `{type:"progress"}` 下发，Godot 在战争界面**底部黄色消息区**显示最新一条。进度不占决策预算、不需要回传结果，且排在动作之前下发；动作本身的理由会覆盖同一区域。
+- **提示词不带动作清单**：`units[]` 已含 `skills`（计名 + 真实 `ap_cost`）、`main`、`atk_range`，模型据此自行决策；拿不准时才调 `list_legal_actions` 按需查（只列我方、不含 `end`）。猜错目标时工具直接返回该武将当前可选项，模型在会话内自纠，不会把非法动作交给 Godot。
 - 等待期间显示「敌方思考中……」。
 
 ### 白兵战（两军对垒）
@@ -185,7 +186,7 @@ OPENAI_API_KEY=...               # 仅回退路径，或 PI_API_KEY
 | `War_AI_behavior_llm.gd` | `wab` 实现：开会话 / 长轮询 / 执行 / 回传 / 回退 `hard` |
 | `battle/AI/BattleProjection.gd` | 白兵战态势投影（兵种/命令/计策） |
 | `battle/AI/BattleAgent.gd` | 白兵战会话驱动（开战会话 / 长轮询 / 执行指令 / 回传） |
-| `StateProjection.gd` | 全知去噪状态 + `legal_actions` |
+| `StateProjection.gd` | 全知去噪状态 + 能力投影（`skills`/`main`/`atk_range`）+ `legal_actions` |
 | `AIHttpClient.gd` | `HTTPRequest` 异步封装 |
 | `ActionValidator.gd` | 单动作二次校验（双防线） |
 
@@ -225,7 +226,7 @@ LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=... npm test
 - 工具注册表恰好 9 个：4 只读 + 4 动作 + `end`；**不含 read/write/edit/bash**，有回归断言
 - 白兵战工具表恰好 4 个，与战役工具完全不重叠；`set_order` 按兵种单独设置
 - 白兵战多回合：3 个战斗回合连续下命令，会话全程存活（防 `max_tool_calls` 跨回合累加回归）
-- `move` 路径：`legal_actions` 带逐格 `path`，服务端与 Godot 双侧校验无斜向移动
+- `move` 路径：路径由模型按地图规划（`legal_actions` 不再带逐格 `path`），服务端只做结构检查，Godot 逐格判断墙/占位/机动力
 - `stub` 模式端到端跑通 `pi-agent-core`：会话内读动作 → 执行 → `end`
 - HTTP 五态（ok / error / budget_exhausted / invalid / 静态路径穿越）
 - GDScript 静态校验：项目单例引用、flow 绑定、继承目标、`wab` 接口方法、注释标注
@@ -309,7 +310,7 @@ docker run --rm --read-only --tmpfs /tmp -p 8060:8060 \
 | 待定项 | 结论 |
 |---|---|
 | `pi-agent-core` 能否只挂自定义工具、完全禁用内置工具 | ✅ `pi-agent-core` 包内不含任何内置工具（read/write/edit/bash 在 `pi-durable/dist/tools/`，本服务未导入）；`initialState.tools` 完全由调用方提供，实测只有 4 个只读 + 5 个动作工具 |
-| 动作工具能否限定到本次 `legal_actions` | ✅ 按 `{actor,pos/target}` 在 `legal_actions` 中查找，找不到即抛错回灌模型自纠错；另由服务 `validateAction` + Godot `ActionValidator.accept_action` 双重兜底 |
+| 动作工具能否限定到本次 `legal_actions` | ✅ 按 `{actor,pos/target}` 在 `legal_actions` 中查找；找不到时回灌该武将的候选清单让模型自纠（最多 8 条），另由服务 `validateAction` + Godot `ActionValidator.accept_action` 双重兜底 |
 | Godot 3.6.3 headless 能否解析新增脚本 | ✅ `make check` + `load()` 校验通过，零 Parse Error；修复 1 处 `HTTPRequest.request` 参数顺序错误 |
 
 ## 边界

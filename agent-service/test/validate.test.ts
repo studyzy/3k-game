@@ -82,8 +82,16 @@ test("validateAction 拒绝超出机动力 / 点数的动作", () => {
   const poorAp = req.units.map((u) => (u.id === 12 ? { ...u, ap: 0 } : u));
   assert.throws(() => validateAction("a1", live({ units: poorAp }), budget), /exceeds action_point/);
 
-  const poorPoker = req.units.map((u) => (u.id === 12 ? { ...u, poker: 0 } : u));
-  assert.throws(() => validateAction("s7", live({ units: poorPoker }), budget), /exceeds poker_point/);
+  // 计策消耗取引擎真值（火计 6 点），不足即拒
+  const poorStratagemAp = req.units.map((u) => (u.id === 12 ? { ...u, ap: 5 } : u));
+  assert.throws(
+    () => validateAction("s7", live({ units: poorStratagemAp }), budget),
+    /exceeds action_point/,
+  );
+
+  // 用计不扣 poker：poker=0 仍能放火计
+  const noPoker = req.units.map((u) => (u.id === 12 ? { ...u, poker: 0 } : u));
+  assert.equal(validateAction("s7", live({ units: noPoker }), budget).tool, "stratagem");
 });
 
 test("validateTurnRequest 接受缺 side / 缺 economy.enemy 的旧请求体", () => {

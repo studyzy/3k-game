@@ -11,6 +11,9 @@ const unitExtras = {
   equip_briefs: { 武器: "短剑，攻：12，重：3", 防具: "防：4，重：1", 道具: "兵书", 坐骑: "马力：5，机动：2" },
   status: ["迟滞:3"],
   terrain_at: "平原",
+  main: false,
+  atk_range: 1,
+  skills: [{ name: "火计", ap_cost: 6 }],
 };
 
 export function sampleRequest(overrides: Partial<TurnRequest> = {}): TurnRequest {
@@ -24,9 +27,9 @@ export function sampleRequest(overrides: Partial<TurnRequest> = {}): TurnRequest
     diffculities: 3,
     session_id: "sgz-test",
     units: [
-      { id: 12, name: "张飞", vstate: 2, pos: [8, 14], ap: 7, poker: 3, soldiers: 1200, disabled: false, ...unitExtras },
+      { id: 12, name: "张飞", vstate: 2, pos: [8, 14], ap: 7, poker: 3, soldiers: 1200, disabled: false, ...unitExtras, main: true },
       { id: 13, name: "赵云", vstate: 2, pos: [7, 14], ap: 5, poker: 2, soldiers: 800, disabled: false, ...unitExtras },
-      { id: 31, name: "曹操", vstate: 1, pos: [9, 15], ap: 6, poker: 2, soldiers: 900, disabled: false, ...unitExtras },
+      { id: 31, name: "曹操", vstate: 1, pos: [9, 15], ap: 6, poker: 2, soldiers: 900, disabled: false, ...unitExtras, main: true },
     ],
     // 地形只列非平原格：[x, y, "地形名"]
     terrain: [
@@ -37,7 +40,7 @@ export function sampleRequest(overrides: Partial<TurnRequest> = {}): TurnRequest
     // move 不再由 Godot 出候选（路径由 LLM 规划，直接给 path）
     legal_actions: [
       { id: "a1", tool: "attack", actor: 12, target: 31, cost: { ap: 2 } },
-      { id: "s7", tool: "stratagem", actor: 12, target: 31, skill: "火计", cost: { ap: 2, poker: 1 } },
+      { id: "s7", tool: "stratagem", actor: 12, target: 31, skill: "火计", cost: { ap: 6 } },
       { id: "r2", tool: "retreat", actor: 13, city: 5, cost: {} },
       { id: "e0", tool: "end", actor: 12, cost: {} },
     ],
