@@ -70,12 +70,12 @@ func _on_cloud_fetched(result: Dictionary) -> void :
 	var slots = result.get("slots", {})
 	if typeof(slots) != TYPE_DICTIONARY or slots.empty():
 		return
+	if model_view != 0:
+		# 玩家已经离开开场：迟到响应不能覆盖刚存的新档，也不弹框盖在新场景上
+		return
 	var merged = CloudSave.merge_into_local(slots)
 	var total = int(merged["total"])
 	if total <= 0:
-		return
-	if model_view != 0:
-		# 玩家已经离开开场：文件已合并，下次启动生效，不要再弹框盖在新场景上
 		return
 	var msg = "云端发现{0}个网络存档位，已恢复{1}个，保留本地较新{2}个。\n是否打开读档列表？".format([
 		total, int(merged["restored"]), int(merged["kept"])

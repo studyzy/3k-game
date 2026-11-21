@@ -141,8 +141,8 @@ func upload_slot(slot: String, save_path: String) -> void:
 		return
 	if not is_network_slot(slot):
 		return
-	# 只保留最后一次待办：上传途中又存了一次档，前一份已经过时
-	_pending_put = {"kind": "put", "slot": slot, "path": save_path}
+	# 按槽位排队：同一槽位后一次覆盖前一次，不同槽位各自保留一次
+	_pending_put[slot] = save_path
 	_pump()
 	return
 
@@ -152,7 +152,7 @@ func _pump() -> void:
 	_start_next()
 	return
 
-# GET 与 PUT 各自排队，GET 优先；PUT 永远只保留最后一次。
+# GET 与 PUT 各自排队，GET 优先；PUT 按槽位排队，同槽位只传最新一份。
 func _start_next() -> void:
 	if _pending_get:
 		_pending_get = false
@@ -161,11 +161,12 @@ func _start_next() -> void:
 		_request_get()
 		return
 	if not _pending_put.empty():
-		var action = _pending_put
-		_pending_put = {}
+		var slot_key = str(_pending_put.keys()[0])
+		var slot_path = str(_pending_put[slot_key])
+		_pending_put.erase(slot_key)
 		_busy = true
-		_current = action
-		_request_put(action)
+		_current = {"kind": "put", "slot": slot_key, "path": slot_path}
+		_request_put(_current)
 		return
 	_busy = false
 	return
@@ -221,6 +222,8 @@ func _ensure_http() -> bool:
 		_http.connect("request_completed", self, "_on_completed")
 		# 与 AIHttpClient 同因：/root 在场景搭建期间 busy，挂到已就绪的 SceneManager 下
 		SceneManager.add_child(_http)
+		# 存档菜单会暂停整棵树；HTTPRequest 必须继续跑，否则上传要等玩家关菜单
+		_http.pause_mode = Node.PAUSE_MODE_PROCESS
 	if not _http.is_inside_tree():
 		return false
 	_http.timeout = HTTP_TIMEOUT
@@ -274,7 +277,7 @@ func _handle_put(result: int, code: int, text: String) -> void:
 
 # ---- 合并 / 展示 ----
 
-# 只处理单数槽位；云端较新才覆盖本地，覆盖前把旧档留成 .sav.bak。
+# 只处理单数槽位；云端较新才覆盖本地，覆盖前把旧档留成带时间戳的 .sav.bak.*。
 func merge_into_local(slots: Dictionary) -> Dictionary:
 	if not enabled:
 		return {"total": 0, "restored": 0, "kept": 0}
@@ -304,12 +307,17 @@ func merge_into_local(slots: Dictionary) -> Dictionary:
 				local_time = str(Global.dic_val(local_data, "存档时间", ""))
 		if local_text == "" or is_newer(remote_time, local_time):
 			# 备份失败就不覆盖：宁可留旧档，也不能把唯一的本地存档写坏。
-			var wrote = true
+			# 备份名带时间戳，避免第二次恢复把上一份旧档的唯一副本冲掉。
+			var bak_tag = local_time.replace(":", "").replace(" ", "-")
+			if bak_tag == "":
+				bak_tag = "old"
+			var write_ok = true
 			if local_text != "":
-				wrote = Global.save_file_text(path + ".bak", local_text)
-			if wrote:
-				wrote = Global.save_file_text(path, JSON.print(data))
-			if wrote:
+				write_ok = Global.save_file_text(path + ".bak." + bak_tag, local_text)
+			if not write_ok:
+				kept += 1
+				continue
+			if Global.save_file_text(path, JSON.print(data)):
 				StaticManager.saveIdx.update_save_index(slot)
 				restored += 1
 			else:
