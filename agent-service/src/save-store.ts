@@ -53,6 +53,8 @@ async function dirSize(dir: string): Promise<number> {
   try { names = await fs.readdir(dir); } catch { return 0; }
   let total = 0;
   for (const name of names) {
+    // 崩溃残留的 tmp 不该永久占配额
+    if (name.endsWith(".tmp")) continue;
     try { total += (await fs.stat(path.join(dir, name))).size; } catch { /* 并发删除，忽略 */ }
   }
   return total;

@@ -309,6 +309,8 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
           if (req.method !== "GET") { json(res, 405, { error: "method_not_allowed" }); return; }
           const bundle = await readAll(config.saveDir, id);
           if (!bundle) { json(res, 404, { error: "not_found" }); return; }
+          // 存档属于玩家数据，禁止中间层缓存
+          res.setHeader("cache-control", "no-store");
           json(res, 200, {
             id, updatedAt: bundle.updatedAt, syncedSlots: bundle.syncedSlots, slots: bundle.slots,
           });
