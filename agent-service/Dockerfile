@@ -29,6 +29,7 @@ ENV NODE_ENV=production \
     K3G_AGENT_MODE=mock
 
 # 云存档目录：构建期建好并放权，运行时以只读根文件系统 + 可写卷 /app/data 覆盖
+# 注意：bind mount 会覆盖这里的属主，Linux 宿主需自行 chown 1000:1000（见 README）
 RUN mkdir -p /app/data/saves && chown -R node:node /app/data
 
 # 非 root 运行；只读根文件系统 + 无宿主挂载（web 目录以 ro 挂载）

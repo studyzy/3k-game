@@ -116,28 +116,52 @@ export interface SaveBundle {
   updatedAt: string;
 }
 
+/** 整包读取上限：一次响应最多拼这么多字节，避免大配额把进程内存打爆。 */
+export const MAX_BUNDLE_BYTES = 64 * 1024 * 1024;
+
 /** 读回一个 ID 下所有槽位；一个合法槽位都没有时返回 null。 */
-export async function readAll(root: string, id: string): Promise<SaveBundle | null> {
+export async function readAll(
+  root: string,
+  id: string,
+  maxBundleBytes = MAX_BUNDLE_BYTES,
+): Promise<SaveBundle | null> {
   assertId(id);
   const dir = idDir(root, id);
   let names: string[] = [];
   try { names = await fs.readdir(dir); } catch { return null; }
 
-  const slots: Record<string, unknown> = {};
-  let newest = 0;
+  // 第一遍只 stat 累加大小：整包超限立刻 413，不把任何槽位读进内存。
+  const files: { slot: string; file: string; mtimeMs: number }[] = [];
+  let totalBytes = 0;
   for (const name of names) {
     const m = SLOT_FILE_RE.exec(name);
     if (!m) continue;
-    const slot = m[1];
     const file = path.join(dir, name);
+    let size = 0;
+    let mtimeMs = 0;
     try {
-      const [raw, stat] = await Promise.all([fs.readFile(file, "utf8"), fs.stat(file)]);
-      const parsed = JSON.parse(raw);
+      const stat = await fs.stat(file);
+      size = stat.size;
+      mtimeMs = stat.mtimeMs;
+    } catch { continue; /* 并发删除 */ }
+    totalBytes += size;
+    if (totalBytes > maxBundleBytes) {
+      throw new SaveError(413, "bundle_too_large", `bundle exceeds ${maxBundleBytes} bytes`);
+    }
+    files.push({ slot: m[1], file, mtimeMs });
+  }
+
+  // 第二遍才逐个 JSON.parse；单个文件损坏只跳过该槽位。
+  const slots: Record<string, unknown> = {};
+  let newest = 0;
+  for (const { slot, file, mtimeMs } of files) {
+    try {
+      const parsed = JSON.parse(await fs.readFile(file, "utf8"));
       if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
         throw new Error("not a JSON object");
       }
       slots[slot] = parsed;
-      if (stat.mtimeMs > newest) newest = stat.mtimeMs;
+      if (mtimeMs > newest) newest = mtimeMs;
     } catch (err) {
       console.warn(`[save] skip corrupt slot id=${maskId(id)} slot=${slot}: ${err instanceof Error ? err.message : String(err)}`);
     }

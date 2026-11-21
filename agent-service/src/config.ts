@@ -52,6 +52,12 @@ function argValue(argv: string[], name: string): string | undefined {
   return i >= 0 ? argv[i + 1] : undefined;
 }
 
+/** 环境变量/参数可能是 `abc`、`0`、负数：非法一律回退默认值，绝不让 NaN 进入限制判断。 */
+function positiveNumber(value: string | undefined, fallback: number): number {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
 export function parseConfig(argv: string[], env: Record<string, string | undefined>): ServiceConfig {
   return {
     port: Number(argValue(argv, "port") ?? env.PORT ?? 8060),
@@ -68,8 +74,8 @@ export function parseConfig(argv: string[], env: Record<string, string | undefin
     llmContextWindow: Number(env.LLM_CONTEXT_WINDOW ?? 65536),
     llmMaxTokens: Number(env.LLM_MAX_TOKENS ?? 8192),
     saveDir: argValue(argv, "save-dir") ?? env.SAVE_DIR ?? "data/saves",
-    saveMaxMb: Number(argValue(argv, "save-max-mb") ?? env.SAVE_MAX_MB ?? 32),
-    saveTotalMb: Number(argValue(argv, "save-total-mb") ?? env.SAVE_TOTAL_MB ?? 2048),
-    saveTtlDays: Number(argValue(argv, "save-ttl-days") ?? env.SAVE_TTL_DAYS ?? 365),
+    saveMaxMb: positiveNumber(argValue(argv, "save-max-mb") ?? env.SAVE_MAX_MB, 32),
+    saveTotalMb: positiveNumber(argValue(argv, "save-total-mb") ?? env.SAVE_TOTAL_MB, 2048),
+    saveTtlDays: positiveNumber(argValue(argv, "save-ttl-days") ?? env.SAVE_TTL_DAYS, 365),
   };
 }

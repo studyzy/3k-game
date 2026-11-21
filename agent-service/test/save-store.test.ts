@@ -103,6 +103,15 @@ test("损坏文件被跳过而不是整包失败", async () => {
   assert.deepEqual(Object.keys(bundle.slots), ["5"]);
 });
 
+test("整包超过 maxBundleBytes → 413", async () => {
+  const id = "44444444-5555-4666-8777-888888888888";
+  await writeSlot({ root, id, slot: "1", raw: JSON.stringify({ a: "x".repeat(40) }), ...LIMITS });
+  await assert.rejects(
+    readAll(root, id, 20),
+    (err: any) => err instanceof SaveError && err.status === 413 && err.code === "bundle_too_large",
+  );
+});
+
 test("TTL 清理删掉过期文件并向空目录收尸", async () => {
   const id = "33333333-4444-4555-8666-777777777777";
   await writeSlot({ root, id, slot: "1", raw: JSON.stringify({ ok: 1 }), ...LIMITS });

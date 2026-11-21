@@ -121,6 +121,8 @@ docker run --rm --read-only --tmpfs /tmp -p 8060:8060 \
   3k-war-agent
 ```
 
+Linux 宿主首次部署需 `mkdir -p agent-service/data && sudo chown 1000:1000 agent-service/data`，否则容器内非 root 用户无法写入。
+
 > **链接即钥匙**：拿到带 `?save=<uuid>` 的 URL 就能读、覆盖该玩家的网络存档，没有账号体系，也没有口令。分享链接等于交出存档写权限，只发给信任的人。
 
 浏览器限制（网页版降级行为）：
