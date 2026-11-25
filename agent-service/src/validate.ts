@@ -83,32 +83,6 @@ export function validateTurnRequest(body: unknown): TurnRequest {
   return body as unknown as TurnRequest;
 }
 
-/** 校验只用计预估回答（POST /ai/turn/:id/estimate）。 */
-/** 校验 Godot 回传的预估结果：两类只读查询（计策 / 战术）共用。 */
-export function validateBattleEstimates(body: unknown): { id: number; tactic?: string; data?: Record<string, unknown> }[] {
-  if (!isObject(body)) throw new ValidationError("bad_json", "body must be a JSON object");
-  if (!Array.isArray(body.estimates) || body.estimates.length === 0) {
-    throw new ValidationError("bad_schema", "estimates must be a non-empty array");
-  }
-  const ret: { id: number; tactic?: string; data?: Record<string, unknown> }[] = [];
-  for (const raw of body.estimates as unknown[]) {
-    if (!isObject(raw)) throw new ValidationError("bad_schema", "estimates entries must be objects");
-    const hasAnswer = raw.id !== undefined;
-    if (!hasAnswer) {
-      // 同一响应里捎带的「新查询」：只校验查询字段
-      if (typeof raw.tactic !== "string" || raw.tactic === "") {
-        throw new ValidationError("bad_schema", "estimates query needs tactic");
-      }
-      ret.push({ id: -1, tactic: raw.tactic });
-      continue;
-    }
-    if (typeof raw.id !== "number") throw new ValidationError("bad_schema", "estimates[].id must be a number");
-    if (raw.data === undefined) throw new ValidationError("bad_schema", "estimates[].data required");
-    ret.push({ id: raw.id, data: isObject(raw.data) ? raw.data : { value: raw.data } });
-  }
-  return ret;
-}
-
 export function validateAnswers(body: unknown): RandomAnswer[] {
   if (!isObject(body)) throw new ValidationError("bad_json", "body must be a JSON object");
   if (!Array.isArray(body.answers) || body.answers.length === 0) {
@@ -179,59 +153,108 @@ export function validateAction(
 
   return { ...action };
 }
+
 // ---------------------------------------------------------------------------
-// 白兵战校验
+// 白兵战校验：开场请求 + 每拍快照（v2）
 // ---------------------------------------------------------------------------
 const BATTLE_UNIT_TYPES = ["将", "骑", "象", "弓", "步"];
 const BATTLE_ORDERS = ["前进", "待机", "后退"];
 
-function checkBattleSide(side: unknown, label: string): void {
-  if (!isObject(side)) throw new ValidationError("bad_schema", `${label} must be an object`);
-  if (typeof side.soldiers !== "number") throw new ValidationError("bad_schema", `${label}.soldiers must be a number`);
-  if (typeof side.tactic_point !== "number") throw new ValidationError("bad_schema", `${label}.tactic_point must be a number`);
-  if (!Array.isArray(side.units)) throw new ValidationError("bad_schema", `${label}.units must be an array`);
-  for (const u of side.units as unknown[]) {
-    if (!isObject(u)) throw new ValidationError("bad_schema", `${label}.units entries must be objects`);
-    if (!BATTLE_UNIT_TYPES.includes(u.type as string)) {
-      throw new ValidationError("bad_schema", `unknown battle unit type: ${String(u.type)}`);
-    }
-    if (typeof u.hp !== "number") throw new ValidationError("bad_schema", `${label}.units[].hp must be a number`);
-  }
-}
-
-/** 校验白兵战开场请求。 */
-export function validateBattleRequest(body: unknown): import("./types.ts").BattleRequest {
+export function validateBattleOpenRequest(
+  body: unknown,
+): import("./types.ts").BattleOpenRequest {
   if (!isObject(body)) throw new ValidationError("bad_json", "body must be a JSON object");
-  if (body.battle_version !== 1) throw new ValidationError("bad_schema", "battle_version must be 1");
-  if (body.visibility !== "omniscient") throw new ValidationError("bad_schema", "visibility must be omniscient");
   if (typeof body.battle_key !== "string" || body.battle_key.length === 0) {
     throw new ValidationError("bad_schema", "battle_key required");
   }
-  if (typeof body.controlled_actor_id !== "number") throw new ValidationError("bad_schema", "controlled_actor_id required");
-  if (typeof body.enemy_actor_id !== "number") throw new ValidationError("bad_schema", "enemy_actor_id required");
-  if (body.side !== "attacker" && body.side !== "defender") throw new ValidationError("bad_schema", "side must be attacker|defender");
-  if (typeof body.turn !== "number") throw new ValidationError("bad_schema", "turn must be a number");
-  checkBattleSide(body.controlled, "controlled");
-  checkBattleSide(body.enemy, "enemy");
-  if (!Array.isArray(body.legal_tactics)) throw new ValidationError("bad_schema", "legal_tactics must be an array");
-  for (const t of body.legal_tactics as unknown[]) {
-    if (!isObject(t)) throw new ValidationError("bad_schema", "legal_tactics entries must be objects");
-    if (typeof t.name !== "string" || typeof t.cost !== "number") {
-      throw new ValidationError("bad_schema", "legal_tactics entries need name and cost");
-    }
+  if (typeof body.controlled_actor_id !== "number") {
+    throw new ValidationError("bad_schema", "controlled_actor_id required");
+  }
+  if (typeof body.enemy_actor_id !== "number") {
+    throw new ValidationError("bad_schema", "enemy_actor_id required");
+  }
+  if (body.side !== "attacker" && body.side !== "defender") {
+    throw new ValidationError("bad_schema", "side must be attacker|defender");
+  }
+  if (typeof body.diffculities !== "number") {
+    throw new ValidationError("bad_schema", "diffculities must be a number");
   }
   return body as never;
 }
 
-/** 校验 Godot 回传的白兵战指令结果。 */
-export function validateBattleResult(body: unknown): import("./types.ts").BattleResultPayload {
-  if (!isObject(body)) throw new ValidationError("bad_json", "body must be a JSON object");
-  if (typeof body.ok !== "boolean") throw new ValidationError("bad_schema", "ok must be boolean");
-  if (typeof body.outcome !== "string") throw new ValidationError("bad_schema", "outcome must be a string");
-  if (typeof body.turn !== "number") throw new ValidationError("bad_schema", "turn must be a number");
-  checkBattleSide(body.controlled, "controlled");
-  checkBattleSide(body.enemy, "enemy");
-  return body as never;
+function checkBattleUnitV2(u: unknown, label: string): void {
+  if (!isObject(u)) throw new ValidationError("bad_schema", label + " must be an object");
+  if (!BATTLE_UNIT_TYPES.includes(u.type as string)) {
+    throw new ValidationError("bad_schema", "unknown battle unit type: " + String(u.type));
+  }
+  for (const k of ["hp", "count", "x", "y", "shoot_range", "attack_range", "dist_to_other_main"]) {
+    if (typeof u[k] !== "number") {
+      throw new ValidationError("bad_schema", label + "." + k + " must be a number");
+    }
+  }
+  if (typeof u.order !== "string" || !BATTLE_ORDERS.includes(u.order)) {
+    throw new ValidationError("bad_schema", label + ".order invalid");
+  }
+  if (typeof u.other_main_in_shoot_range !== "boolean") {
+    throw new ValidationError("bad_schema", label + ".other_main_in_shoot_range must be boolean");
+  }
 }
 
-export { BATTLE_ORDERS, BATTLE_UNIT_TYPES };
+function checkBattleSideV2(side: unknown, label: string): void {
+  if (!isObject(side)) throw new ValidationError("bad_schema", label + " must be an object");
+  if (typeof side.name !== "string") throw new ValidationError("bad_schema", label + ".name required");
+  for (const k of ["hp", "soldiers", "tactic_point"]) {
+    if (typeof side[k] !== "number") throw new ValidationError("bad_schema", label + "." + k + " must be a number");
+  }
+  if (!Array.isArray(side.buffs)) throw new ValidationError("bad_schema", label + ".buffs must be an array");
+  for (const b of side.buffs as unknown[]) {
+    if (!isObject(b) || typeof b.name !== "string" || typeof b.turns !== "number") {
+      throw new ValidationError("bad_schema", label + ".buffs entries need name and turns");
+    }
+  }
+  if (!Array.isArray(side.units)) throw new ValidationError("bad_schema", label + ".units must be an array");
+  for (const u of side.units as unknown[]) checkBattleUnitV2(u, label + ".units[]");
+}
+
+export function validateBattleSnapshot(
+  body: unknown,
+): import("./types.ts").BattleSnapshotV2 {
+  if (!isObject(body)) throw new ValidationError("bad_json", "body must be a JSON object");
+  if (body.battle_version !== 2) throw new ValidationError("bad_schema", "battle_version must be 2");
+  if (typeof body.battle_key !== "string" || body.battle_key.length === 0) {
+    throw new ValidationError("bad_schema", "battle_key required");
+  }
+  if (typeof body.tick !== "number" || body.tick <= 0) {
+    throw new ValidationError("bad_schema", "tick must be a positive number");
+  }
+  if (typeof body.elapsed_ms !== "number") throw new ValidationError("bad_schema", "elapsed_ms must be a number");
+  if (typeof body.diffculities !== "number") throw new ValidationError("bad_schema", "diffculities must be a number");
+  if (body.side !== "attacker" && body.side !== "defender") {
+    throw new ValidationError("bad_schema", "side must be attacker|defender");
+  }
+  if (typeof body.controlled_actor_id !== "number") {
+    throw new ValidationError("bad_schema", "controlled_actor_id required");
+  }
+  if (typeof body.enemy_actor_id !== "number") {
+    throw new ValidationError("bad_schema", "enemy_actor_id required");
+  }
+  if (typeof body.turn !== "number") throw new ValidationError("bad_schema", "turn must be a number");
+  if (!isObject(body.terrain) || typeof body.terrain.name !== "string" || typeof body.terrain.is_city !== "boolean") {
+    throw new ValidationError("bad_schema", "terrain needs name and is_city");
+  }
+  checkBattleSideV2(body.controlled, "controlled");
+  checkBattleSideV2(body.enemy, "enemy");
+  if (!Array.isArray(body.legal_tactics)) {
+    throw new ValidationError("bad_schema", "legal_tactics must be an array");
+  }
+  for (const t of body.legal_tactics as unknown[]) {
+    if (!isObject(t) || typeof t.name !== "string" || typeof t.cost !== "number" ||
+        typeof t.rate !== "number" || typeof t.summary !== "string") {
+      throw new ValidationError("bad_schema", "legal_tactics entries need name/cost/rate/summary");
+    }
+  }
+  if (body.last_plan !== undefined && body.last_plan !== null) {
+    if (!isObject(body.last_plan)) throw new ValidationError("bad_schema", "last_plan must be an object");
+  }
+  return body as never;
+}

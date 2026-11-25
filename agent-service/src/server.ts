@@ -12,10 +12,10 @@ import { fileURLToPath } from "node:url";
 import { parseConfig, BUDGETS } from "./config.ts";
 import {
   validateTurnRequest, validateToolResult, validateAnswers,
-  validateBattleRequest, validateBattleResult, validateBattleEstimates, ValidationError,
+  validateBattleOpenRequest, validateBattleSnapshot, ValidationError,
 } from "./validate.ts";
 import { startTurn, ServiceError } from "./agent.ts";
-import { startBattle } from "./battle-agent.ts";
+import { startBattle, tickBattle, endBattle } from "./battle-agent.ts";
 import { battleStore } from "./battle-session.ts";
 import { traceStore } from "./trace.ts";
 import { turnStore } from "./session.ts";
@@ -243,82 +243,45 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
         return;
       }
 
-      // ---- 白兵战会话（独立 Agent / 提示词 / 工具） ----
+      // ---- 白兵战会话：异步 tick ----
       if (url.pathname === "/ai/battle") {
         if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
         const body = await parseJsonBody(req);
-        const request = validateBattleRequest(body);
-        const { session, budget } = startBattle(request, { mode: config.mode, config });
-        json(res, 200, {
-          battle_session_id: session.id,
-          idle_timeout_ms: budget.idle_timeout_ms,
-          poll_timeout_ms: Math.min(budget.idle_timeout_ms, 15000),
-        });
+        const request = validateBattleOpenRequest(body);
+        const session = startBattle(request, { mode: config.mode, config });
+        json(res, 200, { battle_session_id: session.id });
         return;
       }
 
-      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/pending")) {
-        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/pending".length));
-        const session = battleStore.get(id);
-        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
-        const cap = Number(url.searchParams.get("wait_ms") ?? 15000);
-        const wait = Math.max(0, Math.min(cap, session.idleRemaining()));
-        const r = await session.nextCommand(wait);
-        if (r.type === "error") { json(res, 200, r); battleStore.delete(id); return; }
-        if (r.type === "end_battle") { json(res, 200, r); battleStore.delete(id); return; }
-        if (r.type === "idle_timeout") {
-          if (session.idleRemaining() <= 0) {
-            session.fail(new ServiceError(504, "battle_idle_timeout", "白兵战 agent 空闲超时"));
-            json(res, 200, { type: "idle_timeout" });
-            battleStore.delete(id);
-            return;
-          }
-          json(res, 200, { type: "retry" });
-          return;
-        }
-        json(res, 200, r);
-        return;
-      }
-
-      // 引擎结算完毕、进入下一个战斗回合
-      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/resume")) {
+      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/tick")) {
         if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
-        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/resume".length));
-        const session = battleStore.get(id);
-        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
-        session.resumeNextTurn();
-        json(res, 200, { ok: true });
-        return;
-      }
-
-      // 白兵战：回传只读查询结果（战术预估）
-      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/estimate")) {
-        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
-        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/estimate".length));
+        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/tick".length));
         const session = battleStore.get(id);
         if (!session) { json(res, 404, { error: "session_not_found" }); return; }
         const body = await parseJsonBody(req);
-        const answers = validateBattleEstimates(body);
-        session.submitAnswers(answers.filter((a) => a.id >= 0).map((a) => ({ id: a.id, data: a.data ?? {} })));
-        json(res, 200, { ok: true });
+        let snapshot: ReturnType<typeof validateBattleSnapshot>;
+        try {
+          snapshot = validateBattleSnapshot(body);
+        } catch (err) {
+          json(res, 422, { error: "invalid_snapshot", message: err instanceof Error ? err.message : String(err) });
+          return;
+        }
+        if (snapshot.controlled_actor_id !== session.init.controlledActorId ||
+            snapshot.enemy_actor_id !== session.init.enemyActorId) {
+          json(res, 422, { error: "invalid_snapshot", message: "actor ids do not match session" });
+          return;
+        }
+        const result = await tickBattle(session, snapshot, { mode: config.mode, config });
+        json(res, 200, result);
         return;
       }
 
-      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/result")) {
+      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/end")) {
         if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
-        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/result".length));
+        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/end".length));
         const session = battleStore.get(id);
-        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
-        const body = await parseJsonBody(req);
-        const seq = Number((body as Record<string, unknown>)?.seq);
-        if (!Number.isInteger(seq) || seq <= 0) {
-          json(res, 400, { error: "bad_schema", message: "seq required" });
-          return;
-        }
-        const payload = validateBattleResult(body);
-        session.submitResult(seq, payload);
-        // 服务端若正在等「战术预估」，顺带把查询带回去（省一次长轮询往返）
-        json(res, 200, { ok: true, sid: id, estimates: session.pendingAsks() });
+        if (session) endBattle(session);
+        json(res, 200, { ok: true });
         return;
       }
 

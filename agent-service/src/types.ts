@@ -47,7 +47,7 @@ export interface TurnRequest {
   static_bundle_id: string;
   turn_key: string;
   controlled_vstate_id: number;
-  /** 我方为攻方还是守方，复用白兵战 BattleRequest.side 取值；旧请求体可缺省。 */
+  /** 我方为攻方还是守方，复用白兵战 side 取值；旧请求体可缺省。 */
   side?: "attacker" | "defender";
   diffculities: number;
   session_id?: string;
@@ -126,74 +126,6 @@ export type BattleUnitType = "将" | "骑" | "象" | "弓" | "步";
 
 /** 白兵战命令（`AI_Control.gd` 确认）。 */
 export type BattleOrder = "前进" | "待机" | "后退";
-
-export interface BattleUnit {
-  type: BattleUnitType;
-  /** 当前类型总血量；<=0 表示该兵种已消失。 */
-  hp: number;
-  order: BattleOrder;
-}
-
-export interface BattleRequest {
-  battle_version: 1;
-  visibility: "omniscient";
-  /** 本场战斗的稳定标识。 */
-  battle_key: string;
-  diffculities: number;
-  /** 我方（受控方）武将 id 与敌方武将 id。 */
-  controlled_actor_id: number;
-  enemy_actor_id: number;
-  /** 我方为攻方还是守方。 */
-  side: "attacker" | "defender";
-  /** 战斗回合数。 */
-  turn: number;
-  controlled: {
-    name?: string;
-    hp?: number;
-    soldiers: number;
-    tactic_point: number;
-    units: BattleUnit[];
-  };
-  enemy: {
-    name?: string;
-    hp?: number;
-    soldiers: number;
-    tactic_point: number;
-    units: BattleUnit[];
-  };
-  /** 己方可用的计策（含战术值消耗）。 */
-  legal_tactics: Array<{ name: string; cost: number }>;
-  budget?: Partial<BattleBudget>;
-}
-
-export interface BattleBudget {
-  max_turns: number;
-  max_tool_calls: number;
-  max_tokens: number;
-  idle_timeout_ms: number;
-}
-
-/** 白兵战待执行指令。 */
-export type BattlePending =
-  | { type: "order"; seq: number; unit: BattleUnitType; order: BattleOrder; reasoning: string }
-  | { type: "tactic"; seq: number; tactic: string; reasoning: string }
-  | { type: "end_turn"; seq: number; reasoning: string }
-  | { type: "ask"; asks: RandomAsk[] }
-  | { type: "end_battle"; reason: string }
-  | { type: "idle_timeout" }
-  | { type: "error"; message: string };
-
-/** Godot 回传的战斗指令执行结果。 */
-export interface BattleResultPayload {
-  ok: boolean;
-  /** 人类可读结果。 */
-  outcome: string;
-  /** 执行后的最新战斗状态（同 BattleRequest 的 controlled/enemy/legal_tactics/turn）。 */
-  turn: number;
-  controlled: BattleRequest["controlled"];
-  enemy: BattleRequest["enemy"];
-  legal_tactics: Array<{ name: string; cost: number }>;
-}
 
 // ---------------------------------------------------------------------------
 // 白兵战（Battle）异步 tick：一场战斗一个会话，每拍快照进、计划出

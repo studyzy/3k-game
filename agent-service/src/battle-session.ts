@@ -98,9 +98,8 @@ export class BattleStore {
       const tr = s.trace;
       if (tr && tr.status === "running") {
         // 会话被 TTL 清掉时 trace 还挂着 running，dashboard 会永远显示「进行中」。
-        // trace.ts 的 status 联合类型暂未包含 expired（不在本次改动范围），运行时按字符串渲染。
         traceStore.finish(tr, {
-          status: "expired" as never,
+          status: "expired",
           elapsed_ms: Date.now() - Date.parse(tr.started_at),
           budget_used: { tokens: s.tokens, turns: s.tick, tool_calls: 0 },
         });

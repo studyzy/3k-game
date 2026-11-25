@@ -35,7 +35,7 @@ export interface DecisionTrace {
   ai_agent_mode?: boolean;
   controlled_vstate_id: number;
   legal_actions_count: number;
-  status: "running" | "ok" | "fallback" | "error";
+  status: "running" | "ok" | "fallback" | "error" | "expired";
   error?: string;
   elapsed_ms?: number;
   budget_used?: { tokens: number; turns: number; tool_calls: number; cache_read?: number; cache_write?: number };

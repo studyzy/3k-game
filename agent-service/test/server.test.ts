@@ -177,34 +177,57 @@ test("estimate 路由：校验 answers 并把回答交回会话", async () => {
   assert.equal(missing.status, 404);
 });
 
-test("白兵战 estimate 路由：校验 estimates 并把回答交回战斗会话", async () => {
-  const started = await fetch(`${base}/ai/battle`, {
-    method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify({
-      battle_version: 1, visibility: "omniscient", battle_key: "b", diffculities: 4,
-      controlled_actor_id: 12, enemy_actor_id: 31, side: "attacker", turn: 1,
-      controlled: { name: "张辽", hp: 90, soldiers: 1200, tactic_point: 10, units: [{ type: "将", hp: 400, order: "待机" }] },
-      enemy: { name: "高顺", hp: 88, soldiers: 900, tactic_point: 8, units: [{ type: "将", hp: 350, order: "待机" }] },
-      legal_tactics: [{ name: "咒缚", cost: 3 }],
+test("白兵战 tick 路由：开场 → tick → end，非法快照 422，结束 410", async () => {
+  const open = await fetch(base + "/ai/battle", {
+    method: "POST", headers: { "content-type": "text/plain" },
+    body: JSON.stringify({
+      battle_key: "b12-b31", controlled_actor_id: 12, enemy_actor_id: 31,
+      side: "attacker", diffculities: 4,
     }),
   });
-  assert.equal(started.status, 200);
-  const id = (await started.json()).battle_session_id;
+  assert.equal(open.status, 200);
+  const id = (await open.json() as any).battle_session_id;
+  assert.ok(typeof id === "string" && id.length > 0);
 
-  // 缺 estimates → 400
-  const bad = await fetch(`${base}/ai/battle/${id}/estimate`, {
-    method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify({}),
+  const snap = {
+    battle_version: 2, battle_key: "b12-b31", tick: 1, elapsed_ms: 1200,
+    diffculities: 4, side: "attacker", controlled_actor_id: 12, enemy_actor_id: 31,
+    turn: 1, terrain: { name: "plain", is_city: false },
+    controlled: {
+      name: "张辽", hp: 90, soldiers: 1200, tactic_point: 10, buffs: [],
+      units: [
+        { type: "将", hp: 400, count: 1, order: "待机", x: 6, y: 5, shoot_range: 0, attack_range: 1, dist_to_other_main: 6, other_main_in_shoot_range: false },
+      ],
+    },
+    enemy: {
+      name: "高顺", hp: 88, soldiers: 900, tactic_point: 8, buffs: [],
+      units: [
+        { type: "将", hp: 350, count: 1, order: "待机", x: 12, y: 5, shoot_range: 0, attack_range: 1, dist_to_other_main: 6, other_main_in_shoot_range: false },
+      ],
+    },
+    legal_tactics: [],
+    last_plan: null,
+  };
+
+  const tick = await fetch(base + "/ai/battle/" + id + "/tick", {
+    method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify(snap),
   });
-  assert.equal(bad.status, 400);
+  assert.equal(tick.status, 200);
+  const result: any = await tick.json();
+  assert.equal(result.tick, 1);
+  assert.deepEqual(result.plan.orders, { 将: "前进" });
 
-  const ok = await fetch(`${base}/ai/battle/${id}/estimate`, {
+  const bad = await fetch(base + "/ai/battle/" + id + "/tick", {
     method: "POST", headers: { "content-type": "text/plain" },
-    body: JSON.stringify({ estimates: [{ id: 1, data: { ok: true, rate: 50 } }] }),
+    body: JSON.stringify({ ...snap, battle_version: 1 }),
   });
-  assert.equal(ok.status, 200);
-  assert.deepEqual(await ok.json(), { ok: true });
+  assert.equal(bad.status, 422);
 
-  const missing = await fetch(`${base}/ai/battle/nope/estimate`, {
-    method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify({ estimates: [{ id: 1, data: {} }] }),
+  const ended = await fetch(base + "/ai/battle/" + id + "/end", { method: "POST" });
+  assert.equal(ended.status, 200);
+
+  const after = await fetch(base + "/ai/battle/" + id + "/tick", {
+    method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify(snap),
   });
-  assert.equal(missing.status, 404);
+  assert.equal(after.status, 410);
 });

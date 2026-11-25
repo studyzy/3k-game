@@ -345,7 +345,10 @@ export async function tickBattle(
       session.lastPlan = plan;
       // provider 不响应 abort：这一拍的 agent 已经不可再用，结束会话让下一拍回 410，
       // 客户端收到 410 会重新 /open 一场，不会继续对着卡死的会话发请求。
-      if (outcome.stuck) session.finish("stuck");
+      if (outcome.stuck) {
+        session.finish("stuck");
+        endBattle(session);
+      }
       if (session.trace) {
         traceStore.add(session.trace, "error", {
           text: outcome.stuck ? "tick timeout (agent stuck, session closed)" : "tick timeout",
@@ -408,7 +411,8 @@ export function endBattle(session: BattleSession): void {
   const tr = session.trace;
   if (tr && tr.status === "running") {
     traceStore.finish(tr, {
-      status: "ok",
+      // 只有正常收场记 ok；stuck 等异常结束记 error，dashboard 才不会把死局显示成成功。
+      status: session.endReason === "ended" ? "ok" : "error",
       elapsed_ms: Date.now() - Date.parse(tr.started_at),
       budget_used: { tokens: session.tokens, turns: session.tick, tool_calls: 0 },
     });
