@@ -6,78 +6,153 @@
 <title>AI Agent 决策监控面板</title>
 <style>
   :root {
-    --bg: #0f1218; --panel: #171c26; --panel2: #1e2532; --line: #2b3444;
-    --fg: #dce3ee; --dim: #8b98ad; --accent: #5aa9ff;
-    --sys: #7d8798; --user: #9aa7ba; --turn: #4b586d;
+    --bg: #0e1116; --panel: #151a23; --panel2: #1c222d; --panel3: #232b38; --line: #2a3240;
+    --fg: #dbe2ec; --dim: #8592a6; --faint: #5d6a7d; --accent: #5aa9ff;
+    --sys: #7d8798; --user: #9aa7ba; --turn: #3d4859;
     --assistant: #5aa9ff; --call: #b48cff; --result: #57d9a3;
     --final: #ffd166; --error: #ff6b6b; --mock: #f0a35e;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--fg);
-    font: 13px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
-  a { color: var(--accent); }
-  header { display: flex; align-items: center; gap: 14px; padding: 10px 16px;
-    background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
-  header h1 { font-size: 15px; margin: 0; font-weight: 600; }
-  .badge { padding: 2px 8px; border-radius: 10px; background: var(--panel2);
-    border: 1px solid var(--line); color: var(--dim); font-size: 12px; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--fg); overflow: hidden;
+    font: 13px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  code, .mono, pre { font-family: ui-monospace, Menlo, Consolas, "SF Mono", monospace; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #2c3543; border-radius: 6px; border: 2px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a4557; background-clip: padding-box; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* ── header ── */
+  header { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px;
+    background: var(--panel); border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 14px; margin: 0; font-weight: 600; letter-spacing: .2px; }
+  .badge { padding: 1px 8px; border-radius: 10px; background: var(--panel2);
+    border: 1px solid var(--line); color: var(--dim); font-size: 11.5px; white-space: nowrap; }
   .badge.mode { color: var(--accent); }
   .spacer { flex: 1; }
   button { background: var(--panel2); color: var(--fg); border: 1px solid var(--line);
-    border-radius: 6px; padding: 5px 11px; cursor: pointer; font-size: 12px; }
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
   button:hover { border-color: var(--accent); }
-  button.on { color: var(--result); border-color: var(--result); }
-  .body { display: flex; height: calc(100vh - 49px); }
-  aside { width: 320px; min-width: 260px; overflow-y: auto; border-right: 1px solid var(--line); background: var(--panel); }
-  main { flex: 1; overflow-y: auto; padding: 16px 20px 60px; }
-  .card { padding: 10px 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  button.on { color: var(--result); border-color: #2c6b52; }
+
+  /* ── layout ── */
+  .body { display: flex; height: calc(100% - 46px); }
+  aside { width: 300px; min-width: 240px; display: flex; flex-direction: column;
+    border-right: 1px solid var(--line); background: var(--panel); }
+  .filters { display: flex; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .chip { padding: 1px 8px; border-radius: 10px; border: 1px solid var(--line); background: transparent;
+    color: var(--dim); cursor: pointer; font-size: 11px; user-select: none; }
+  .chip:hover { color: var(--fg); }
+  .chip.on { color: var(--accent); border-color: var(--accent); background: #1b2433; }
+  #list { flex: 1; overflow-y: auto; }
+  main { flex: 1; min-width: 0; overflow-y: auto; }
+
+  /* ── list ── */
+  .card { padding: 7px 10px; border-bottom: 1px solid #202634; cursor: pointer; }
   .card:hover { background: var(--panel2); }
-  .card.sel { background: #202a3c; border-left: 3px solid var(--accent); padding-left: 9px; }
-  .card .row1 { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
-  .card .time { color: var(--dim); font-size: 11px; font-variant-numeric: tabular-nums; }
-  .card .tk { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; color: var(--fg);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .card .row2 { color: var(--dim); font-size: 11px; display: flex; gap: 8px; flex-wrap: wrap; }
-  .st { font-size: 10px; padding: 1px 6px; border-radius: 8px; border: 1px solid var(--line); }
+  .card.sel { background: #1b2434; box-shadow: inset 3px 0 0 var(--accent); }
+  .card .row1 { display: flex; align-items: center; gap: 6px; }
+  .card .time { color: var(--dim); font-size: 11px; font-variant-numeric: tabular-nums; flex: none; }
+  .card .tk { font-size: 11.5px; color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card .row2 { color: var(--faint); font-size: 11px; display: flex; gap: 7px; flex-wrap: wrap; margin-top: 1px; }
+  .st { font-size: 10px; padding: 0 6px; border-radius: 8px; border: 1px solid var(--line); color: var(--dim); flex: none; }
   .st.ok { color: var(--result); border-color: #2c6b52; }
-  .st.running { color: var(--accent); }
+  .st.running { color: var(--accent); border-color: #2c5a85; }
   .st.error { color: var(--error); border-color: #7a3535; }
-  .st.fallback { color: var(--mock); }
-  .empty { color: var(--dim); padding: 24px; text-align: center; }
-  .meta { display: flex; gap: 14px; flex-wrap: wrap; color: var(--dim); font-size: 12px;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; }
+  .st.fallback { color: var(--mock); border-color: #7a5a2c; }
+  .empty { color: var(--dim); padding: 28px 20px; text-align: center; font-size: 12px; line-height: 1.8; }
+
+  /* ── detail ── */
+  .detail-head { position: sticky; top: 0; z-index: 3; background: rgba(14,17,22,.95);
+    backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); padding: 8px 16px 0; }
+  .meta { display: flex; gap: 4px 16px; flex-wrap: wrap; color: var(--dim); font-size: 11.5px; padding-bottom: 6px; }
   .meta b { color: var(--fg); font-weight: 500; }
-  details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 12px; }
-  details > summary { cursor: pointer; padding: 8px 12px; color: var(--dim); font-size: 12px; user-select: none; }
-  details > summary:hover { color: var(--fg); }
-  pre { margin: 0; padding: 10px 14px; overflow-x: auto; white-space: pre-wrap; word-break: break-word;
-    font: 12px/1.55 ui-monospace, Menlo, Consolas, monospace; color: var(--fg); border-top: 1px solid var(--line); }
-  .timeline { display: flex; flex-direction: column; gap: 8px; }
-  .ev { border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: 6px;
-    background: var(--panel); padding: 8px 12px; }
-  .ev .head { display: flex; gap: 10px; align-items: baseline; color: var(--dim); font-size: 11px; margin-bottom: 4px; }
-  .ev .kind { font-weight: 600; font-size: 11px; letter-spacing: .4px; text-transform: uppercase; }
-  .ev .seq { font-variant-numeric: tabular-nums; }
-  .ev .body { white-space: pre-wrap; word-break: break-word; color: var(--fg); font-size: 12.5px; }
-  .ev .json { margin-top: 6px; background: var(--panel2); border-radius: 4px;
-    font: 11.5px/1.5 ui-monospace, Menlo, Consolas, monospace; padding: 8px 10px;
-    white-space: pre-wrap; word-break: break-word; color: #c7d3e6; }
-  .ev.turn { border-left-color: var(--turn); background: transparent; padding: 4px 12px; }
-  .ev.turn .body { color: var(--turn); font-size: 11px; }
-  .ev.system { border-left-color: var(--sys); } .ev.system .kind { color: var(--sys); }
-  .ev.user { border-left-color: var(--user); } .ev.user .kind { color: var(--user); }
+  .meta .err { color: var(--error); }
+  .tabs { display: flex; gap: 2px; }
+  .tab { padding: 3px 10px 6px; color: var(--dim); cursor: pointer; font-size: 12px; user-select: none;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab:hover { color: var(--fg); }
+  .tab.on { color: var(--accent); border-bottom-color: var(--accent); }
+  .content { padding: 12px 16px 48px; }
+
+  /* 折叠块 */
+  .block { background: var(--panel); border: 1px solid var(--line); border-radius: 7px; margin-bottom: 10px; }
+  .block > .bh { display: flex; align-items: center; gap: 8px; padding: 5px 10px;
+    border-bottom: 1px solid var(--line); color: var(--dim); font-size: 11.5px; cursor: pointer; user-select: none; }
+  .block > .bh:hover { color: var(--fg); }
+  .block > .bh .caret { width: 10px; color: var(--faint); }
+  .block > .bh .sub { color: var(--faint); margin-left: auto; font-variant-numeric: tabular-nums;
+    max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .block.collapsed > .bh { border-bottom: none; }
+  .block.collapsed > pre, .block.collapsed > .bb { display: none; }
+  .block > .sum-line { padding: 6px 10px; border-top: 1px solid var(--line); }
+  .block.collapsed > .sum-line { border-top: none; padding: 0 10px 6px; }
+  pre { margin: 0; padding: 8px 12px; white-space: pre-wrap; word-break: break-word;
+    font-size: 11.5px; line-height: 1.5; color: #c3cddd; max-height: 420px; overflow: auto; }
+  .bb { padding: 8px 10px; }
+
+  /* 时间线 */
+  .tl-bar { display: flex; align-items: center; gap: 10px; color: var(--faint); font-size: 11px; margin-bottom: 6px; }
+  .tl-bar b { color: var(--fg); font-weight: 500; }
+  .tg { color: var(--accent); cursor: pointer; font-size: 11px; user-select: none; }
+  .tg:hover { text-decoration: underline; }
+  .tl { display: flex; flex-direction: column; }
+  .g { position: relative; padding-left: 16px; }
+  .g::before { content: ""; position: absolute; left: 4px; top: 12px; bottom: 0; width: 1px; background: #232a36; }
+  .g:last-child::before { display: none; }
+  .ghead { display: flex; align-items: baseline; gap: 8px; padding: 3px 0 2px; cursor: pointer; user-select: none; }
+  .ghead .dot { position: absolute; left: 0; top: 9px; width: 9px; height: 9px; border-radius: 50%;
+    border: 2px solid var(--bg); background: #3a4658; }
+  .ghead .gt { color: var(--dim); font-size: 11px; font-weight: 600; letter-spacing: .3px; flex: none; }
+  .ghead .gsum { color: var(--faint); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ghead:hover .gsum { color: var(--dim); }
+  .gbody { display: flex; flex-direction: column; gap: 5px; padding: 2px 0 8px; }
+  .g.collapsed .gbody { display: none; }
+
+  .ev { border-left: 2px solid var(--line); padding: 3px 0 3px 9px; }
+  .ev .h { display: flex; align-items: baseline; gap: 7px; font-size: 11px; color: var(--faint); min-height: 17px; }
+  .ev .h .kind { font-size: 10.5px; font-weight: 600; letter-spacing: .3px; }
+  .ev .h .seq { font-variant-numeric: tabular-nums; }
+  .ev .h .tool { color: var(--call); font-weight: 600; }
+  .ev .h .at { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .ev .t { white-space: pre-wrap; word-break: break-word; font-size: 12px; color: var(--fg); }
   .ev.assistant { border-left-color: var(--assistant); } .ev.assistant .kind { color: var(--assistant); }
-  .ev.tool_call { border-left-color: var(--call); } .ev.tool_call .kind { color: var(--call); }
-  .ev.tool_result { border-left-color: var(--result); } .ev.tool_result .kind { color: var(--result); }
-  .ev.tool_result.bad { border-left-color: var(--error); } .ev.tool_result.bad .kind { color: var(--error); }
   .ev.final { border-left-color: var(--final); } .ev.final .kind { color: var(--final); }
-  .ev.error { border-left-color: var(--error); } .ev.error .kind { color: var(--error); }
+  .ev.error { border-left-color: var(--error); } .ev.error .kind, .ev.error .t { color: var(--error); }
   .ev.mock { border-left-color: var(--mock); } .ev.mock .kind { color: var(--mock); }
-  .toggle { color: var(--accent); cursor: pointer; font-size: 11px; user-select: none; }
-  .clamp { max-height: 160px; overflow: hidden; position: relative; }
-  .clamp::after { content: "…点击展开"; position: absolute; bottom: 0; right: 0; left: 0;
-    text-align: right; padding: 0 8px; background: linear-gradient(transparent, var(--panel)); color: var(--accent); font-size: 11px; }
-  .hint { color: var(--dim); font-size: 11px; margin-bottom: 12px; }
+
+  /* 工具调用：call + result 合并为一行，点击展开 */
+  .tool { border: 1px solid var(--line); border-left: 2px solid var(--call); border-radius: 6px;
+    background: #121821; overflow: hidden; }
+  .tool.bad { border-left-color: var(--error); }
+  .tool .th { display: flex; align-items: baseline; gap: 8px; padding: 3px 9px; cursor: pointer; font-size: 11.5px; }
+  .tool .th:hover { background: var(--panel2); }
+  .tool .th .ico { color: var(--call); font-size: 10px; width: 9px; flex: none; }
+  .tool.bad .th .ico { color: var(--error); }
+  .tool .th .nm { color: var(--call); font-weight: 600; flex: none; }
+  .tool.bad .th .nm { color: var(--error); }
+  .tool .th .args { color: var(--dim); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .tool .th .rt { color: var(--faint); flex: none; font-variant-numeric: tabular-nums; }
+  .tool .th .ok { color: var(--result); font-size: 10px; flex: none; }
+  .tool.bad .th .ok { color: var(--error); }
+  .tool .tb { display: none; border-top: 1px solid var(--line); }
+  .tool.open .tb { display: block; }
+  .tool .sec + .sec { border-top: 1px dashed #242c39; }
+  .tool .lbl { padding: 4px 9px 0; font-size: 10px; color: var(--faint); letter-spacing: .4px; }
+  .tool pre { max-height: 340px; }
+  .outcome { padding: 4px 9px 2px; font-size: 11.5px; color: var(--result); word-break: break-word; }
+  .tool.bad .outcome { color: var(--error); }
+
+  /* 动作列表 */
+  .act { border: 1px solid var(--line); border-radius: 6px; background: #121821; margin-bottom: 6px; }
+  .act .ah { display: flex; gap: 8px; align-items: baseline; font-size: 12px; padding: 5px 10px 0; }
+  .act .ah .tool { color: var(--accent); font-weight: 600; }
+  .act .why { color: var(--dim); font-size: 11.5px; padding: 1px 10px 3px; }
+  .act pre { border-top: 1px dashed #242c39; max-height: 180px; }
+  .pill { display: inline-block; padding: 0 7px; border-radius: 8px; background: var(--panel3);
+    color: var(--dim); font-size: 11px; margin: 0 4px 3px 0; }
+
+  .hint { color: var(--faint); font-size: 11px; margin: 0 0 8px; }
 </style>
 </head>
 <body>
@@ -90,13 +165,28 @@
   <button id="clearBtn">清空</button>
 </header>
 <div class="body">
-  <aside id="list"><div class="empty">暂无决策记录<br><br>进入战争场景（「大模型」难度）后，AI 回合会出现在这里</div></aside>
+  <aside>
+    <div class="filters" id="filters"></div>
+    <div id="list"><div class="empty">暂无决策记录<br>进入战争场景（「大模型」难度）后，AI 回合会出现在这里</div></div>
+  </aside>
   <main id="detail"><div class="empty">← 选择左侧一条轨迹查看完整对话</div></main>
 </div>
 
 <script>
 const $ = (id) => document.getElementById(id);
-const state = { selected: null, auto: true, expanded: new Set(), lastSig: "" };
+const state = {
+  traces: [], selected: null, auto: true, expanded: new Set(), lastSig: "",
+  filter: "all",       // all | ok | error | running
+  tab: "timeline",     // timeline | prompt
+  allCollapsed: false, // 时间线分组全部折叠
+};
+
+const KINDS = {
+  system: "系统提示", user: "用户输入", turn: "轮次", assistant: "模型输出",
+  tool_call: "工具调用", tool_result: "工具返回", final: "最终计划", error: "错误", mock: "Mock",
+};
+const STATUS = { ok: "成功", error: "错误", running: "运行中", fallback: "回退" };
+const EMPTY_DETAIL = '<div class="empty">← 选择左侧一条轨迹查看完整对话</div>';
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
@@ -115,6 +205,15 @@ function jsonBlock(v) {
   if (v === undefined || v === null) return "";
   try { return esc(JSON.stringify(v, null, 2)); } catch { return esc(String(v)); }
 }
+// 单行紧凑预览（用于工具行）
+function compact(v, max = 160) {
+  let s;
+  try { s = typeof v === "string" ? v : JSON.stringify(v); } catch { s = String(v); }
+  s = String(s ?? "").replace(/\s*\n\s*/g, " ");
+  return s.length > max ? s.slice(0, max) + "…" : s;
+}
+
+/* ───────── 数据刷新 ───────── */
 
 async function refresh() {
   let health, data;
@@ -129,38 +228,66 @@ async function refresh() {
   }
   $("mode").textContent = "mode: " + health.mode;
   $("count").textContent = data.total + " 条轨迹 / 上限 " + data.limit;
-  const traces = data.traces || [];
-  renderList(traces);
+  state.traces = data.traces || [];
+  renderFilters();
+  renderList();
   if (state.selected) {
-    const still = traces.find((t) => t.id === state.selected);
+    const still = state.traces.find((t) => t.id === state.selected);
     if (still) await loadDetail(state.selected);
-    else { state.selected = null; $("detail").innerHTML = '<div class="empty">← 选择左侧一条轨迹查看完整对话</div>'; }
+    else { state.selected = null; $("detail").innerHTML = EMPTY_DETAIL; }
   }
 }
 
-function renderList(traces) {
+function filtered() {
+  const all = state.traces;
+  if (state.filter === "all") return all;
+  if (state.filter === "error") return all.filter((t) => t.status === "error" || t.status === "fallback");
+  return all.filter((t) => t.status === state.filter);
+}
+
+function renderFilters() {
+  const all = state.traces;
+  const defs = [
+    ["all", "全部", all.length],
+    ["ok", "成功", all.filter((t) => t.status === "ok").length],
+    ["error", "异常", all.filter((t) => t.status === "error" || t.status === "fallback").length],
+    ["running", "运行中", all.filter((t) => t.status === "running").length],
+  ];
+  $("filters").innerHTML = defs.map(([k, label, n]) =>
+    `<span class="chip ${k === state.filter ? "on" : ""}" data-f="${k}">${label} ${n}</span>`).join("");
+  $("filters").querySelectorAll(".chip").forEach((c) => c.onclick = () => {
+    state.filter = c.dataset.f;
+    renderFilters();
+    renderList();
+  });
+}
+
+function renderList() {
   const el = $("list");
-  if (!traces.length) {
-    el.innerHTML = '<div class="empty">暂无决策记录<br><br>进入战争场景（「大模型」难度）后，AI 回合会出现在这里</div>';
+  const list = filtered();
+  if (!list.length) {
+    el.innerHTML = `<div class="empty">${state.traces.length ? "当前筛选下没有轨迹" : "暂无决策记录<br>进入战争场景（「大模型」难度）后，AI 回合会出现在这里"}</div>`;
     return;
   }
-  el.innerHTML = traces.map((t) => `
+  el.innerHTML = list.map((t) => `
     <div class="card ${t.id === state.selected ? "sel" : ""}" data-id="${esc(t.id)}">
       <div class="row1">
         <span class="time">${esc(fmtTime(t.started_at))}</span>
-        <span class="st ${esc(t.status)}">${esc(t.status)}</span>
         <span class="tk">${esc(t.turn_key)}</span>
+        <span class="spacer"></span>
+        <span class="st ${esc(t.status)}">${esc(STATUS[t.status] || t.status)}</span>
       </div>
       <div class="row2">
-        <span>${esc(t.mode)} / ${esc(t.model)}</span>
         <span>${t.elapsed_ms != null ? t.elapsed_ms + "ms" : "…"}</span>
-        <span>${t.turns ?? 0} 轮 · ${t.tool_calls ?? 0} 工具</span>
+        <span>${t.turns ?? 0} 轮 · ${t.tool_calls ?? 0} 工具 · ${t.events} 事件</span>
+        <span>${esc(t.mode)}</span>
       </div>
     </div>`).join("");
   el.querySelectorAll(".card").forEach((c) => c.onclick = () => {
     state.selected = c.dataset.id;
     state.expanded.clear();
-    renderList(traces);
+    state.lastSig = "";
+    renderList();
     loadDetail(state.selected);
   });
 }
@@ -168,74 +295,253 @@ function renderList(traces) {
 async function loadDetail(id) {
   let t;
   try { t = await fetch("/ai/traces/" + encodeURIComponent(id)).then((r) => r.json()); } catch { return; }
-  const sig = JSON.stringify([t.status, t.events.length, t.finished_at]);
-  // 内容没变就不重绘，避免折叠状态被刷新打断
-  if (sig === state.lastSig && $("detail").dataset.id === id) return;
+  // 内容与视图状态都没变就不重绘，避免折叠/滚动被轮询打断
+  const sig = JSON.stringify([id, t.status, t.events.length, t.finished_at, state.tab, state.allCollapsed, [...state.expanded].sort()]);
+  if (sig === state.lastSig) return;
   state.lastSig = sig;
   renderDetail(t);
 }
 
+/* ───────── 详情：头部 + 两个 Tab ───────── */
+
 function renderDetail(t) {
   const el = $("detail");
-  el.dataset.id = t.id;
+  const keepTop = el.scrollTop;
   const meta = `
     <div class="meta">
-      <span>状态 <b class="st ${esc(t.status)}">${esc(t.status)}</b></span>
-      <span>模式 <b>${esc(t.mode)}</b></span>
-      <span>模型 <b>${esc(t.model)}</b></span>
+      <span>状态 <b class="st ${esc(t.status)}">${esc(STATUS[t.status] || t.status)}</b></span>
+      <span>模式 <b>${esc(t.mode)}</b> · <b>${esc(t.model)}</b></span>
       <span>难度 <b>${esc(t.diffculities)}</b>${t.ai_agent_mode ? "（大模型）" : ""}</span>
       <span>耗时 <b>${t.elapsed_ms != null ? t.elapsed_ms + " ms" : "…"}</b></span>
       <span>轮次 <b>${t.budget_used?.turns ?? 0}</b></span>
-      <span>工具调用 <b>${t.budget_used?.tool_calls ?? 0}</b></span>
-      <span>tokens <b>${t.budget_used?.tokens ?? 0}</b></span>
+      <span>工具 <b>${t.budget_used?.tool_calls ?? 0}</b></span>
+      <span>tokens <b>${t.budget_used?.tokens ?? 0}</b>${t.budget_used?.cache_read ? ` · 缓存 <b>${t.budget_used.cache_read}</b>` : ""}</span>
       <span>合法动作 <b>${esc(t.legal_actions_count)}</b></span>
+      <span>回合键 <b class="mono">${esc(t.turn_key)}</b></span>
       <span>开始 <b>${esc(fmtTime(t.started_at))}</b></span>
-      ${t.error ? `<span style="color:var(--error)">错误 <b>${esc(t.error)}</b></span>` : ""}
+      ${t.error ? `<span class="err">错误 <b>${esc(t.error)}</b></span>` : ""}
+    </div>
+    <div class="tabs">
+      <div class="tab ${state.tab === "timeline" ? "on" : ""}" data-tab="timeline">对话时间线</div>
+      <div class="tab ${state.tab === "prompt" ? "on" : ""}" data-tab="prompt">提示词 / 输入</div>
     </div>`;
+  const body = state.tab === "prompt" ? renderPromptTab(t) : renderTimelineTab(t);
+  el.innerHTML = `<div class="detail-head">${meta}</div><div class="content">${body}</div>`;
+  el.scrollTop = keepTop;
 
-  const prompts = `
-    <details><summary>① System Prompt（点击查看）</summary><pre>${esc(t.system_prompt)}</pre></details>
-    <details><summary>② User Message / 战场 JSON（点击查看）</summary><pre>${esc(pretty(t.user_message)) || "（mock 模式无对话）"}</pre></details>
-    <div class="hint">③ 对话时间线 — 共 ${t.events.length} 个事件；点击长内容可展开。所有文本按纯文本渲染，防止战场数据注入 HTML。</div>`;
-
-  const kinds = {
-    system: "系统提示", user: "用户输入", turn: "轮次", assistant: "模型输出",
-    tool_call: "工具调用", tool_result: "工具返回", final: "最终计划", error: "错误", mock: "Mock",
-  };
-
-  const events = t.events.map((e) => {
-    const key = "e" + e.seq;
-    const long = (e.text && e.text.length > 320) || JSON.stringify(e.args ?? e.result ?? "").length > 320;
-    const open = state.expanded.has(key);
-    const clamp = long && !open ? " clamp" : "";
-    const body = e.text ? `<div class="body${clamp}" data-key="${key}">${esc(e.text)}</div>` : "";
-    const args = e.args !== undefined ? `<div class="json${clamp}" data-key="${key}">${jsonBlock(e.args)}</div>` : "";
-    const result = e.result !== undefined ? `<div class="json${clamp}" data-key="${key}">${jsonBlock(e.result)}</div>` : "";
-    return `
-      <div class="ev ${esc(e.type)} ${e.ok === false ? "bad" : ""}">
-        <div class="head">
-          <span class="seq">#${e.seq}</span>
-          <span class="kind">${esc(kinds[e.type] || e.type)}</span>
-          ${e.turn != null ? `<span>轮 ${e.turn}</span>` : ""}
-          ${e.tool ? `<span style="color:var(--call)">${esc(e.tool)}</span>` : ""}
-          <span>+${e.at_ms}ms</span>
-          ${long ? `<span class="toggle" data-key="${key}">${open ? "收起" : "展开"}</span>` : ""}
-        </div>
-        ${body}${args}${result}
-      </div>`;
-  }).join("");
-
-  el.innerHTML = meta + prompts + `<div class="timeline">${events || '<div class="empty">无事件</div>'}</div>`;
-  el.querySelectorAll("[data-key]").forEach((n) => {
-    n.style.cursor = "pointer";
-    n.onclick = () => {
-      const k = n.dataset.key;
-      if (state.expanded.has(k)) state.expanded.delete(k); else state.expanded.add(k);
-      state.lastSig = "";
-      renderDetail(t);
-    };
+  el.querySelectorAll(".tab").forEach((n) => n.onclick = () => {
+    state.tab = n.dataset.tab; state.lastSig = ""; renderDetail(t);
+  });
+  el.querySelectorAll("[data-toggle]").forEach((n) => n.onclick = (ev) => {
+    ev.stopPropagation();
+    const what = n.dataset.toggle;
+    if (what === "all") {
+      state.allCollapsed = !state.allCollapsed;
+      // 纯 DOM 折叠，保持滚动位置；同步展开态，避免下次重绘又切回去
+      el.querySelectorAll(".g").forEach((g) => g.classList.toggle("collapsed", state.allCollapsed));
+      n.textContent = state.allCollapsed ? "全部展开" : "全部折叠";
+    } else if (what.startsWith("group-")) {
+      n.closest(".g").classList.toggle("collapsed");
+      return;
+    } else {
+      n.closest(".block").classList.toggle("collapsed");
+      return;
+    }
+    state.lastSig = "";
+  });
+  el.querySelectorAll("[data-key]").forEach((n) => n.onclick = (ev) => {
+    ev.stopPropagation();
+    const k = n.dataset.key;
+    if (state.expanded.has(k)) state.expanded.delete(k); else state.expanded.add(k);
+    state.lastSig = "";
+    renderDetail(t);
   });
 }
+
+function renderPromptTab(t) {
+  const blk = (title, text, len) => `
+    <div class="block">
+      <div class="bh" data-toggle="blk"><span class="caret">▾</span>${esc(title)}<span class="sub">${len} 字符</span></div>
+      <pre>${esc(text) || "（空）"}</pre>
+    </div>`;
+  const userTxt = t.user_message ? pretty(t.user_message) : "";
+  return `
+    <div class="hint">纯文本渲染，防止战场数据注入 HTML。</div>
+    ${blk("System Prompt", t.system_prompt, (t.system_prompt || "").length)}
+    ${blk("User Message / 战场 JSON", userTxt || "（mock 模式无对话）", (t.user_message || "").length)}
+    ${renderActions(t)}`;
+}
+
+/* ───────── 时间线：按轮分组，工具调用与返回合并 ───────── */
+
+function groupEvents(events) {
+  const groups = [];
+  let cur = { label: "请求上下文", head: "system prompt / 战场输入", items: [] };
+  groups.push(cur);
+  for (const e of events) {
+    if (e.type === "turn") {
+      cur = { label: "第 " + (e.turn ?? "?") + " 轮", head: e.text || "", items: [] };
+      groups.push(cur);
+      continue;
+    }
+    if (e.type === "tool_result") {
+      const prev = cur.items[cur.items.length - 1];
+      if (prev && prev.type === "tool_call" && prev.tool === e.tool && !prev.result) {
+        prev.result = e;
+        continue;
+      }
+    }
+    cur.items.push({ ...e });
+  }
+  // 每轮的收尾 turn 事件（agent loop 结束）并入分组头，不占行
+  for (const g of groups) {
+    const tail = g.items.filter((i) => i.type === "turn").map((i) => i.text).filter(Boolean);
+    if (tail.length) {
+      g.items = g.items.filter((i) => i.type !== "turn");
+      g.head = [g.head, ...tail].filter(Boolean).join(" · ");
+    }
+  }
+  // 去掉空分组（例如只有 turn 事件没有内容）
+  return groups.filter((g) => g.items.length);
+}
+
+function renderTimelineTab(t) {
+  const groups = groupEvents(t.events);
+  const head = `
+    <div class="tl-bar">
+      <span>${groups.length} 组 / ${t.events.length} 事件</span>
+      <span class="spacer"></span>
+      <span class="tg" data-toggle="all">${state.allCollapsed ? "全部展开" : "全部折叠"}</span>
+    </div>`;
+  const body = `<div class="tl">${groups.map((g, gi) => {
+    const cls = state.allCollapsed ? "g collapsed" : "g";
+    return `
+      <div class="${cls}">
+        <div class="ghead" data-toggle="group-${gi}">
+          <span class="dot"></span>
+          <span class="gt">${esc(g.label)}</span>
+          <span class="gsum">${esc(compact(g.head, 200))}</span>
+        </div>
+        <div class="gbody">${g.items.map((it) => (it.type === "final" ? "" : renderItem(it))).join("")}</div>
+      </div>`;
+  }).join("")}</div>`;
+  return head + body + renderActions(t);
+}
+
+/* 本回合动作：同时作为「最终计划」的正文，时间线里不再重复渲染 */
+
+function renderItem(e) {
+  const key = "e" + e.seq;
+  if (e.type === "system" || e.type === "user") {
+    const open = state.expanded.has(key);
+    return `
+      <div class="ev ${e.type}">
+        <div class="h"><span class="kind">${esc(KINDS[e.type])}</span><span class="seq">#${e.seq}</span>
+          <span class="tg" data-key="${key}">${open ? "收起" : "展开全文"}</span>
+          <span class="at">${(e.text || "").length} 字符</span></div>
+        ${open ? `<div class="t mono" style="font-size:11px">${esc(e.text || "")}</div>` : ""}
+      </div>`;
+  }
+  if (e.type === "assistant") {
+    return `
+      <div class="ev assistant">
+        <div class="h"><span class="kind">模型输出</span><span class="seq">#${e.seq}</span><span class="at">+${e.at_ms}ms</span></div>
+        <div class="t">${esc(e.text || "（无文本）")}</div>
+      </div>`;
+  }
+  if (e.type === "tool_call" || e.type === "tool_result") return renderTool(e, key);
+  return `
+    <div class="ev ${esc(e.type)}">
+      <div class="h"><span class="kind">${esc(KINDS[e.type] || e.type)}</span><span class="seq">#${e.seq}</span>
+        ${e.tool ? `<span class="tool mono">${esc(e.tool)}</span>` : ""}<span class="at">+${e.at_ms}ms</span></div>
+      ${e.text ? `<div class="t">${esc(e.text)}</div>` : ""}
+      ${e.result !== undefined ? `<div class="t mono" style="font-size:11px;color:var(--dim)">${jsonBlock(e.result)}</div>` : ""}
+    </div>`;
+}
+
+function renderTool(e, key) {
+  const r = e.result;                                   // 合并进来的 tool_result
+  const bad = e.ok === false || (r && r.ok === false);
+  const open = state.expanded.has(key);
+  const args = e.args !== undefined ? e.args : r?.args;
+  const text = r?.text || "";
+  const details = r?.result;
+  const outcome = toolOutcome(text, details);
+  const summary = args !== undefined ? compact(args) : compact(text);
+  const dur = r && r.at_ms != null && e.at_ms != null ? (r.at_ms - e.at_ms) + "ms" : "";
+  return `
+    <div class="tool ${bad ? "bad" : ""} ${open ? "open" : ""}">
+      <div class="th" data-key="${key}">
+        <span class="ico">${open ? "▾" : "▸"}</span>
+        <span class="nm mono">${esc(e.tool || "tool")}</span>
+        <span class="args mono">${esc(summary)}</span>
+        <span class="spacer"></span>
+        ${r ? `<span class="ok">${bad ? "失败" : "完成"}</span>` : ""}
+        ${dur ? `<span class="rt">${dur}</span>` : ""}
+      </div>
+      <div class="tb">
+        ${outcome ? `<div class="outcome">${esc(outcome)}</div>` : ""}
+        ${e.args !== undefined ? `<div class="sec"><div class="lbl">参数</div><pre>${jsonBlock(e.args)}</pre></div>` : ""}
+        ${details !== undefined ? `<div class="sec"><div class="lbl">返回 · details</div><pre>${jsonBlock(details)}</pre></div>` : ""}
+        ${text ? `<div class="sec"><div class="lbl">返回 · 文本</div><pre>${esc(pretty(text))}</pre></div>` : ""}
+      </div>
+    </div>`;
+}
+
+// 从工具返回里提炼一行结论，默认收起时就能看懂发生了什么
+function toolOutcome(text, details) {
+  if (text) {
+    const m = text.match(/"outcome"\s*:\s*"([^"]+)"/);
+    if (m) return m[1];
+  }
+  if (details && typeof details === "object") {
+    if (typeof details.count === "number") return "共 " + details.count + " 项合法动作";
+    if (typeof details.error === "string") return details.error;
+  }
+  return "";
+}
+
+/* ───────── 本回合动作（即「最终计划」的正文） ───────── */
+
+function renderActions(t) {
+  const finalEv = t.events.find((e) => e.type === "final");
+  const acts = t.actions || finalEv?.result?.actions || [];
+  const reason = finalEv?.result?.reason || t.intent || "";
+  if (!acts.length && !reason) return "";
+  // 默认只显示一行动作摘要，点击展开完整 JSON
+  const list = acts.map((a) => `<span class="pill"><span style="color:var(--accent)">${esc(a.tool || a.action?.tool || "?")}</span> ${esc(actionBrief(a))}</span>`).join("");
+  const rows = acts.map((a, i) => `
+    <div class="act">
+      <div class="ah"><span class="mono" style="color:var(--faint)">${i + 1}.</span>
+        <span class="tool mono">${esc(a.tool || a.action?.tool || "?")}</span>
+        <span>${esc(actionBrief(a))}</span></div>
+      ${a.reasoning ? `<div class="why">${esc(a.reasoning)}</div>` : ""}
+      <pre>${jsonBlock(a.action ?? a)}</pre>
+    </div>`).join("");
+  return `
+    <div class="block collapsed" style="margin-top:12px">
+      <div class="bh" data-toggle="blk"><span class="caret">▾</span>
+        <span style="color:var(--final)">最终计划</span> · ${acts.length} 个动作
+        ${reason ? `<span class="sub" style="color:var(--dim)">${esc(compact(reason, 120))}</span>` : ""}</div>
+      <div class="bb">${rows || '<div class="hint" style="margin:0">（无动作）</div>'}</div>
+      <div class="sum-line">${list || "（无动作）"}</div>
+    </div>`;
+}
+
+// 一行说清动作作用于谁
+function actionBrief(a) {
+  const act = a.action || a;
+  const bits = [];
+  if (act.actor != null) bits.push("武将 " + act.actor);
+  if (act.target != null) bits.push("目标 " + act.target);
+  if (act.city != null) bits.push("城池 " + act.city);
+  if (act.skill) bits.push("技能 " + act.skill);
+  if (Array.isArray(act.path)) bits.push("路径 " + compact(act.path, 60));
+  if (act.cost && typeof act.cost === "object") bits.push(compact(act.cost, 40));
+  return bits.join(" · ");
+}
+
+/* ───────── 顶部按钮 ───────── */
 
 $("autoBtn").onclick = () => {
   state.auto = !state.auto;
@@ -246,7 +552,7 @@ $("clearBtn").onclick = async () => {
   if (!confirm("清空所有决策轨迹？")) return;
   await fetch("/ai/traces", { method: "DELETE" });
   state.selected = null; state.lastSig = ""; state.expanded.clear();
-  $("detail").innerHTML = '<div class="empty">← 选择左侧一条轨迹查看完整对话</div>';
+  $("detail").innerHTML = EMPTY_DETAIL;
   refresh();
 };
 refresh();
