@@ -47,6 +47,7 @@ export class BattleSession {
    * （引擎结算往往比 LLM 收尾更快），这个标志保证信号不会丢。
    */
   private nextTurnPending = false;
+  private turnEndedFlag = false;
   /** 已下发、等待 Godot 回传结果的指令。 */
   private readonly inflight = new Map<number, Resolver<BattleOutcome>>();
 
@@ -106,6 +107,24 @@ export class BattleSession {
     return this.emit({ type: "end_turn", seq: 0, reasoning }, "end_turn");
   }
 
+  /**
+   * 本回合已经交还引擎（end_turn 已下发过）。
+   * 模型漏调 end_turn 时由回合收敛兜底补发，同一回合只允许一次。
+   */
+  get turnEnded(): boolean { return this.turnEndedFlag; }
+  markTurnEnded(): void { this.turnEndedFlag = true; }
+
+  /**
+   * 会话内已经没有在途指令与待取队列。
+   * 真值时说明模型这一轮既没调工具、也没结束回合就收尾了 —— 没人会再推进引擎。
+   */
+  get idleNoCommand(): boolean {
+    return !this.done && !this.failError && this.inflight.size === 0 && this.queue.length === 0 && !this.turnEndedFlag;
+  }
+
+  get inflightCount(): number { return this.inflight.size; }
+  get queuedCount(): number { return this.queue.length; }
+
   // ---------------- Godot 侧：取指令 ----------------
   nextCommand(maxWaitMs: number): Promise<BattlePending> {
     if (this.failError) return Promise.resolve({ type: "error", message: this.failError.message });
@@ -163,6 +182,7 @@ export class BattleSession {
     // 早到的 resume 信号立即消费
     if (this.nextTurnPending) {
       this.nextTurnPending = false;
+      this.turnEndedFlag = false;
       return Promise.resolve(true);
     }
     return new Promise<boolean>((resolve) => {
@@ -170,7 +190,7 @@ export class BattleSession {
         this.resume = null;
         resolve(false);
       }, Math.max(0, maxWaitMs));
-      this.resume = (v) => { clearTimeout(timer); resolve(v); };
+      this.resume = (v) => { clearTimeout(timer); if (v) this.turnEndedFlag = false; resolve(v); };
     });
   }
 

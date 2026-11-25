@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node src/server.ts",
-    "test": "node --test test/*.test.ts",
+    "test": "node --test --test-concurrency=1 test/*.test.ts",
     "check": "node --test test/*.test.ts"
   },
   "dependencies": {

@@ -98,11 +98,12 @@ test("整场战斗一个会话：end_turn 只结束本战斗回合，战斗会�
 });
 
 test("脚本化模型：move/attack 等战役工具不可用，只能下命令与用计", async () => {
+  // 模型按「一个响应一条命令」的节奏，命令都下完再 end_turn：
+  // Godot 一次只回传一条，同一响应里的第二条要等第一条回来才会被执行。
   const model = scriptedModel((ctx) => {
-    if (ctx.callIndex === 0) return calls(toolCall("inspect_battlefield", {}));
-    if (ctx.callIndex === 1) return calls(toolCall("set_order", { unit: "将", order: "前进", reasoning: "主将突进" }));
-    if (ctx.callIndex === 2) return calls(toolCall("set_order", { unit: "弓", order: "待机", reasoning: "弓兵压阵" }));
-    if (ctx.callIndex === 3) return calls(toolCall("use_tactic", { tactic: "咒缚", reasoning: "锁住敌将" }));
+    if (ctx.callIndex === 0) return calls(toolCall("set_order", { unit: "将", order: "前进", reasoning: "主将突进" }));
+    if (ctx.callIndex === 1) return calls(toolCall("set_order", { unit: "弓", order: "待机", reasoning: "弓兵压阵" }));
+    if (ctx.callIndex === 2) return calls(toolCall("use_tactic", { tactic: "咒缚", reasoning: "锁住敌将" }));
     return calls(toolCall("end_turn", { reasoning: "本回合完成" }));
   });
   const req = battleReq();
@@ -123,13 +124,73 @@ test("脚本化模型：move/attack 等战役工具不可用，只能下命令�
   assert.deepEqual(firstTools, [...BATTLE_TOOL_NAMES]);
 });
 
-test("模型不给 end_turn：本回合等待超时，Godot 收到 idle_timeout 后回退", async () => {
+test("模型只说不做（不给指令也不 end_turn）：服务端收敛回合，不空转等超时", async () => {
   const model = scriptedModel(() => text("我在想……"));
   const { session } = startBattle(battleReq(), { mode: "pi", config: testConfig, runtime: model.runtime });
-  // 模型只回文本 → agent loop 无指令产出 → 轮询到点
+  // 模型只回文本 → 不得反复追问模型，必须立刻收敛并补发 end_turn
   const r = await session.nextCommand(300);
-  assert.equal(r.type, "idle_timeout");
+  assert.equal(r.type, "end_turn");
   assert.ok(!session.finished, "战斗会话本身不该因为一次空转就结束");
+  session.finish("x");
+});
+
+test("模型只回文本不肯 end_turn：服务端补发 end_turn，引擎不会被卡死", async () => {
+  const model = scriptedModel((ctx) => {
+    if (ctx.callIndex === 0) return calls(toolCall("inspect_battlefield", {}));
+    return text("我认为应该按兵不动。");
+  });
+  const req = battleReq();
+  const { session } = startBattle(req, { mode: "pi", config: testConfig, runtime: model.runtime });
+  // 首条：inspect 是只读工具，不会产出指令；模型收尾后应补发 end_turn
+  const c = await session.nextCommand(3000);
+  assert.equal(c.type, "end_turn", "模型没调 end_turn 时服务端必须补发，否则 Godot 只能等到空闲超时");
+  session.finish("x");
+});
+
+test("模型下完命令忘了 end_turn：指令回传后服务端补发 end_turn，不会再问模型", async () => {
+  const req = battleReq();
+  // 模型只 call 一个 set_order（本轮没打算给其它兵种下令），就收尾了
+  const model = scriptedModel((ctx) => {
+    if (ctx.callIndex === 0) return calls(toolCall("set_order", { unit: "将", order: "前进", reasoning: "x" }));
+    throw new Error("模型不该被再次询问：本回合已经由服务端补 end_turn 收敛");
+  });
+  const { session } = startBattle(req, { mode: "pi", config: testConfig, runtime: model.runtime });
+  const order = await session.nextCommand(3000);
+  assert.equal(order.type, "order");
+  session.submitResult(order.seq, result(order.seq, req));
+  const c = await session.nextCommand(3000);
+  assert.equal(c.type, "end_turn", "模型忘了 end_turn，服务端要在指令回传后补发");
+  assert.equal(session.finished, false, "补发的 end_turn 只结束本回合，不结束整场战斗");
+  session.finish("x");
+});
+
+test("模型无限下命令不 end_turn：达到回合上限后自动收尾，不会永远下不完", async () => {
+  const req = battleReq();
+  const model = scriptedModel(() => calls(toolCall("set_order", { unit: "步", order: "前进", reasoning: "再来" })));
+  const { session } = startBattle(req, { mode: "pi", config: testConfig, runtime: model.runtime });
+  const kinds: string[] = [];
+  for (let i = 0; i < 40; i++) {
+    const c = await session.nextCommand(3000);
+    if (c.type === "idle_timeout" || c.type === "error") break;
+    kinds.push(c.type);
+    if (c.type === "end_turn") break;
+    session.submitResult(c.seq, result(c.seq, req));
+  }
+  assert.equal(kinds.at(-1), "end_turn", "命令数到上限必须收尾交还引擎");
+  assert.ok(kinds.length <= 12 + 1, `单回合命令数应被限制（实际 ${kinds.length} 条）`);
+  session.finish("x");
+});
+
+test("模型正常调用 end_turn 时不会重复补发", async () => {
+  const req = battleReq();
+  const model = scriptedModel((ctx) => {
+    if (ctx.callIndex === 0) return calls(toolCall("end_turn", { reasoning: "不打" }));
+    return calls(toolCall("end_turn", { reasoning: "还不打" }));
+  });
+  const { session } = startBattle(req, { mode: "pi", config: testConfig, runtime: model.runtime });
+  assert.equal((await session.nextCommand(3000)).type, "end_turn");
+  assert.equal((await session.nextCommand(300)).type, "idle_timeout", "本回合只能有一条 end_turn");
+  session.finish("x");
 });
 
 test("非法兵种 / 战术值不足被工具层拒绝", async () => {
