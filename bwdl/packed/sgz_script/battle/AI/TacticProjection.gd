@@ -3,7 +3,7 @@
 # 文件：packed/sgz_script/battle/AI/TacticProjection.gd
 # 说明：白兵战「战术预估」——模型用计前的只读查询。只读：不改状态、不触发技能。
 #         - 消耗/是否可用：ITactic.get_tactic_cost、War_Actor.can_use_tactic
-#         - 命中率：咒缚 = ITactic.get_stop_tactic_rate；挑衅 = War_Actor.get_solo_accept_rate
+#         - 命中率：咒缚/挑衅均按 AI 施计路径取值（见 brief 内注释），非玩家路径
 #         - 数值效果：浮动的取均值，交给 TacticalDamage 之类与引擎一致的计算
 #       依据：player_tactic.gd 的 tactic_start / tactic_impact_*、
 #             clBattleFight.reject_solo_request、Battle_Unit 的攻防与射程。
@@ -78,7 +78,9 @@ func brief(actorId: int, tactic: String) -> Dictionary:
 	var enemy = wa.get_battle_enemy_war_actor()
 	match tactic:
 		"咒缚":
-			var rate = int(_itactic.get_stop_tactic_rate(actorId))
+			# AI 施计命中率：AI 路径是 Global.get_rate_result(stop_rate-10)（player_control.gd），
+			# 比玩家路径低 10 点。快照要对齐 AI 实际施计，这里同步扣掉。
+			var rate = max(0, int(_itactic.get_stop_tactic_rate(actorId)) - 10)
 			var turns = int(TACTIC_TURNS["咒缚"]) + _actual_turns(wa)
 			ret["rate"] = rate
 			ret["summary"] = "命中率 {0}%；敌主将定止 {1} 回合".format([rate, turns])
@@ -87,9 +89,16 @@ func brief(actorId: int, tactic: String) -> Dictionary:
 				ret["available"] = false
 				ret["reason"] = "本场禁用单挑"
 				return ret
+			# AI 施计接受率：AI 挑衅路径（player_control.gd）用挑战者(wa)的胆，
+			# 而 War_Actor.get_solo_accept_rate 用的是应战方(enemy)的胆。这里复刻 AI 公式。
 			var rate = 100
 			if enemy != null:
-				rate = int(enemy.get_solo_accept_rate(wa))
+				var a = wa.actor()
+				var b = enemy.actor()
+				if a != null and b != null:
+					var old_rate = max(0, a.get_level() - b.get_level()) * 2 + 32 - b.get_wisdom() / 10
+					var new_rate = max(0, b.get_hp() * b.get_power() * wa.battle_courage * max(1, 100 - b.get_wisdom()) / 1000000)
+					rate = int(min(old_rate, new_rate))
 			ret["rate"] = rate
 			ret["summary"] = "接受率 {0}%；拒绝则敌士气 -4、胆 -10".format([rate])
 		"强弩":

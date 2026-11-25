@@ -99,11 +99,19 @@ func _unit_info(bf, actorId: int, ut: String, otherPos: Vector2, states: Diction
 	var shootRange = int(best.get_shoot_distance()) if best != null else 0
 	var attackRange = int(best.get_attack_distance()) if best != null else 1
 	var dist = Global.get_distance(pos, otherPos) if best != null else 999
+	# 引擎的可选命令（windows/battle_bottom/battle_change_state.gd:3）是
+	# 前进/包围/待机/战术/后退，比快照契约 BattleUnitV2.order 多两个；原样透传会让
+	# 每次 /tick 都 422。这里规范化观察到的命令：包围 是混乱/死战时的进攻态，归入
+	# 前进；战术 及其他任何未知值归入 待机。AI 自己下发的计划命令仍只用
+	# BattlePlan 的 前进/待机/后退 三种，不经过这条路径。
+	var order = str(states[ut]) if states.has(ut) else "前进"
+	if order != "前进" and order != "待机" and order != "后退":
+		order = "前进" if order == "包围" else "待机"
 	return {
 		"type": ut,
 		"hp": int(DataManager.battle_unit_type_hp(actorId, ut)),
 		"count": count,
-		"order": str(states[ut]) if states.has(ut) else "前进",
+		"order": order,
 		"x": int(pos.x),
 		"y": int(pos.y),
 		"shoot_range": shootRange,
