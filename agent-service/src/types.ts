@@ -194,3 +194,102 @@ export interface BattleResultPayload {
   enemy: BattleRequest["enemy"];
   legal_tactics: Array<{ name: string; cost: number }>;
 }
+
+// ---------------------------------------------------------------------------
+// 白兵战（Battle）异步 tick：一场战斗一个会话，每拍快照进、计划出
+// ---------------------------------------------------------------------------
+
+export interface BattleUnitV2 {
+  type: BattleUnitType;
+  /** 该兵种所有存活单位的总血量。 */
+  hp: number;
+  /** 存活单位数。 */
+  count: number;
+  order: BattleOrder;
+  /** 离对方主将最近的单位的坐标。 */
+  x: number;
+  y: number;
+  shoot_range: number;
+  attack_range: number;
+  dist_to_other_main: number;
+  other_main_in_shoot_range: boolean;
+}
+
+export interface BattleSideV2 {
+  name: string;
+  hp: number;
+  soldiers: number;
+  tactic_point: number;
+  buffs: Array<{ name: string; turns: number }>;
+  units: BattleUnitV2[];
+}
+
+export interface BattleTacticOption {
+  name: string;
+  cost: number;
+  rate: number;
+  summary: string;
+}
+
+export interface BattleLastPlan {
+  tick: number;
+  orders: Partial<Record<BattleUnitType, BattleOrder>>;
+  orders_applied: BattleUnitType[];
+  orders_rejected: Array<{ unit: string; reason: string }>;
+  tactic: string | null;
+  tactic_status: "applied" | "pending" | "rejected" | "none";
+  reason: string;
+  age_ms: number;
+}
+
+export interface BattleSnapshotV2 {
+  battle_version: 2;
+  battle_key: string;
+  tick: number;
+  elapsed_ms: number;
+  diffculities: number;
+  side: "attacker" | "defender";
+  controlled_actor_id: number;
+  enemy_actor_id: number;
+  turn: number;
+  terrain: { name: string; is_city: boolean };
+  controlled: BattleSideV2;
+  enemy: BattleSideV2;
+  legal_tactics: BattleTacticOption[];
+  last_plan?: BattleLastPlan | null;
+}
+
+export interface BattlePlan {
+  orders: Partial<Record<BattleUnitType, BattleOrder>>;
+  tactic: string | null;
+  memory?: string;
+  reasoning?: string;
+}
+
+export interface BattleValidationRejected {
+  kind: "order" | "tactic";
+  value: string;
+  reason: string;
+}
+
+export interface BattleTickBudget {
+  max_tokens: number;
+  timeout_ms: number;
+}
+
+export interface BattleOpenRequest {
+  battle_key: string;
+  controlled_actor_id: number;
+  enemy_actor_id: number;
+  side: "attacker" | "defender";
+  diffculities: number;
+}
+
+export interface BattleTickResult {
+  tick: number;
+  plan: BattlePlan;
+  rejected: BattleValidationRejected[];
+  latency_ms: number;
+  /** 服务端模型调用超时：客户端应计一次失败。 */
+  timeout?: boolean;
+}
