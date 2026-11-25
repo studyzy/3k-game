@@ -123,7 +123,6 @@ test("Godot 3.6.3 → HTTP → Agent 服务 全链路契约", async (t) => {
       for (const k of ["武器", "防具", "道具", "坐骑"]) {
         assert.equal(typeof a.equips[k], "string", `unit ${a.id} 缺装备 ${k}`);
       }
-      assert.equal(typeof a.equip_briefs, "object", `unit ${a.id} 缺 equip_briefs`);
       assert.ok(Array.isArray(a.status), `unit ${a.id} 缺 status`);
       assert.equal(typeof a.terrain_at, "string", `unit ${a.id} 缺 terrain_at`);
       // 能力投影：模型据此判断「这人会什么计、打多远、是不是主将」

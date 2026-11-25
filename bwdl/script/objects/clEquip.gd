@@ -272,6 +272,32 @@ class EquipInfo:
 				])
 		return ""
 
+	# 给 AI 看的一行摘要：名称 + 基础数值 + 装备特性效果，全部拼在一行。
+	# 特性才是装备真正的战术价值（如麒麟弓「可对体>=60的敌将射箭」、
+	# 赤兔「装备总重量-10」），get_attrs_brief() 只给两三个数字会让模型看不见。
+	func get_ai_brief() -> String:
+		var ret = name()
+		var sub = subtype()
+		match type:
+			"武器":
+				ret += "，攻：{0}，重：{1}".format([get_attr_int("攻击力"), weight()])
+				if sub != "" and sub != "无":
+					ret += "，类型：" + sub
+			"防具":
+				ret += "，防：{0}，重：{1}".format([get_attr_int("防御力"), weight()])
+			"道具":
+				if sub != "" and sub != "无":
+					ret += "，类型：" + sub
+			"坐骑":
+				ret += "，马力：{0}，机动：{1}".format([
+					get_attr_int("马力"), get_attr_int("机动力恢复"), 
+				])
+		if level() == "S":
+			ret += "，品质S"
+		for desc in get_features_description():
+			ret += "；" + desc
+		return ret
+
 	func describe_unlock_condition(condition: Dictionary) -> String:
 		if "killStreak" in condition:
 			return "{0}一场战斗中击败{1}武将".format([

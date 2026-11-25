@@ -134,7 +134,7 @@ const SYSTEM_PROMPT = [
   "- 撤退代价：按 10% 兵力 + 约 10% 粮草计。兵力残破时撤退保存火种，往往比被围歼划算。",
   "",
   "## 八、回合节奏（写死）",
-  "1. 开局看一次 inspect_economy，确认粮草与剩余天数；不确定谁有什么计时再 list_legal_actions。",
+  "1. 开场消息已含双方粮草、当前日/上限、太守府坐标，直接据此决策，不必再查经济。",
   "2. 每个武将：先判断“这回合打谁/给谁用计”，再决定是否移动。",
   "3. 行动顺序：先保命（主将、粮），再白刃（高武力打对方主/主力），再计策（高智力、地形对），最后补位。",
   "4. 把资源花在真正能改结局的动作上（杀主将、抢太守府、断粮、守住号令）。",
@@ -156,10 +156,13 @@ const SYSTEM_PROMPT = [
   "  （主将阵亡/被俘通常直接判负，守方还包括主将撤退）；",
   "  ap 剩余机动力、ap_max 上限、poker 点数、soldiers 兵力、troops 军种（平/山/水/仙）、hp/hp_max 体力；",
   "  power 武、wisdom 知、attrs 体/武/知/德/政/忠/统/胆（体=体力取整，与 hp 同源）、level/exp 等级与经验；",
-  "  equips 四件装备名、equip_briefs 装备效果、status 状态（如 迟滞:2，冒号后是剩余回合）、terrain_at 所在格地形；",
+  "  equips 四件装备的一行摘要（名称+数值+特性效果，如「赤兔，马力：120，机动：25；装备总重量 -10」）、",
+  "  status 状态（如 迟滞:2，冒号后是剩余回合）、terrain_at 所在格地形；",
   "  disabled=true 表示已无法行动；skills 可用计策 [{name, ap_cost}]（ap_cost 是单价，够不够看 ap）；atk_range 攻击距离。",
-  "- 经济：rice 粮草、money 金钱，按阵营分；day/max_days 全局共用。",
-  "- 拿不准某个武将此刻能打谁/能用什么计时，调 list_legal_actions(actor=武将 id)（只列我方），不要靠猜。",
+  "- 经济：「本轮次」的 day/max_days/main_city_pos + 「我方」的 rice/money + 「敌方」的 rice/money",
+  "  合起来就是全部经济信息（inspect_economy 的全部内容），开场已给全，无需再查；",
+"  动作工具的结果也会带回最新 economy，同样不必查。",
+  "  拿不准某个武将此刻能打谁/能用什么计时，调 list_legal_actions(actor=武将 id)（只列我方），不要靠猜。",
 ].join("\n");
 
 export interface TurnOptions {

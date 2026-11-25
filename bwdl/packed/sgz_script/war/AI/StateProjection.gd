@@ -77,11 +77,12 @@ func build(wv) -> Dictionary:
 			if turn > 0:
 				statuses.append("{0}:{1}".format([buff, min(99, turn)]))
 		var equips = {}
-		var equip_briefs = {}
 		for equip_type in ["武器", "防具", "道具", "坐骑"]:
 			var equip = actor.get_equip(equip_type) if actor != null else null
-			equips[equip_type] = equip.name() if equip != null else ""
-			equip_briefs[equip_type] = equip.get_attrs_brief() if equip != null else ""
+			# AI 视角的装备摘要：名称 + 数值 + 特性效果拼成一行。
+			# 特性才决定装备的战术价值（射程、免伤、重量、额外类型等），
+			# 只给「攻/防/重」这类数字等于让模型看不见装备。
+			equips[equip_type] = equip.get_ai_brief() if equip != null else ""
 		# 能力投影：让模型不必先查 legal_actions 就能判断「这人会什么计、花多少、打多远」。
 		# ap_cost 是单价（已含「计策消耗减少」装备），够不够另看 unit.ap。
 		# 已无法行动的单位不再遍历计策表。
@@ -120,7 +121,6 @@ func build(wv) -> Dictionary:
 			"level": actor.get_level() if actor != null else 0,
 			"exp": actor.get_exp() if actor != null else 0,
 			"equips": equips,
-			"equip_briefs": equip_briefs,
 			"status": statuses,
 			"terrain_at": map.get_blockCN_by_position(wa.position),
 			"disabled": wa.disabled,
