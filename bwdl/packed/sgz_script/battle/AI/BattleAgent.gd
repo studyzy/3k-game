@@ -8,12 +8,18 @@ const MAX_ERRORS := 3
 const TACTIC_TTL_MS := 8000
 const REQUEST_TIMEOUT_SEC := 25
 const CURRENT_STEP_KEY := "白兵战-当前步骤"
+# 用计参数专用键：从排队到 flow 执行之间，玩家的暂停会改写「当前武将」，
+# 所以 before_AI_tactic 只在执行瞬间才从这两个键取值。
+const TACTIC_ACTOR_KEY := "AI战术武将"
+const TACTIC_NAME_KEY := "AI战术名称"
 
 var _projection = null
 var _http = null
 
 var _session_id := ""
 var _actor_id := -1
+# 绑定的 BattleFight 实例 id：用来识别「上一场没走 end_battle」的残留会话。
+var _bf_id := -1
 var _tick := 0
 var _in_flight := false
 var _opening := false
@@ -46,6 +52,7 @@ func _init() -> void:
 func _reset() -> void:
 	_session_id = ""
 	_actor_id = -1
+	_bf_id = -1
 	_tick = 0
 	_in_flight = false
 	_opening = false
@@ -77,13 +84,20 @@ func _base() -> String:
 	return DataManager.resolve_ai_agent_url("/ai/battle")
 
 func attach(bf) -> void:
-	if _actor_id >= 0 or bf == null:
+	if bf == null:
 		return
+	var bf_id = bf.get_instance_id()
+	if _actor_id >= 0:
+		if _bf_id == bf_id:
+			return
+		# 上一场没走 end_battle（异常结束/读档）：先收尾，别把旧会话带进新战斗。
+		end_battle()
 	for wa in [bf.get_attacker(), bf.get_defender()]:
 		if wa == null or wa.disabled:
 			continue
 		if wa.get_controlNo() < 0:
 			_actor_id = wa.actorId
+			_bf_id = bf_id
 			_closed = false
 			_started_ms = OS.get_ticks_msec()
 			DataManager.ai_debug_log("B_ATTACH actor={0}".format([_actor_id]), true)
@@ -216,6 +230,9 @@ func _on_tick(result: int, code: int, body: PoolByteArray) -> void:
 		return
 	_in_flight = false
 	_request_kind = ""
+	if not DataManager.battle_run:
+		# 单挑/切场景期间回包：丢弃这一拍（不写单位状态、不计数失败），回到白兵战再继续。
+		return
 	if result != 0 or code == 0:
 		_fail("tick_transport")
 		return
@@ -376,6 +393,8 @@ func _try_execute_tactic(bf) -> void:
 		var owns_plan = _tactic_sent_name != "" and plan_tactic == _tactic_sent_name
 		if elapsed > 10000:
 			# flow 卡住：强制解锁，不能一直占着用计通道。
+			DataManager.unset_env(TACTIC_ACTOR_KEY)
+			DataManager.unset_env(TACTIC_NAME_KEY)
 			if owns_plan:
 				_last_plan["tactic_status"] = "rejected"
 				_last_plan["reason"] = "用计超时"
@@ -441,6 +460,8 @@ func _try_execute_tactic(bf) -> void:
 		return
 	_tactic_points_before = int(wa.battle_tactic_point)
 	_tactic_buff_before = int(wa.get_buff(tactic)["回合数"])
+	DataManager.set_env(TACTIC_ACTOR_KEY, _actor_id)
+	DataManager.set_env(TACTIC_NAME_KEY, tactic)
 	DataManager.set_env("当前武将", _actor_id)
 	DataManager.set_env("值", tactic)
 	_tactic_sent_name = tactic
@@ -448,6 +469,8 @@ func _try_execute_tactic(bf) -> void:
 	_tactic_busy = true
 	var added = FlowManager.add_flow("before_AI_tactic")
 	if not added:
+		DataManager.unset_env(TACTIC_ACTOR_KEY)
+		DataManager.unset_env(TACTIC_NAME_KEY)
 		_tactic_busy = false
 		_tactic_sent_at = 0
 		_tactic_sent_name = ""
@@ -462,7 +485,9 @@ func _try_execute_tactic(bf) -> void:
 func _interval() -> int:
 	var scene = SceneManager.current_scene()
 	if scene != null:
-		if scene.battle_state.visible:
+		# 单挑场景没有 battle_state，不能直接取属性。
+		var battle_state = scene.get("battle_state")
+		if battle_state != null and battle_state.visible:
 			return PAUSED_TICK_INTERVAL_MS
 	if SceneManager.actor_dialog != null and SceneManager.actor_dialog.visible:
 		return PAUSED_TICK_INTERVAL_MS

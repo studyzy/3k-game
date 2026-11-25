@@ -378,6 +378,12 @@ func player_surrend():
 
 func before_AI_tactic():
 	set_view_model(-1);
+	# 白兵战 Agent 的用计参数走专用键：从排队到此刻，玩家的暂停/操作可能已改写「当前武将」。
+	if DataManager.common_variable.has("AI战术武将"):
+		DataManager.set_env("当前武将", DataManager.get_env_int("AI战术武将"))
+		DataManager.set_env("值", DataManager.get_env_str("AI战术名称"))
+		DataManager.unset_env("AI战术武将")
+		DataManager.unset_env("AI战术名称")
 	var actorId = int(DataManager.common_variable["当前武将"]);
 	var war_actor = DataManager.get_war_actor(actorId);
 	var war_enemy:War_Actor = war_actor.get_battle_enemy_war_actor();

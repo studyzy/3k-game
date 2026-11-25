@@ -71,6 +71,9 @@ func battle_run_start() -> void:
 
 	var bf = DataManager.get_current_battle_fight()
 	bf.ready_to_start()
+	# 清掉上一场可能残留的 Agent 用计参数
+	DataManager.unset_env("AI战术武将")
+	DataManager.unset_env("AI战术名称")
 	if battle_agent != null:
 		battle_agent.attach(bf)
 
