@@ -135,6 +135,9 @@
   .tool .th .rt { color: var(--faint); flex: none; font-variant-numeric: tabular-nums; }
   .tool .th .ok { color: var(--result); font-size: 10px; flex: none; }
   .tool.bad .th .ok { color: var(--error); }
+  .tool .th .cp { color: var(--faint); font-size: 10px; flex: none; padding: 0 4px; border-radius: 4px; }
+  .tool .th .cp:hover { color: var(--accent); background: var(--panel3); }
+  .tool .th .cp.done { color: var(--result); }
   .tool .tb { display: none; border-top: 1px solid var(--line); }
   .tool.open .tb { display: block; }
   .tool .sec + .sec { border-top: 1px dashed #242c39; }
@@ -179,6 +182,7 @@ const state = {
   filter: "all",       // all | ok | error | running
   tab: "timeline",     // timeline | prompt
   allCollapsed: false, // 时间线分组全部折叠
+  toolIndex: new Map(),// 事件 key → tool_call 事件，供复制按钮取完整参数
 };
 
 const KINDS = {
@@ -356,6 +360,10 @@ function renderDetail(t) {
     state.lastSig = "";
     renderDetail(t);
   });
+  el.querySelectorAll("[data-copy]").forEach((n) => n.onclick = (ev) => {
+    ev.stopPropagation();
+    copyTool(state.toolIndex.get(n.dataset.copy), n);
+  });
 }
 
 function renderPromptTab(t) {
@@ -406,6 +414,7 @@ function groupEvents(events) {
 }
 
 function renderTimelineTab(t) {
+  state.toolIndex.clear();
   const groups = groupEvents(t.events);
   const head = `
     <div class="tl-bar">
@@ -460,6 +469,7 @@ function renderItem(e) {
 }
 
 function renderTool(e, key) {
+  state.toolIndex.set(key, e);
   const r = e.result;                                   // 合并进来的 tool_result
   const bad = e.ok === false || (r && r.ok === false);
   const open = state.expanded.has(key);
@@ -475,6 +485,7 @@ function renderTool(e, key) {
         <span class="ico">${open ? "▾" : "▸"}</span>
         <span class="nm mono">${esc(e.tool || "tool")}</span>
         <span class="args mono">${esc(summary)}</span>
+        <span class="cp" data-copy="${key}" title="复制工具名与参数">复制</span>
         <span class="spacer"></span>
         ${r ? `<span class="ok">${bad ? "失败" : "完成"}</span>` : ""}
         ${dur ? `<span class="rt">${dur}</span>` : ""}
@@ -486,6 +497,28 @@ function renderTool(e, key) {
         ${text ? `<div class="sec"><div class="lbl">返回 · 文本</div><pre>${esc(pretty(text))}</pre></div>` : ""}
       </div>
     </div>`;
+}
+
+// 复制工具名 + 参数；没有参数时退回复制整行摘要
+async function copyTool(e, btn) {
+  if (!e) return;
+  const args = e.args !== undefined ? e.args : e.result?.args;
+  const text = args !== undefined ? e.tool + " " + (typeof args === "string" ? args : JSON.stringify(args, null, 2)) : compact(e, 2000);
+  let ok = true;
+  try {
+    if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
+    else {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      ok = document.execCommand("copy");
+      ta.remove();
+    }
+  } catch { ok = false; }
+  const old = btn.textContent;
+  btn.textContent = ok ? "已复制" : "复制失败";
+  btn.classList.toggle("done", ok);
+  setTimeout(() => { btn.textContent = old; btn.classList.remove("done"); }, 1200);
 }
 
 // 从工具返回里提炼一行结论，默认收起时就能看懂发生了什么

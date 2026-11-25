@@ -178,7 +178,10 @@ serve: ## 本地 HTTP 服务预览网页版（默认 8060 端口）
 serve-agent: ## 用 agent-service 托管网页版（含云存档，默认 8060 端口）
 	@if [ ! -f "$(WEB_DIR)/index.html" ]; then echo "错误: 还没有网页版产物，先执行 make web"; exit 1; fi
 	@echo "==> http://localhost:$(WEB_PORT)/ （云存档已启用，Ctrl+C 停止）"
-	cd agent-service && PORT=$(WEB_PORT) WEB_DIR="$(abspath $(WEB_DIR))" node src/server.ts
+	@if [ -f agent-service/.env ]; then echo "==> 已加载 agent-service/.env"; \
+		cd agent-service && PORT=$(WEB_PORT) WEB_DIR="$(abspath $(WEB_DIR))" node --env-file=.env src/server.ts; \
+	else echo "==> 未找到 agent-service/.env，将以默认 mock 模式启动"; \
+		cd agent-service && PORT=$(WEB_PORT) WEB_DIR="$(abspath $(WEB_DIR))" node src/server.ts; fi
 
 # ---- Android 导出 ----
 
