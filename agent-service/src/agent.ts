@@ -101,6 +101,9 @@ const SYSTEM_PROMPT = [
   "- 关键：**知差取 max(0, 我方知-敌方知)**，智力不如对方时没有加成，别指望「智差正数」。",
   "- 命中受距离惩罚：距离 1 约 +10、距离 3 为 0、距离 6 约 -15；**远处用计基本是浪费机动力**。",
   "- 受到【伤神】时命中减半，先别用高成本计策。",
+  "- **决定用计前先调 estimate_stratagem(actor, target, skill)**：它用引擎公式现算命中率与命中后的伤兵/伤体/扣米/状态，",
+  "  不耗机动力。命中率低或预估收益不如直接攻击时，就别把机动力花在这个计上。",
+  "  注意 rate 是「至少命中一个目标」的期望，rate_by_target 才是每个目标各自的命中率；",
   "- 计策耗机动力 4~12（火计 6、落雷/劫火 12），不是 2；打之前先确认剩余机动力。",
   "- 计策造成兵力损失 = 知×(9~13)/10 + (等-1)×10 + 30，乘 min(1, 兵力/1000)。",
   "- 站【城墙】上只在带 weakenedTerrian 的计策上生效（如火力类）；精力有限，别把它当通用规律。",
@@ -410,6 +413,7 @@ function readToolProgress(tool: string, args: unknown): string {
   switch (tool) {
     case "inspect_economy": return "查看粮草与经济";
     case "list_legal_actions": return "查看合法动作";
+    case "estimate_stratagem": return `预估用计 ${a.skill ?? "?"}：武将 #${a.actor ?? "?"} → #${a.target ?? "?"}`;
     case "inspect_unit": return `查看武将 #${a.id ?? "?"}`;
     case "inspect_terrain": {
       const pos = Array.isArray(a.pos) ? a.pos.join(",") : "?";

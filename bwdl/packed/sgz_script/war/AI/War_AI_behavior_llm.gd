@@ -25,6 +25,7 @@ var _projector = null
 var _validator = null
 var _http = null
 var _fallback_wab = null
+var _estimator = null
 
 var _session_id: String = ""
 var _pending: Array = []          # 已执行尚未回传结果的 [(seq, ok, outcome)]
@@ -44,6 +45,8 @@ func _ensure_helpers() -> void:
 		_validator = Global.load_script(DataManager.mod_path + "sgz_script/war/AI/ActionValidator.gd")
 	if _http == null:
 		_http = Global.load_script(DataManager.mod_path + "sgz_script/war/AI/AIHttpClient.gd")
+	if _estimator == null:
+		_estimator = Global.load_script(DataManager.mod_path + "sgz_script/war/AI/StratagemProjection.gd")
 	return
 
 func _base_url() -> String:
@@ -201,13 +204,50 @@ func _flush_results(wv) -> void:
 		_fallback("result_post_failed")
 	return
 
-func _on_result_posted(result: int, response_code: int, _body: PoolByteArray) -> void:
+func _on_result_posted(result: int, response_code: int, body: PoolByteArray) -> void:
 	_posting = false
 	if result != 0 or response_code != 200:
 		_fallback("result_http_{0}".format([response_code]))
 		return
+	# 服务端可能在同一响应里附带「用计预估」查询（模型想先看命中率和结果再决定是否用计）
+	var reply = _parse_json_object(body)
+	if typeof(reply.get("estimates")) == TYPE_ARRAY and not reply["estimates"].empty():
+		var answers = []
+		for q in reply["estimates"]:
+			if typeof(q) != TYPE_DICTIONARY:
+				continue
+			answers.append(_estimator.estimate(
+				int(q.get("actor", - 1)), int(q.get("target", - 1)), str(q.get("skill", ""))
+			))
+		var sid = _session_id
+		if str(reply.get("sid", "")) != "":
+			sid = str(reply["sid"])
+		# 回传失败不阻塞决策：按正常流程继续，模型下轮会重新要
+		if _post_estimates(answers, sid):
+			return
 	FlowManager.add_flow("AI_before_ready")
 	return
+
+# 把用计预估结果回传服务端（不带动作），成功后等服务端回包再继续
+func _post_estimates(answers: Array, sid: String) -> bool:
+	var url = DataManager.resolve_ai_agent_url("/ai/turn/{0}/estimate".format([sid]))
+	_posting = true
+	var ok = _http.post(url, to_json({"answers": answers}), self, "_on_estimates_posted", POLL_TIMEOUT_SEC)
+	if not ok:
+		_posting = false
+	return ok
+
+func _on_estimates_posted(_result: int, _response_code: int, _body: PoolByteArray) -> void:
+	_posting = false
+	# 无论成败都回到正常流程；服务端没收会重发查询
+	FlowManager.add_flow("AI_before_ready")
+	return
+
+func _parse_json_object(body: PoolByteArray) -> Dictionary:
+	var reply = parse_json(body.get_string_from_utf8())
+	if typeof(reply) != TYPE_DICTIONARY:
+		return {}
+	return reply
 
 # 游戏内显示 LLM 的思考理由。
 # 战争界面的顶部提示条会被 SceneManager._process_tips 立刻隐藏（只对 10000 场景生效），

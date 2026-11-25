@@ -8,7 +8,7 @@
 // 并发安全：GET pending 与 POST result 可能交错到达。
 // 用「待取列表 + 等待者」双缓冲，保证一个动作只被取走一次。
 import type {
-  LegalAction, PendingAction, PendingResponse, TerrainCell, ToolName, ToolResultPayload, TurnRequest,
+  LegalAction, PendingAction, PendingResponse, RandomAnswer, RandomAsk, TerrainCell, ToolName, ToolResultPayload, TurnRequest,
 } from "./types.ts";
 
 export interface ToolOutcome {
@@ -38,6 +38,14 @@ export class TurnSession {
   private readonly inflight = new Map<number, Waiter<ToolOutcome>>();
   /** 提前到达的结果（Godot 回传早于服务端挂起时）。 */
   private readonly earlyResults = new Map<number, ToolResultPayload>();
+
+  // ---- 只读查询（ask）通道：用计预估等，由 Godot 用引擎现算 ----
+  private askBatch: RandomAsk[] = [];
+  private askSeq = 0;
+  /** 每个查询挂起的回答问题（key 为 RandomAsk.id）。 */
+  private readonly askInflight = new Map<number, Waiter<Record<string, unknown>>>();
+  /** 早到的回答（Godot 回传早于服务端登记）。 */
+  private readonly earlyAnswers = new Map<number, Record<string, unknown>>();
 
   readonly actions: PendingAction[] = [];
   private seq = 0;
@@ -110,7 +118,64 @@ export class TurnSession {
   }
 
   /**
-   * Godot 长轮询：等到下一个动作 / 会话结束 / 空闲超时。
+   * 只读查询：登记一次 ask 并挂起，直到 Godot 现算后回传。
+   * 与 emitAction 共用长轮询通道（占用同样的往返），但不会进入 Godot 的动作执行流程。
+   */
+  askEstimate(actor: number, target: number, skill: string): Promise<Record<string, unknown>> {
+    const ask: RandomAsk = { id: ++this.askSeq, kind: "estimate_stratagem", actor, target, skill };
+    this.askBatch.push(ask);
+    return new Promise((resolve, reject) => {
+      this.askInflight.set(ask.id, { resolve, reject });
+      // 提前到达的回答
+      const early = this.earlyAnswers.get(ask.id);
+      if (early) {
+        this.earlyAnswers.delete(ask.id);
+        this.askInflight.delete(ask.id);
+        resolve(early);
+        return;
+      }
+      // 有长轮询在等 → 连同同批查询一起交付
+      if (this.pollWaiter) {
+        const w = this.pollWaiter;
+        this.pollWaiter = null;
+        const asks = this.takeAskBatch();
+        w.resolve({ type: "ask", asks });
+      }
+    });
+  }
+
+  private takeAskBatch(): RandomAsk[] {
+    const asks = this.askBatch;
+    this.askBatch = [];
+    return asks;
+  }
+
+  /** 当前排队中的查询（随 /result 响应捎带下发，省一次长轮询往返）。 */
+  pendingAsks(): RandomAsk[] {
+    return this.askBatch.length > 0 ? [...this.askBatch] : [];
+  }
+
+  /**
+   * Godot 回传只读查询的回答：唤醒对应挂起的查询。
+   * 返回 false 表示服务端没有等这个 id（会话已结束或重复回传）。
+   */
+  submitAnswers(answers: RandomAnswer[]): boolean {
+    this.lastActivityAt = Date.now();
+    let touched = false;
+    for (const ans of answers) {
+      const waiter = this.askInflight.get(ans.id);
+      if (!waiter) {
+        this.earlyAnswers.set(ans.id, ans.data);
+        continue;
+      }
+      this.askInflight.delete(ans.id);
+      waiter.resolve(ans.data);
+      touched = true;
+    }
+    return touched;
+  }
+
+  /** Godot 长轮询：等到下一个动作 / 会话结束 / 空闲超时。
    * maxWaitMs 是本次轮询最多挂多久（服务端侧上限），到点无动作返回 idle_timeout，
    * 由调用方结合 idleRemaining() 判断是继续轮询还是回退。
    */
@@ -123,6 +188,12 @@ export class TurnSession {
     const progress = this.progressQueue.shift();
     if (progress) {
       return Promise.resolve({ type: "progress", ...progress });
+    }
+
+    // 其次交付只读查询（同样是决策的前置信息）
+    if (this.askBatch.length > 0) {
+      this.lastActivityAt = Date.now();
+      return Promise.resolve({ type: "ask", asks: this.takeAskBatch() });
     }
 
     const queued = this.queue.shift();
@@ -191,6 +262,9 @@ export class TurnSession {
     this.failError = err;
     for (const [, w] of this.inflight) w.reject(err);
     this.inflight.clear();
+    for (const [, w] of this.askInflight) w.reject(err);
+    this.askInflight.clear();
+    this.askBatch = [];
     if (this.pollWaiter) {
       const w = this.pollWaiter;
       this.pollWaiter = null;

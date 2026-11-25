@@ -9,7 +9,7 @@ import { startTurn, ServiceError } from "../src/agent.ts";
 import { budgetFor, BUDGETS } from "../src/config.ts";
 import { TurnSession, turnStore, sessionStore } from "../src/session.ts";
 import { traceStore } from "../src/trace.ts";
-import { buildTools, TOOL_NAMES, ACT_TOOL_NAMES } from "../src/tools.ts";
+import { buildTools, TOOL_NAMES, ACT_TOOL_NAMES, READ_TOOL_NAMES } from "../src/tools.ts";
 import { scriptedModel, calls, toolCall, text, testConfig } from "./harness.ts";
 import { sampleRequest, GODOT_IDLE_TIMEOUT_MS, toolResult } from "./fixture.ts";
 
@@ -42,7 +42,7 @@ async function takeAction(session: TurnSession, waitMs = 3000) {
 
 test.beforeEach(fresh);
 
-test("工具注册表：4 只读 + 4 动作 + end，共 9 个；无 read/write/edit/bash", () => {
+test("工具注册表：5 只读 + 4 动作 + end，共 10 个；无 read/write/edit/bash", () => {
   const req = sampleRequest();
   const session = new TurnSession("t", req, GODOT_IDLE_TIMEOUT_MS);
   const live = {
@@ -305,4 +305,52 @@ test("预算：空闲超时统一 30s，与 Godot 侧一致", () => {
     assert.ok(BUDGETS[diff].max_actions >= 16);
     assert.ok(BUDGETS[diff].max_turns >= 4);
   }
+});
+// ---------------------------------------------------------------------------
+// estimate_stratagem（用计预估）：只读查询，走 ask 通道由 Godot 现算
+// ---------------------------------------------------------------------------
+test("estimate_stratagem：以 ask 下发查询，回答后作为工具结果喂回模型，不产生动作", async () => {
+  // 先预估、再 end：按轮次脚本化模型回复
+  const script = ({ callIndex }: any) => (callIndex === 0
+    ? calls(toolCall("estimate_stratagem", { actor: 12, target: 31, skill: "火计" }, "e1"))
+    : calls(toolCall("end", { reason: "评估完不用计" })));
+  const { session } = openWith(script);
+
+  // 进度（"预估用计 …"）先到，随后才是查询本身
+  let ask: any = null;
+  for (let i = 0; i < 10; i++) {
+    const r = await session.nextAction(3000);
+    if (r.type === "ask") { ask = r; break; }
+    assert.equal(r.type, "progress", `期望 ask，实际 ${JSON.stringify(r)}`);
+  }
+  assert.ok(ask, "未收到用计预估查询");
+  assert.equal(ask.asks[0].kind, "estimate_stratagem");
+  assert.equal(ask.asks[0].actor, 12);
+  assert.equal(ask.asks[0].skill, "火计");
+
+  // Godot 回传引擎算好的预估
+  assert.ok(session.submitAnswers([{ id: ask.asks[0].id, data: { ok: true, rate: 70 } }]));
+
+  // 模型继续调用 end：全程没有动作被下发
+  const end = await session.nextAction(3000);
+  assert.equal(end.type, "end");
+  assert.equal(end.reason, "评估完不用计");
+  assert.equal(session.actions.length, 0);
+});
+
+test("estimate_stratagem：响应后到的回答也能对上（earlyAnswers）", async () => {
+  const session = new TurnSession("t", sampleRequest(), GODOT_IDLE_TIMEOUT_MS);
+  const pending = session.askEstimate(12, 31, "火计");
+  const ask = await session.nextAction(1000);
+  assert.equal(ask.type, "ask");
+  // Godot 先回、服务端后登记
+  session.submitAnswers([{ id: ask.asks[0].id + 100, data: { ok: true, rate: 1 } }]);
+  session.submitAnswers([{ id: ask.asks[0].id, data: { ok: true, rate: 65, raw_rate: 60 } }]);
+  const data = await pending;
+  assert.equal(data.rate, 65);
+});
+
+test("estimate_stratagem 不占动作预算（只读）", async () => {
+  assert.ok((READ_TOOL_NAMES as readonly string[]).includes("estimate_stratagem"));
+  assert.ok(!(ACT_TOOL_NAMES as readonly string[]).includes("estimate_stratagem"));
 });

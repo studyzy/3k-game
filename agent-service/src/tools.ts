@@ -210,9 +210,38 @@ export function buildTools(
   const inspect_economy: AgentTool<any> = {
     name: "inspect_economy",
     label: "查看经济与回合",
-    description: "查看粮草、金钱、当前日、上限、城门与太守府坐标（只读）。",
+    description: "兜底只读查询：粮草、金钱、当前日、天数上限、太守府坐标。开场消息与动作结果已含全部经济信息，通常不需要调用。",
     parameters: { type: "object", properties: {}, additionalProperties: false },
     execute: async () => result(live.economy),
+  };
+
+  // 只读：用计预估。由 Godot 用引擎现算命中率与命中后的结果，服务端只做搬运。
+  const estimate_stratagem: AgentTool<any> = {
+    name: "estimate_stratagem",
+    label: "预估用计",
+    description: [
+      "预估某个武将用某个计策打某个目标的命中率与命中后的结果（只读，不消耗机动力、不推进战局）。",
+      "返回 rate=综合命中率(%)，rate_by_target=逐目标命中率（引擎对每个受影响目标单独判定成功），",
+      "impacts=每个受影响武将受到的伤兵/伤体/扣米/治疗/状态/特殊效果，chained=被连带波及的武将。",
+      "伤害是按引擎公式取随机均值算的基准值，实际结算会在此上下浮动。",
+      "想用计但拿不准划不划算时先调它；确定要用再调 stratagem。",
+    ].join(""),
+    parameters: {
+      type: "object",
+      properties: {
+        actor: { type: "number", description: "施术武将 id" },
+        target: { type: "number", description: "目标武将 id" },
+        skill: { type: "string", description: "计策名，必须是 legal_actions 里出现过的 skill" },
+      },
+      required: ["actor", "target", "skill"],
+      additionalProperties: false,
+    },
+    execute: async (_id, params) => {
+      const data = await session.askEstimate(
+        Number(params.actor), Number(params.target), String(params.skill),
+      );
+      return result(data, { ok: data.ok === true });
+    },
   };
 
   // ---------------- 动作工具：交给 Godot 执行，await 结果 ----------------
@@ -362,13 +391,16 @@ export function buildTools(
   };
 
   return {
-    tools: [list_legal_actions, inspect_unit, inspect_terrain, inspect_economy, move, attack, stratagem, retreat, end],
+    tools: [
+      list_legal_actions, inspect_unit, inspect_terrain, inspect_economy, estimate_stratagem,
+      move, attack, stratagem, retreat, end,
+    ],
     state,
   };
 }
 
 export const TOOL_NAMES = [
-  "list_legal_actions", "inspect_unit", "inspect_terrain", "inspect_economy",
+  "list_legal_actions", "inspect_unit", "inspect_terrain", "inspect_economy", "estimate_stratagem",
   "move", "attack", "stratagem", "retreat", "end",
 ] as const;
 
@@ -377,5 +409,5 @@ export const ACT_TOOL_NAMES = ["move", "attack", "stratagem", "retreat"] as cons
 
 /** 只读侦察工具：查询当前状态，不推进战局，不占 max_tool_calls 预算。 */
 export const READ_TOOL_NAMES = [
-  "list_legal_actions", "inspect_unit", "inspect_terrain", "inspect_economy",
+  "list_legal_actions", "inspect_unit", "inspect_terrain", "inspect_economy", "estimate_stratagem",
 ] as const;

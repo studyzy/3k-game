@@ -77,6 +77,22 @@ export interface ToolResultPayload {
   economy?: Record<string, unknown>;
 }
 
+/**
+ * 只读查询：模型想知道命中率与后果时，由 Godot 用引擎现算后回填。
+ * 在 pending 响应里以 ask 形式下发，Godot 算完 POST 回 /estimate。
+ *   - estimate_stratagem：大战场计策（actor 对 target 用 skill）
+ *   - estimate_tactic：白兵战战术（只用 tactic 名，施计者固定为我方主将）
+ */
+export type RandomAsk =
+  | { id: number; kind: "estimate_stratagem"; actor: number; target: number; skill: string }
+  | { id: number; kind: "estimate_tactic"; tactic: string };
+
+/** Godot 对只读查询的回答（结构由 Godot 的 StratagemProjection 给出）。 */
+export interface RandomAnswer {
+  id: number;
+  data: Record<string, unknown>;
+}
+
 /** 待 Godot 执行的动作。 */
 export interface PendingAction {
   seq: number;
@@ -95,6 +111,8 @@ export type PendingResponse =
   | { type: "action"; action: PendingAction }
   /** Agent 的中间进度（思考文本 / 只读工具调用），只用于界面展示，不需要 Godot 执行。 */
   | { type: "progress"; seq: number; text: string }
+  /** 只读查询：Godot 算完把结果 POST 到 /ai/turn/:id/estimate，不推进战局。 */
+  | { type: "ask"; asks: RandomAsk[] }
   | { type: "end"; reason: string }
   | { type: "end_battle"; reason: string }
   | { type: "idle_timeout" }
@@ -160,6 +178,7 @@ export type BattlePending =
   | { type: "order"; seq: number; unit: BattleUnitType; order: BattleOrder; reasoning: string }
   | { type: "tactic"; seq: number; tactic: string; reasoning: string }
   | { type: "end_turn"; seq: number; reasoning: string }
+  | { type: "ask"; asks: RandomAsk[] }
   | { type: "end_battle"; reason: string }
   | { type: "idle_timeout" }
   | { type: "error"; message: string };

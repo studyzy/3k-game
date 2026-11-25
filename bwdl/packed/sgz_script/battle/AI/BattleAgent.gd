@@ -14,6 +14,7 @@ const POLL_TIMEOUT_SEC: int = 20
 const IDLE_TIMEOUT_MS: int = 30000
 
 var _projection = null
+var _tactics = null
 var _http = null
 
 var _session_id: String = ""
@@ -43,6 +44,8 @@ func _ensure() -> void:
 		_projection = Global.load_script(DataManager.mod_path + "sgz_script/battle/AI/BattleProjection.gd")
 		if _projection == null:
 			_projection = load("res://BattleProjection.gd").new()
+	if _tactics == null:
+		_tactics = Global.load_script(DataManager.mod_path + "sgz_script/battle/AI/TacticProjection.gd")
 	if _http == null:
 		_http = Global.load_script(DataManager.mod_path + "sgz_script/war/AI/AIHttpClient.gd")
 		if _http == null:
@@ -128,6 +131,10 @@ func _on_polled(result: int, code: int, body: PoolByteArray) -> void:
 		"tactic":
 			var ok2 = _apply_tactic(reply)
 			_queue_result(int(reply.get("seq", 0)), ok2, "计策 {0}".format([reply.get("tactic", "")]))
+		"ask":
+			# 只读查询（estimate_tactic）：引擎现算后回填，不推进战局、不回传 /result
+			_handle_asks(reply.get("asks", []))
+			_flow("battle_ai_poll_again")
 		"end_turn":
 			_reset_tips()
 			_turn_open = false
@@ -169,10 +176,39 @@ func _apply_tactic(reply: Dictionary) -> bool:
 	var cost = iTactic.get_tactic_cost(wa, tactic)
 	if cost > wa.battle_tactic_point:
 		return false
-	# 走既有战术流程
+	# 走既有战术流程。before_AI_tactic 从「当前武将」取施计者，
+	# 不设会让它读到 -1 → get_war_actor(-1) 为 null → 回调断在 set_view_model，整场卡死。
+	DataManager.set_env("当前武将", _actor_id)
 	DataManager.set_env("值", tactic)
 	FlowManager.add_flow("before_AI_tactic")
 	return true
+
+# 战术预估：把每条查询交给 TacticProjection 现算，再 POST /estimate
+func _handle_asks(asks) -> void:
+	if typeof(asks) != TYPE_ARRAY or asks.empty():
+		return
+	if _tactics == null:
+		return
+	var answers = []
+	for a in asks:
+		if typeof(a) != TYPE_DICTIONARY:
+			continue
+		if str(a.get("kind", "")) != "estimate_tactic":
+			continue
+		var estimate = _tactics.estimate(_actor_id, str(a.get("tactic", "")))
+		answers.append({"id": int(a.get("id", 0)), "data": estimate})
+	if answers.empty():
+		return
+	var url = "{0}/{1}/estimate".format([_base(), _session_id])
+	# 不带回调：失败时下一次轮询继续，模型会重新查
+	_http.post(url, to_json({"answers": answers}), self, "_on_estimates_posted", POLL_TIMEOUT_SEC)
+	return
+
+func _on_estimates_posted(result: int, code: int, _body: PoolByteArray) -> void:
+	if result != 0 or code != 200:
+		DataManager.game_trace("[BattleAI] estimate post failed {0}".format([code]))
+	_flow("battle_ai_poll_again")
+	return
 
 func _queue_result(seq: int, ok: bool, outcome: String) -> void:
 	if seq <= 0:

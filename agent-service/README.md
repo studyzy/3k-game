@@ -179,7 +179,7 @@ OPENAI_API_KEY=...               # 仅回退路径，或 PI_API_KEY
 
 ## Godot 侧
 
-4 个新脚本位于 `bwdl/packed/sgz_script/war/AI/`，通过 `Global.load_script` 的 `mod_path` 加载，不改反编译 `.gdc` 框架：
+新脚本位于 `bwdl/packed/sgz_script/`（`war/AI/` 与 `battle/AI/`），通过 `Global.load_script` 的 `mod_path` 加载，不改反编译 `.gdc` 框架：
 
 | 文件 | 职责 |
 |---|---|
@@ -189,6 +189,8 @@ OPENAI_API_KEY=...               # 仅回退路径，或 PI_API_KEY
 | `StateProjection.gd` | 全知去噪状态 + 能力投影（`skills`/`main`/`atk_range`）+ `legal_actions` |
 | `AIHttpClient.gd` | `HTTPRequest` 异步封装 |
 | `ActionValidator.gd` | 单动作二次校验（双防线） |
+| `war/AI/StratagemProjection.gd` | 大战场用计预估（命中率 / 伤兵 / 状态 / 连锁） |
+| `battle/AI/TacticProjection.gd` | 白兵战战术预估（消耗 / 咒缚与挑衅命中率 / 攻击防御射程变化） |
 
 `war/AI_control.gd` 仅在 `DataManager.ai_agent_mode == true` 时加载 LLM `wab`。该标记由**标题界面新增的「大模型」难度**设置（[scene_title.gd](../bwdl/scene/scene_title/scene_title.gd) / [scene_title.tscn](../bwdl/scene/scene_title/scene_title.tscn)），并随存档持久化（[Data_Manager.gd](../bwdl/script/Data_Manager.gd)）。选其他难度一律零网络请求。
 
@@ -223,8 +225,8 @@ LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=... npm test
 覆盖：
 
 - 服务侧 `validateTurnRequest` / `validateAction` / `validateToolResult` 与 Godot 侧 `ActionValidator.accept_action` 同规则
-- 工具注册表恰好 9 个：4 只读 + 4 动作 + `end`；**不含 read/write/edit/bash**，有回归断言
-- 白兵战工具表恰好 4 个，与战役工具完全不重叠；`set_order` 按兵种单独设置
+- 工具注册表恰好 10 个：5 只读（含 `estimate_stratagem` 用计预估）+ 4 动作 + `end`；**不含 read/write/edit/bash**，有回归断言
+- 白兵战工具表恰好 5 个（含只读 `estimate_tactic`），与战役工具完全不重叠；`set_order` 按兵种单独设置
 - 白兵战多回合：3 个战斗回合连续下命令，会话全程存活（防 `max_tool_calls` 跨回合累加回归）
 - `move` 路径：路径由模型按地图规划（`legal_actions` 不再带逐格 `path`），服务端只做结构检查，Godot 逐格判断墙/占位/机动力
 - `stub` 模式端到端跑通 `pi-agent-core`：会话内读动作 → 执行 → `end`
@@ -250,7 +252,7 @@ LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=... npm test
 | 难度预算 × Godot 超时 | 服务端 `timeout_ms`（30s）严格早于 Godot `TIMEOUT_SEC`（32s），两侧常量同步 |
 | 端点挂起 | 服务端在 `budget.timeout_ms` 内返回 504 `agent_timeout`（不挂到连接超时） |
 | pi 端点故障 / 缺密钥 | 非 200 且不带 `action`；缺密钥 503 `api_key_missing`，不静默降级 |
-| pi 端点端到端 | 假 `/v1/chat/completions` 走真实 `createCustomRuntime`，校验 9 个工具声明与 `tool` 消息回灌 |
+| pi 端点端到端 | 假 `/v1/chat/completions` 走真实 `createCustomRuntime`，校验 10 个工具声明与 `tool` 消息回灌 |
 | 用户可编辑文本注入 | 指令注入载荷不改变决策，面板不内联轨迹 |
 
 **逐步交互的预算**：每次决策只定一个动作，推理量远小于整侧计划，故三档为 `max_turns` 100/100/100、`max_tool_calls` 100/100/100（只统计动作工具，只读侦察不占预算，两个 100 都只作死循环兜底，实际节奏受 30s 空闲超时约束）；超时是**每动作独立 30s**（不是回合总预算），Godot 客户端 32s，服务端恒早 2s 返回 `504 agent_timeout`。回合内动作序列由 Godot 用 `history` 回传，服务端无状态。
@@ -309,7 +311,7 @@ docker run --rm --read-only --tmpfs /tmp -p 8060:8060 \
 
 | 待定项 | 结论 |
 |---|---|
-| `pi-agent-core` 能否只挂自定义工具、完全禁用内置工具 | ✅ `pi-agent-core` 包内不含任何内置工具（read/write/edit/bash 在 `pi-durable/dist/tools/`，本服务未导入）；`initialState.tools` 完全由调用方提供，实测只有 4 个只读 + 5 个动作工具 |
+| `pi-agent-core` 能否只挂自定义工具、完全禁用内置工具 | ✅ `pi-agent-core` 包内不含任何内置工具（read/write/edit/bash 在 `pi-durable/dist/tools/`，本服务未导入）；`initialState.tools` 完全由调用方提供，实测只有 5 个只读 + 4 个动作工具 + `end` |
 | 动作工具能否限定到本次 `legal_actions` | ✅ 按 `{actor,pos/target}` 在 `legal_actions` 中查找；找不到时回灌该武将的候选清单让模型自纠（最多 8 条），另由服务 `validateAction` + Godot `ActionValidator.accept_action` 双重兜底 |
 | Godot 3.6.3 headless 能否解析新增脚本 | ✅ `make check` + `load()` 校验通过，零 Parse Error；修复 1 处 `HTTPRequest.request` 参数顺序错误 |
 

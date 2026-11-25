@@ -151,3 +151,60 @@ test("静态托管：index.html 可读，路径穿越被拒绝，缺失文件 40
   const missing = await fetch(`${base}/nope.pck`);
   assert.equal(missing.status, 404);
 });
+
+test("estimate 路由：校验 answers 并把回答交回会话", async () => {
+  const started = await post(sampleRequest({ diffculities: 4 }));
+  const id = (await started.json()).session_id;
+
+  // 缺 answers → 400
+  const bad = await fetch(`${base}/ai/turn/${id}/estimate`, {
+    method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify({}),
+  });
+  assert.equal(bad.status, 400);
+
+  const ok = await fetch(`${base}/ai/turn/${id}/estimate`, {
+    method: "POST", headers: { "content-type": "text/plain" },
+    body: JSON.stringify({ answers: [{ id: 999, data: { ok: true, rate: 70 } }] }),
+  });
+  assert.equal(ok.status, 200);
+  assert.deepEqual(await ok.json(), { ok: true });
+
+  // 未知会话 → 404
+  const missing = await fetch(`${base}/ai/turn/nope/estimate`, {
+    method: "POST", headers: { "content-type": "text/plain" },
+    body: JSON.stringify({ answers: [{ id: 1, data: {} }] }),
+  });
+  assert.equal(missing.status, 404);
+});
+
+test("白兵战 estimate 路由：校验 estimates 并把回答交回战斗会话", async () => {
+  const started = await fetch(`${base}/ai/battle`, {
+    method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify({
+      battle_version: 1, visibility: "omniscient", battle_key: "b", diffculities: 4,
+      controlled_actor_id: 12, enemy_actor_id: 31, side: "attacker", turn: 1,
+      controlled: { name: "张辽", hp: 90, soldiers: 1200, tactic_point: 10, units: [{ type: "将", hp: 400, order: "待机" }] },
+      enemy: { name: "高顺", hp: 88, soldiers: 900, tactic_point: 8, units: [{ type: "将", hp: 350, order: "待机" }] },
+      legal_tactics: [{ name: "咒缚", cost: 3 }],
+    }),
+  });
+  assert.equal(started.status, 200);
+  const id = (await started.json()).battle_session_id;
+
+  // 缺 estimates → 400
+  const bad = await fetch(`${base}/ai/battle/${id}/estimate`, {
+    method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify({}),
+  });
+  assert.equal(bad.status, 400);
+
+  const ok = await fetch(`${base}/ai/battle/${id}/estimate`, {
+    method: "POST", headers: { "content-type": "text/plain" },
+    body: JSON.stringify({ estimates: [{ id: 1, data: { ok: true, rate: 50 } }] }),
+  });
+  assert.equal(ok.status, 200);
+  assert.deepEqual(await ok.json(), { ok: true });
+
+  const missing = await fetch(`${base}/ai/battle/nope/estimate`, {
+    method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify({ estimates: [{ id: 1, data: {} }] }),
+  });
+  assert.equal(missing.status, 404);
+});

@@ -92,6 +92,27 @@ export function buildBattleTools(
     },
   };
 
+  // 只读：用计预估（消耗、命中率、生效后的具体效果）。走 ask 通道由 Godot 用引擎现算。
+  const estimate_tactic: AgentTool<any> = {
+    name: "estimate_tactic",
+    label: "预估计策",
+    description: "用引擎公式预估一个计策：战术值消耗、能否发动、命中率（咒缚/挑衅），以及生效后对本方兵种攻击/防御/射程或敌方主将的具体影响。只读，不消耗战术值。",
+    parameters: {
+      type: "object",
+      properties: {
+        tactic: { type: "string", description: "计策名（legal_tactics 之一）" },
+      },
+      required: ["tactic"],
+      additionalProperties: false,
+    },
+    execute: async (_id, params) => {
+      const tactic = String(params.tactic);
+      if (!(BATTLE_TACTICS as readonly string[]).includes(tactic)) throw new Error(`「${tactic}」不是白兵战战术`);
+      const data = await session.askEstimate(tactic);
+      return result(data, { ok: data.ok !== false });
+    },
+  };
+
   const use_tactic: AgentTool<any> = {
     name: "use_tactic",
     label: "使用计策",
@@ -172,7 +193,13 @@ export function buildBattleTools(
     live.legal_tactics = out.legal_tactics;
   }
 
-  return { tools: [inspect_battlefield, set_order, use_tactic, end_turn], state };
+  return { tools: [inspect_battlefield, estimate_tactic, set_order, use_tactic, end_turn], state };
 }
 
-export const BATTLE_TOOL_NAMES = ["inspect_battlefield", "set_order", "use_tactic", "end_turn"] as const;
+/** 白兵战战术全集（Static_Manager.TACTICS）。预估工具不依赖 legal_tactics，战术值不足时也有结果。 */
+export const BATTLE_TACTICS = ["咒缚", "挑衅", "强弩", "士气向上", "火矢"] as const;
+
+/** 只读工具：不占命令数与工具预算。 */
+export const BATTLE_READ_TOOL_NAMES = ["inspect_battlefield", "estimate_tactic"] as const;
+
+export const BATTLE_TOOL_NAMES = ["inspect_battlefield", "estimate_tactic", "set_order", "use_tactic", "end_turn"] as const;

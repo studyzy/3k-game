@@ -11,7 +11,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfig, BUDGETS } from "./config.ts";
 import {
-  validateTurnRequest, validateToolResult, validateBattleRequest, validateBattleResult, ValidationError,
+  validateTurnRequest, validateToolResult, validateAnswers,
+  validateBattleRequest, validateBattleResult, validateBattleEstimates, ValidationError,
 } from "./validate.ts";
 import { startTurn, ServiceError } from "./agent.ts";
 import { startBattle } from "./battle-agent.ts";
@@ -190,6 +191,7 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
         const r = await session.nextAction(wait);
         if (r.type === "action") { json(res, 200, r); return; }
         if (r.type === "progress") { json(res, 200, r); return; }
+        if (r.type === "ask") { json(res, 200, r); return; }
         if (r.type === "end") { json(res, 200, r); turnStore.delete(id); return; }
         if (r.type === "error") { json(res, 200, r); turnStore.delete(id); return; }
         // 本次轮询到点仍无动作：若已超出空闲预算，回传 idle_timeout 让 Godot 回退
@@ -218,6 +220,20 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
         }
         const payload = validateToolResult(body);
         session.submitResult(seq, payload);
+        // 服务端若正在等「用计预估」，顺带把查询带回去（省一次长轮询往返）
+        json(res, 200, { ok: true, sid: id, estimates: session.pendingAsks() });
+        return;
+      }
+
+      // ---- 回合会话：回传只读查询结果（用计预估） ----
+      if (url.pathname.startsWith("/ai/turn/") && url.pathname.endsWith("/estimate")) {
+        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
+        const id = decodeURIComponent(url.pathname.slice("/ai/turn/".length, -"/estimate".length));
+        const session = turnStore.get(id);
+        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        const body = await parseJsonBody(req);
+        const answers = validateAnswers(body);
+        session.submitAnswers(answers);
         json(res, 200, { ok: true });
         return;
       }
@@ -270,6 +286,19 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
         return;
       }
 
+      // 白兵战：回传只读查询结果（战术预估）
+      if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/estimate")) {
+        if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
+        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/estimate".length));
+        const session = battleStore.get(id);
+        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        const body = await parseJsonBody(req);
+        const answers = validateBattleEstimates(body);
+        session.submitAnswers(answers.filter((a) => a.id >= 0).map((a) => ({ id: a.id, data: a.data ?? {} })));
+        json(res, 200, { ok: true });
+        return;
+      }
+
       if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/result")) {
         if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
         const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/result".length));
@@ -283,7 +312,8 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
         }
         const payload = validateBattleResult(body);
         session.submitResult(seq, payload);
-        json(res, 200, { ok: true });
+        // 服务端若正在等「战术预估」，顺带把查询带回去（省一次长轮询往返）
+        json(res, 200, { ok: true, sid: id, estimates: session.pendingAsks() });
         return;
       }
 

@@ -1,6 +1,6 @@
 // 请求与动作校验。与设计文档 §3.6 的 Godot 侧 ActionValidator 同规则。
 // 服务侧预校验 + Godot 侧二次校验 = 双防线；任一侧拒绝都会回退 hard 规则 AI。
-import type { Budget, LegalAction, ToolName, TurnRequest } from "./types.ts";
+import type { Budget, LegalAction, RandomAnswer, ToolName, TurnRequest } from "./types.ts";
 
 export class ValidationError extends Error {
   public code: string;
@@ -81,6 +81,47 @@ export function validateTurnRequest(body: unknown): TurnRequest {
   }
   checkActions(body.legal_actions, "legal_actions");
   return body as unknown as TurnRequest;
+}
+
+/** 校验只用计预估回答（POST /ai/turn/:id/estimate）。 */
+/** 校验 Godot 回传的预估结果：两类只读查询（计策 / 战术）共用。 */
+export function validateBattleEstimates(body: unknown): { id: number; tactic?: string; data?: Record<string, unknown> }[] {
+  if (!isObject(body)) throw new ValidationError("bad_json", "body must be a JSON object");
+  if (!Array.isArray(body.estimates) || body.estimates.length === 0) {
+    throw new ValidationError("bad_schema", "estimates must be a non-empty array");
+  }
+  const ret: { id: number; tactic?: string; data?: Record<string, unknown> }[] = [];
+  for (const raw of body.estimates as unknown[]) {
+    if (!isObject(raw)) throw new ValidationError("bad_schema", "estimates entries must be objects");
+    const hasAnswer = raw.id !== undefined;
+    if (!hasAnswer) {
+      // 同一响应里捎带的「新查询」：只校验查询字段
+      if (typeof raw.tactic !== "string" || raw.tactic === "") {
+        throw new ValidationError("bad_schema", "estimates query needs tactic");
+      }
+      ret.push({ id: -1, tactic: raw.tactic });
+      continue;
+    }
+    if (typeof raw.id !== "number") throw new ValidationError("bad_schema", "estimates[].id must be a number");
+    if (raw.data === undefined) throw new ValidationError("bad_schema", "estimates[].data required");
+    ret.push({ id: raw.id, data: isObject(raw.data) ? raw.data : { value: raw.data } });
+  }
+  return ret;
+}
+
+export function validateAnswers(body: unknown): RandomAnswer[] {
+  if (!isObject(body)) throw new ValidationError("bad_json", "body must be a JSON object");
+  if (!Array.isArray(body.answers) || body.answers.length === 0) {
+    throw new ValidationError("bad_schema", "answers must be a non-empty array");
+  }
+  const ret: RandomAnswer[] = [];
+  for (const raw of body.answers as unknown[]) {
+    if (!isObject(raw)) throw new ValidationError("bad_schema", "answers entries must be objects");
+    if (typeof raw.id !== "number") throw new ValidationError("bad_schema", "answers[].id must be a number");
+    if (raw.data === undefined) throw new ValidationError("bad_schema", "answers[].data required");
+    ret.push({ id: raw.id, data: isObject(raw.data) ? raw.data : { value: raw.data } });
+  }
+  return ret;
 }
 
 /** 校验 Godot 回传的工具执行结果。 */

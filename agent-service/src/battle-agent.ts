@@ -14,7 +14,7 @@ import type { BattleBudget, BattleRequest } from "./types.ts";
 import type { ServiceConfig } from "./config.ts";
 import type { PiRuntime } from "./agent.ts";
 import { ServiceError } from "./agent.ts";
-import { buildBattleTools, BATTLE_TOOL_NAMES, type BattleLive } from "./battle-tools.ts";
+import { buildBattleTools, BATTLE_TOOL_NAMES, BATTLE_READ_TOOL_NAMES, type BattleLive } from "./battle-tools.ts";
 import { battleStore, type BattleSession } from "./battle-session.ts";
 import { createCustomRuntime } from "./llm.ts";
 import { traceStore, type DecisionTrace } from "./trace.ts";
@@ -32,6 +32,7 @@ export const BATTLE_SYSTEM_PROMPT = [
   "## 零、怎么打（流程）",
   "1. 先调用 inspect_battlefield 看清：双方兵力/武将体力/战术值/各兵种血量/敌方当前命令/可用计策。",
   "2. 用下方「决策顺序」逐条判断：主将撤不撤 → 用不用计 → 弓兵 vs 敌主将压不压 → 其余兵种推进。",
+  "   决定用不用计之前先调 estimate_tactic(tactic)：它返回战术值消耗、能否发动、命中率，以及生效后各兵种攻击/防御/射程的具体变化（咒缚给目标主将的定止回合、挑衅给接受率与拒绝代价）。只读，不消耗战术值。",
   "3. 逐兵种 set_order，必要时 use_tactic，最后 end_turn 交还引擎。场上所有兵种都动一遍，没调用的兵种会按旧命令行动。",
   "4. 不要编造不存在的兵种或计策；计策必须在 legal_tactics 里且战术值够。",
   "",
@@ -68,6 +69,7 @@ export const BATTLE_SYSTEM_PROMPT = [
   "- 强弩（7）：3 回合。己方射程 +2、射箭必发；且守城方距离>4 时伤害不再减半。**场上射程为 0 的兵种不受益**。",
   "- 挑衅（5）：让对方主将选择是否单挑。接受率 = min((我方等级-敌等级)×2+32-敌知/10, 敌体×敌武×敌胆×(100-敌知)/100万)，",
   "  多数情况接受率很低；被拒绝反而**掉敌方 4 士气和 10 胆**，是削弱敌人士气、压主将攻击力的便宜手。",
+  "  实际接受率与双方体力/武力/胆/单挑 dex 以 estimate_tactic(\"挑衅\") 为准。",
   "- 我方已在本回合用过一次战术 buff 后，对方可以再开新 buff 覆盖掉（同一天只能存在一个），别把好计策浪费在残局。",
   "",
   "## 六、决策顺序（每回合照这个顺序过一遍）",
@@ -233,13 +235,22 @@ async function piBattle(
 
   const { tools, state } = buildBattleTools(live, session, budget);
   const counters = { turns: 0, toolCalls: 0, tokens: 0 };
-  // 本回合最后一次模型响应里有没有发起动作工具（inspect 之类只读工具不算）。
-  // 两个用途：这一轮只在「说」而不是在「下令」时收敛 loop；
-  // 模型收尾时据此补发 end_turn。
+  // 本段 loop 内出现过什么工具：acted = 下发过动作（set_order/use_tactic/end_turn），
+  // inspected = 只侦察过。都不在 turn_start 重置——pi 的 turn 会切到「侦察后的下一轮」，
+  // 重置会把刚侦察过的状态抹掉，导致侦察完就被当成空转收尾。
   const turn = {
     acted: false,
-    reset() { this.acted = false; },
-    noteTool(name: string) { if (name !== "inspect_battlefield") this.acted = true; },
+    inspected: false,
+    reset() { this.acted = false; this.inspected = false; },
+    noteTool(name: string) {
+      if ((BATTLE_READ_TOOL_NAMES as readonly string[]).includes(name)) this.inspected = true;
+      else this.acted = true;
+    },
+  };
+  /** 一轮 prompt 的起点：清掉上一段 loop 留下的标记。 */
+  const resetTurn = () => {
+    turn.reset();
+    counters.turns = 0;
   };
   const t0 = Date.now();
 
@@ -249,17 +260,6 @@ async function piBattle(
     traceStore.add(tr, "tool_call", { tool: "end_turn", text: "模型未结束回合，服务端补发以推进引擎" });
     session.markTurnEnded();
     void session.endTurn("本回合决策结束").catch(() => { /* 引擎已离开本回合时忽略 */ });
-  };
-
-  /**
-   * 模型这一轮给出的是「只读侦察」或纯文本，且本轮还没下过任何令：
-   * 说明它只是在看/在说，不会再产出动作，回合该到此为止。
-   * 调在 message_end 而不是 finishTurn —— Godot 侧「执行+回传」是同步的，
-   * 那时 in-flight 的指令已经回传完毕，不会误判成 idle。
-   */
-  const closeIfIdle = () => {
-    if (turn.acted || state.ended || session.finished) return;
-    closeRound();
   };
 
   /**
@@ -284,9 +284,11 @@ async function piBattle(
     streamFn: runtime.streamFn as never,
     getApiKey: runtime.getApiKey,
     toolExecution: "sequential",
-    beforeToolCall: async () => {
+    beforeToolCall: async ({ toolCall }) => {
       // 任何工具调用（含 inspect_battlefield）都说明 Agent 还活着，重置空闲计时。
       session.touch();
+      // 只读侦察与用计预估是决策前提，不占工具预算；只有下令/用计/结束回合计数。
+      if ((BATTLE_READ_TOOL_NAMES as readonly string[]).includes(toolCall.name)) return undefined;
       counters.toolCalls++;
       if (counters.toolCalls > budget.max_tool_calls) {
         return { block: true, reason: "max_tool_calls exceeded", terminate: true };
@@ -301,10 +303,14 @@ async function piBattle(
       // end_turn 的 terminate 只结束本轮工具批次，loop 会继续问模型；
       // 模型随后往往再答一句「已结束」并被当成新一轮。这里统一收敛。
       if (state.ended) return { action: "end" };
-      // 模型这一轮既没下令也没结束回合（只说了句话）：收敛，别对死胡同反复请求。
-      if (!turn.acted) return { action: "end" };
-      // 模型下了令但没调 end_turn：交给下面的 prompt 返回后补发，避免在工具
-      // 仍未返回时抢占「没有在途指令」的判断。
+      // 单次 prompt 内的轮数上限：死循环兜底，别让模型无限追问下去。
+      if (counters.turns >= budget.max_turns) return { action: "end" };
+      // 模型这一轮只「说」不动手：收敛，别对死胡同反复请求。
+      // 但本段 loop 侦察过战场时不能收敛 —— 侦察结果还没回到模型，
+      // loop 会带着它再问一次，提前收尾会让模型拿到缩水回合的机会全部丢掉。
+      if (!turn.acted && !turn.inspected) return { action: "end" };
+      // 模型下了令没调 end_turn：交给 prompt 返回后补发，
+      // 避免在工具仍未返回时抢占「没有在途指令」的判断。
       return undefined;
     },
     // 注意：counters.turns 在每个战斗回合开始时重置，
@@ -314,7 +320,6 @@ async function piBattle(
   agent.subscribe((event: any) => {
     if (event.type === "turn_start") {
       counters.turns++;
-      turn.reset();
       traceStore.add(tr, "turn", { turn: counters.turns, text: `白兵战第 ${counters.turns} 轮` });
     }
     if (event.type === "message_end" && event.message?.role === "assistant") {
@@ -328,7 +333,6 @@ async function piBattle(
         text: txt || (calls.length ? `（调用 ${calls.map((c) => c.name).join(", ")}）` : ""),
         args: calls.length ? calls.map((c) => ({ id: c.id, name: c.name, arguments: c.arguments })) : undefined,
       });
-      closeIfIdle();
     }
     if (event.type === "tool_execution_start") {
       traceStore.add(tr, "tool_call", { turn: counters.turns, tool: String(event.toolName ?? "") });
@@ -346,8 +350,7 @@ async function piBattle(
 
   // 整场战斗 = 一个会话（Q3）：每个战斗回合跑一轮 agent loop，
   // end_turn 后交还引擎结算，Godot 推进到下一战斗回合时继续。
-  counters.turns = 0;
-  turn.reset();
+  resetTurn();
   await agent.prompt(userMessage);
   // 模型收尾时没给 end_turn（下完令忘了结束）：
   // end_turn 只由工具产出，没人补发 Godot 会一直轮询到空闲超时，整场白兵战卡死。
@@ -362,9 +365,8 @@ async function piBattle(
     state.commands = 0;
     // 预算是「单个战斗回合」的额度：每回合重置轮数与调用次数，
     // 否则多回合战斗会在中途被总预算截断。
-    counters.turns = 0;
     counters.toolCalls = 0;
-    turn.reset();
+    resetTurn();
     traceStore.add(tr, "turn", { turn: battleTurn, text: `白兵战第 ${battleTurn} 回合` });
     await agent.prompt(`白兵战第 ${battleTurn} 回合开始，请重新给各兵种下令。`);
     await closeAfterCommands();

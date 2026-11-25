@@ -11,7 +11,7 @@
 //
 // 依据：`clBattleFight.gd` 的兵种/命令模型、`Static_Manager.TACTICS` 的计策表。
 import type {
-  BattlePending, BattleRequest, BattleResultPayload, BattleUnitType,
+  BattlePending, BattleRequest, BattleResultPayload, BattleUnitType, RandomAnswer, RandomAsk,
 } from "./types.ts";
 
 export interface BattleOutcome {
@@ -27,6 +27,9 @@ export interface BattleCommand {
   seq: number;
   kind: "order" | "tactic" | "end_turn";
 }
+
+/** 计策预估的返回形状（Godot 侧 TacticProjection 给出）。 */
+export type TacticEstimate = Record<string, unknown>;
 
 type Resolver<T> = (v: T) => void;
 
@@ -50,6 +53,15 @@ export class BattleSession {
   private turnEndedFlag = false;
   /** 已下发、等待 Godot 回传结果的指令。 */
   private readonly inflight = new Map<number, Resolver<BattleOutcome>>();
+
+  /**
+   * 只读查询（estimate_tactic）：与回合会话同一套「排队 → Godot 现算 → /estimate 回填」通道。
+   * 不占指令 seq，不进 commands，不推进战局。
+   */
+  private askSeq = 0;
+  private askBatch: RandomAsk[] = [];
+  private readonly askInflight = new Map<number, { resolve: Resolver<TacticEstimate>; reject: (e: Error) => void }>();
+  private readonly earlyAnswers = new Map<number, TacticEstimate>();
 
   readonly commands: BattleCommand[] = [];
   private seq = 0;
@@ -102,6 +114,61 @@ export class BattleSession {
     return this.emit({ type: "tactic", seq: 0, tactic, reasoning }, "tactic");
   }
 
+  /** 登记一次计策预估查询并挂起，直到 Godot 用引擎算完回填。 */
+  askEstimate(tactic: string): Promise<TacticEstimate> {
+    const ask: RandomAsk = { id: ++this.askSeq, kind: "estimate_tactic", tactic };
+    this.askBatch.push(ask);
+    return new Promise<TacticEstimate>((resolve, reject) => {
+      this.askInflight.set(ask.id, { resolve, reject });
+      const early = this.earlyAnswers.get(ask.id);
+      if (early) {
+        this.earlyAnswers.delete(ask.id);
+        this.askInflight.delete(ask.id);
+        resolve(early);
+        return;
+      }
+      // 有轮询在等 → 连同同批查询一起交付
+      if (this.poller) {
+        const p = this.poller;
+        this.poller = null;
+        p({ type: "ask", asks: this.takeAskBatch() } as never);
+      }
+    });
+  }
+
+  private takeAskBatch(): RandomAsk[] {
+    const asks = this.askBatch;
+    this.askBatch = [];
+    return asks;
+  }
+
+  /** 当前排队中的查询（随 /result 响应捎带下发，省一次长轮询往返）。 */
+  pendingAsks(): RandomAsk[] {
+    return this.askBatch.length > 0 ? [...this.askBatch] : [];
+  }
+
+  /**
+   * Godot 回传预估结果。返回 false 表示服务端没在等这个 id
+   * （响应早于登记，或会话已结束）；早到的回答会暂存、等查询来取。
+   */
+  submitAnswers(answers: RandomAnswer[]): boolean {
+    this.lastActivityAt = Date.now();
+    let touched = false;
+    for (const ans of answers) {
+      const waiter = this.askInflight.get(ans.id);
+      if (!waiter) {
+        this.earlyAnswers.set(ans.id, ans.data);
+        continue;
+      }
+      this.askInflight.delete(ans.id);
+      // 已回填的查询不必再随 /result 捎带（同一 prompt 里连续查多次会积累）
+      this.askBatch = this.askBatch.filter((a) => a.id !== ans.id);
+      waiter.resolve(ans.data);
+      touched = true;
+    }
+    return touched;
+  }
+
   /** 结束「本战斗回合」的决策（不是结束整场战斗）。 */
   endTurn(reasoning: string) {
     return this.emit({ type: "end_turn", seq: 0, reasoning }, "end_turn");
@@ -134,6 +201,11 @@ export class BattleSession {
     if (queued) {
       this.lastActivityAt = Date.now();
       return Promise.resolve(queued);
+    }
+    // 其次交付只读查询（模型要先看预估再决定用不用计）
+    if (this.askBatch.length > 0) {
+      this.lastActivityAt = Date.now();
+      return Promise.resolve({ type: "ask", asks: this.takeAskBatch() } as never);
     }
     return new Promise<BattlePending>((resolve) => {
       const timer = setTimeout(() => {
@@ -212,6 +284,9 @@ export class BattleSession {
 
   fail(err: Error): void {
     this.failError = err;
+    for (const [, w] of this.askInflight) w.reject(err);
+    this.askInflight.clear();
+    this.askBatch = [];
     for (const [seq, r] of this.inflight) {
       r({
         ok: false, outcome: err.message, turn: this.req.turn,

@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { startBattle } from "../src/battle-agent.ts";
 import { battleStore, BattleSession } from "../src/battle-session.ts";
-import { buildBattleTools, BATTLE_TOOL_NAMES } from "../src/battle-tools.ts";
+import { buildBattleTools, BATTLE_TOOL_NAMES, BATTLE_READ_TOOL_NAMES } from "../src/battle-tools.ts";
 import { validateBattleRequest, validateBattleResult } from "../src/validate.ts";
 import { scriptedModel, calls, toolCall, text } from "./harness.ts";
 import { testConfig } from "./fixture.ts";
@@ -51,7 +51,7 @@ function result(seq: number, req: BattleRequest): Record<string, unknown> {
 
 test.beforeEach(() => { battleStore.clear(); traceStore.clear(); });
 
-test("白兵战工具表恰好 4 个，与战争场景工具完全不同", () => {
+test("白兵战工具表恰好 5 个（含只读 estimate_tactic），与战争场景工具完全不同", () => {
   const req = battleReq();
   const s = new BattleSession("b", req, 30000);
   const { tools } = buildBattleTools({ turn: req.turn, controlled: req.controlled, enemy: req.enemy, legal_tactics: req.legal_tactics }, s, {
@@ -95,6 +95,70 @@ test("整场战斗一个会话：end_turn 只结束本战斗回合，战斗会�
   assert.equal(session.finished, false, "end_turn 不应结束整场战斗会话");
   session.finish("战斗结束");
   assert.equal(session.finished, true);
+});
+
+
+test("estimate_tactic：以 ask 下发查询，Godot 回填后作为工具结果喂回模型，不产生指令", async () => {
+  const model = scriptedModel((ctx) => {
+    if (ctx.callIndex === 0) return calls(toolCall("estimate_tactic", { tactic: "咒缚" }));
+    return calls(toolCall("end_turn", { reasoning: "评估后不用计" }));
+  });
+  const req = battleReq();
+  const { session } = startBattle(req, { mode: "pi", config: testConfig, runtime: model.runtime });
+
+  let ask: any = null;
+  for (let i = 0; i < 10; i++) {
+    const c = await session.nextCommand(3000);
+    if (c.type === ("ask" as never)) { ask = c; break; }
+    if (c.type === "end_turn" || c.type === "error") break;
+  }
+  assert.ok(ask, "未收到战术预估查询");
+  assert.equal(ask.asks[0].kind, "estimate_tactic");
+  assert.equal(ask.asks[0].tactic, "咒缚");
+
+  assert.ok(session.submitAnswers([{ id: ask.asks[0].id, data: { ok: true, rate: 50, cost: 3 } }]));
+  assert.equal(session.pendingAsks().length, 0);
+
+  const end = await session.nextCommand(3000);
+  assert.equal(end.type, "end_turn");
+  // 预估不占指令 seq、不进 commands
+  assert.deepEqual(session.commands.map((c) => c.kind), ["end_turn"]);
+  assert.deepEqual(model.requests[0].tools, [...BATTLE_TOOL_NAMES]);
+  session.finish("x");
+});
+
+test("estimate_tactic：回答早于服务端登记也能对上（earlyAnswers）", async () => {
+  const req = battleReq();
+  const s = new BattleSession("b", req, 30000);
+  const pending = s.askEstimate("火矢");
+  const c: any = await s.nextCommand(1000);
+  assert.equal(c.type, "ask");
+  s.submitAnswers([{ id: c.asks[0].id + 100, data: { ok: true, rate: 1 } }]);
+  s.submitAnswers([{ id: c.asks[0].id, data: { ok: true, rate: 100, cost: 10 } }]);
+  const data = await pending;
+  assert.equal(data.cost, 10);
+});
+
+test("estimate_tactic 是只读工具：不占命令数、不进 BATTLE_TOOL 的写入集合", async () => {
+  const req = battleReq();
+  const s = new BattleSession("b", req, 30000);
+  const { tools } = buildBattleTools(
+    { turn: req.turn, controlled: req.controlled, enemy: req.enemy, legal_tactics: req.legal_tactics }, s,
+    { max_turns: 6, max_tool_calls: 12, max_tokens: 1024, idle_timeout_ms: 30000 },
+  );
+  assert.ok(tools.some((t) => t.name === "estimate_tactic"));
+  assert.ok(BATTLE_READ_TOOL_NAMES.includes("estimate_tactic"));
+  // 非战术名直接拒绝，不向 Godot 发查询
+  const est = tools.find((t) => t.name === "estimate_tactic")!;
+  await assert.rejects(() => (est as any).execute("x", { tactic: "火计" }, {}));
+  // 合法战术名进 ask 通道，等待回填时不能占用指令序号
+  const pending = (est as any).execute("x", { tactic: "火矢" }, {});
+  assert.equal(s.commands.length, 0);
+  assert.equal(s.pendingAsks().length, 1, "回答前查询排队（/result 会捎带）");
+  const ask = s.pendingAsks()[0];
+  s.submitAnswers([{ id: ask.id, data: { ok: true, rate: 100 } }]);
+  assert.equal(s.pendingAsks().length, 0);
+  await pending;
 });
 
 test("脚本化模型：move/attack 等战役工具不可用，只能下命令与用计", async () => {
@@ -144,6 +208,27 @@ test("模型只回文本不肯 end_turn：服务端补发 end_turn，引擎不�
   // 首条：inspect 是只读工具，不会产出指令；模型收尾后应补发 end_turn
   const c = await session.nextCommand(3000);
   assert.equal(c.type, "end_turn", "模型没调 end_turn 时服务端必须补发，否则 Godot 只能等到空闲超时");
+  session.finish("x");
+});
+
+test("模型先侦察再下令：侦察结果必须回到模型，不能被提前补发的 end_turn 截断", async () => {
+  const req = battleReq();
+  // 真实节奏：先 inspect_battlefield，拿到结果后再 set_order，最后 end_turn。
+  // 回归点：曾在 message_end 时点就补发 end_turn，导致模型连侦察结果都没看到，回合空转。
+  const model = scriptedModel((ctx) => {
+    if (ctx.callIndex === 0) return calls(toolCall("inspect_battlefield", {}));
+    if (ctx.callIndex === 1) return calls(toolCall("set_order", { unit: "弓", order: "待机", reasoning: "先侦察再压阵" }));
+    if (ctx.callIndex === 2) return calls(toolCall("end_turn", { reasoning: "本回合完成" }));
+    throw new Error(`模型不该被询问第 ${ctx.callIndex} 次`);
+  });
+  const { session } = startBattle(req, { mode: "pi", config: testConfig, runtime: model.runtime });
+
+  const first = await session.nextCommand(3000);
+  assert.equal(first.type, "order", "侦察之后模型应能继续下令，而不是收到补发的 end_turn");
+  assert.equal((first as any).unit, "弓");
+  session.submitResult(first.seq, result(first.seq, req));
+  assert.equal((await session.nextCommand(3000)).type, "end_turn");
+  assert.ok(model.requests.length >= 3, "侦察结果必须作为下一轮上下文回到模型");
   session.finish("x");
 });
 

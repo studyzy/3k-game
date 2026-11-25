@@ -14,11 +14,13 @@ func _init():
 	var paths = [
 		"res://packed/sgz_script/war/AI/AIHttpClient.gd",
 		"res://packed/sgz_script/war/AI/StateProjection.gd",
+		"res://packed/sgz_script/war/AI/StratagemProjection.gd",
 		"res://packed/sgz_script/war/AI/ActionValidator.gd",
 		"res://packed/sgz_script/war/AI/War_AI_behavior_llm.gd",
 		"res://packed/sgz_script/war/AI_control.gd",
 		# 白兵战 Agent 接入
 		"res://packed/sgz_script/battle/AI/BattleProjection.gd",
+		"res://packed/sgz_script/battle/AI/TacticProjection.gd",
 		"res://packed/sgz_script/battle/AI/BattleAgent.gd",
 		"res://packed/sgz_script/battle/Battle_Auto_Run.gd",
 		# 云存档
