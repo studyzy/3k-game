@@ -1,8 +1,11 @@
+# 假 StaticManager：TACTICS 可注入，buff 只关心场景名。
 extends Node
-const TACTICS = {
-	"咒缚": {"消耗": 3},
-	"挑衅": {"消耗": 5},
-	"强弩": {"消耗": 7},
-	"士气向上": {"消耗": 8},
-	"火矢": {"消耗": 10},
-}
+
+# 可变：orders 场景用空表，tactic / queue_ttl 场景由 Main.gd 注入「强弩」
+var TACTICS = {}
+
+func get_buff(_name):
+	return BuffInfo.new()
+
+class BuffInfo:
+	func get_scene(): return "小战场"

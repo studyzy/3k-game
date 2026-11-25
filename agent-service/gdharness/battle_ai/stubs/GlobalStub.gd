@@ -1,7 +1,16 @@
+# 假 Global：脚本加载与距离计算。
 extends Node
+
 var iTactic = null
-# 模拟 Global.load_script：返回「脚本实例」（与真实实现一致，会复用缓存实例）
+
 func load_script(path):
-	if path.find("ITactic") >= 0:
+	var file = str(path).get_file()
+	if file == "ITactic.gd":
 		return iTactic
+	var p = "res://" + file
+	if ResourceLoader.exists(p):
+		return load(p).new()
 	return null
+
+func get_distance(a, b) -> int:
+	return int(abs(a.x - b.x)) + int(abs(a.y - b.y))

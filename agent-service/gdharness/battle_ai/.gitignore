@@ -1,0 +1,5 @@
+# 测试运行时从真实仓库复制进来，不入库。
+BattleAgent.gd
+BattleProjection.gd
+TacticProjection.gd
+BattleHttpClient.gd

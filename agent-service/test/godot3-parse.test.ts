@@ -12,10 +12,11 @@ const repo = path.resolve(here, "../..");
 const candidates = [
   process.env.GODOT3_BIN,
   path.join(repo, ".tools/Godot_v3.6.3-stable_linux_headless.64"),
+  path.join(repo, "Godot_3.6.3.app/Contents/MacOS/Godot"),
 ].filter((v): v is string => typeof v === "string" && v.length > 0);
 const bin = candidates.find((p) => fs.existsSync(p));
 
-const AI_SCRIPT_RE = /packed\/sgz_script\/war\/AI\/|war\/AI_control\.gd|test\/ai_agent_validate\.gd/;
+const AI_SCRIPT_RE = /packed\/sgz_script\/war\/AI\/|war\/AI_control\.gd|packed\/sgz_script\/battle\/AI\/|battle\/Battle_Auto_Run\.gd|test\/ai_agent_validate\.gd/;
 
 test("Godot 3.6.3 headless 解析 AI Agent 脚本（无 Parse Error）", (t) => {
   if (!bin) {
