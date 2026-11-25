@@ -76,7 +76,7 @@ export class BattleStore {
   private items = new Map<string, BattleSession>();
   private seq = 0;
 
-  /** 会话数有上限：满了先淘汰最早结束的会话；没有可淘汰的就拒绝（返回 null）。 */
+  /** 会话数有上限：满了先淘汰最早创建且已结束的会话；没有可淘汰的就拒绝（返回 null）。 */
   create(init: BattleSessionInit, idleTimeoutMs = 30 * 60 * 1000): BattleSession | null {
     this.prune();
     if (this.items.size >= MAX_SESSIONS) {

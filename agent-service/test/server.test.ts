@@ -5,6 +5,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createServer } from "../src/server.ts";
+import { validateBattleSnapshot } from "../src/validate.ts";
 import { turnStore } from "../src/session.ts";
 import { sampleRequest, testConfig, toolResult } from "./fixture.ts";
 
@@ -46,6 +47,15 @@ function battleSnapshot(overrides: Record<string, unknown> = {}) {
     },
     legal_tactics: [],
     last_plan: null,
+    ...overrides,
+  };
+}
+
+/** 客户端回喂的上一拍计划：8 个字段齐全。 */
+function lastPlan(overrides: Record<string, unknown> = {}) {
+  return {
+    tick: 1, orders: { 将: "前进" }, orders_applied: ["将"], orders_rejected: [],
+    tactic: null, tactic_status: "none", reason: "推进", age_ms: 1200,
     ...overrides,
   };
 }
@@ -312,6 +322,42 @@ test("白兵战 tick：battle_key / 旧 tick / actor 不匹配 422，未知与�
   const badEnd = await battlePost("%E0%A4%A", "end");
   assert.equal(badEnd.status, 200);
   assert.deepEqual(await badEnd.json(), { ok: true });
+});
+
+test("validateBattleSnapshot：完整 last_plan 通过，超长/畸形拒绝明细裁剪而非 422", () => {
+  const longUnit = "单".repeat(100);
+  const longReason = "越".repeat(300);
+  // 20 条超长条目，前 10 条里混入 3 条畸形（非对象 / 字段非字符串 / 缺字段）
+  const entries: unknown[] = Array.from({ length: 20 }, () => ({ unit: longUnit, reason: longReason }));
+  entries[1] = { unit: 7, reason: "unit 不是字符串" };
+  entries[2] = "not-an-object";
+  entries[3] = { unit: "将" };
+
+  const snap: any = battleSnapshot({
+    last_plan: lastPlan({ orders_rejected: entries, reason: "很长的理由".repeat(100) }),
+  });
+  const out: any = validateBattleSnapshot(snap);
+
+  // 原地裁剪：tickBattle 拿到的提示词就是裁剪后的值
+  assert.equal(out, snap);
+  assert.equal(out.last_plan.orders_rejected.length, 7);
+  for (const r of out.last_plan.orders_rejected) {
+    assert.equal(r.unit.length, 80);
+    assert.equal(r.reason.length, 200);
+  }
+  assert.equal(snap.last_plan.reason.length, 200);
+
+  // 真正错的形状仍然拒绝
+  assert.throws(() => validateBattleSnapshot(battleSnapshot({ last_plan: lastPlan({ orders_rejected: "x" }) }) as any), /orders_rejected/);
+  assert.throws(() => validateBattleSnapshot(battleSnapshot({ last_plan: lastPlan({ reason: 5 }) }) as any), /last_plan.reason/);
+});
+
+test("白兵战 tick：带完整 last_plan（8 字段）的快照 200", async () => {
+  const id = await openBattle();
+  const rejected = Array.from({ length: 20 }, () => ({ unit: "单".repeat(100), reason: "越".repeat(300) }));
+  const res = await battlePost(id, "tick", battleSnapshot({ last_plan: lastPlan({ orders_rejected: rejected }) }));
+  assert.equal(res.status, 200);
+  assert.equal((await res.json() as any).tick, 1);
 });
 
 test("白兵战路由边界：GET /ai/battle 405，GET tick 405，pending 404", async () => {

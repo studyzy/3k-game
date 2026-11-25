@@ -170,6 +170,7 @@ const MAX_LEGAL_TACTICS = 8;
 const MAX_TACTIC_NAME = 20;
 const MAX_TACTIC_SUMMARY = 200;
 const MAX_REJECTED_ORDERS = 10;
+const MAX_REJECT_UNIT = 80;
 const MAX_REJECT_TEXT = 200;
 
 export function validateBattleOpenRequest(
@@ -234,7 +235,11 @@ function checkBattleSideV2(side: unknown, label: string): void {
   for (const u of side.units as unknown[]) checkBattleUnitV2(u, label + ".units[]");
 }
 
-/** 上一拍计划：Godot 原样回喂，字段全都要校验，避免超长/畸形值进提示词。 */
+/**
+ * 上一拍计划：Godot 原样回喂，字段全都要校验，避免超长/畸形值进提示词。
+ * 唯独 orders_rejected / reason 只裁剪不拒绝：它们是模型自己编出来的键，被客户端原样回喂，
+ * 若按超长判 422，一条幻觉计划会让之后每一拍都失败。裁剪后仍在 body 上原地生效。
+ */
 function checkBattleLastPlan(lp: unknown): void {
   if (!isObject(lp)) throw new ValidationError("bad_schema", "last_plan must be an object");
   if (typeof lp.tick !== "number") throw new ValidationError("bad_schema", "last_plan.tick must be a number");
@@ -258,26 +263,23 @@ function checkBattleLastPlan(lp: unknown): void {
   if (!Array.isArray(lp.orders_rejected)) {
     throw new ValidationError("bad_schema", "last_plan.orders_rejected must be an array");
   }
-  if (lp.orders_rejected.length > MAX_REJECTED_ORDERS) {
-    throw new ValidationError("bad_schema", "last_plan.orders_rejected too many entries");
+  const rejected: { unit: string; reason: string }[] = [];
+  for (const r of (lp.orders_rejected as unknown[]).slice(0, MAX_REJECTED_ORDERS)) {
+    // 不是 {unit, reason} 字符串对的条目直接丢：这些是模型幻觉键的回显，不能让它卡死下一拍。
+    if (!isObject(r) || typeof r.unit !== "string" || typeof r.reason !== "string") continue;
+    rejected.push({ unit: r.unit.slice(0, MAX_REJECT_UNIT), reason: r.reason.slice(0, MAX_REJECT_TEXT) });
   }
-  for (const r of lp.orders_rejected as unknown[]) {
-    if (!isObject(r) || typeof r.unit !== "string" || typeof r.reason !== "string") {
-      throw new ValidationError("bad_schema", "last_plan.orders_rejected entries need unit and reason");
-    }
-    if (r.unit.length > MAX_REJECT_TEXT || r.reason.length > MAX_REJECT_TEXT) {
-      throw new ValidationError("bad_schema", "last_plan.orders_rejected text too long");
-    }
-  }
+  lp.orders_rejected = rejected;
   if (lp.tactic !== null && (typeof lp.tactic !== "string" || lp.tactic.length > 40)) {
     throw new ValidationError("bad_schema", "last_plan.tactic must be null or a short string");
   }
   if (typeof lp.tactic_status !== "string" || !BATTLE_TACTIC_STATUS.includes(lp.tactic_status)) {
     throw new ValidationError("bad_schema", "last_plan.tactic_status invalid");
   }
-  if (typeof lp.reason !== "string" || lp.reason.length > MAX_REJECT_TEXT) {
-    throw new ValidationError("bad_schema", "last_plan.reason must be a short string");
+  if (typeof lp.reason !== "string") {
+    throw new ValidationError("bad_schema", "last_plan.reason must be a string");
   }
+  lp.reason = lp.reason.slice(0, MAX_REJECT_TEXT);
   if (typeof lp.age_ms !== "number") throw new ValidationError("bad_schema", "last_plan.age_ms must be a number");
 }
 
