@@ -191,7 +191,10 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
         const r = await session.nextAction(wait);
         if (r.type === "action") { json(res, 200, r); return; }
         if (r.type === "progress") { json(res, 200, r); return; }
-        if (r.type === "ask") { json(res, 200, r); return; }
+        if (r.type === "ask") {
+          console.log(`[diag] pending->ask sid=${id} asks=${JSON.stringify(r.asks)}`);
+          json(res, 200, r); return;
+        }
         if (r.type === "end") { json(res, 200, r); turnStore.delete(id); return; }
         if (r.type === "error") { json(res, 200, r); turnStore.delete(id); return; }
         // 本次轮询到点仍无动作：若已超出空闲预算，回传 idle_timeout 让 Godot 回退
@@ -233,7 +236,9 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
         if (!session) { json(res, 404, { error: "session_not_found" }); return; }
         const body = await parseJsonBody(req);
         const answers = validateAnswers(body);
-        session.submitAnswers(answers);
+        console.log(`[diag] estimate<-godot sid=${id} answers=${JSON.stringify(answers).slice(0, 400)}`);
+        const touched = session.submitAnswers(answers);
+        console.log(`[diag] estimate resolved touched=${touched} inflight=${(session as any).askInflight?.size ?? "?"}`);
         json(res, 200, { ok: true });
         return;
       }

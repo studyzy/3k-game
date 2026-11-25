@@ -97,7 +97,136 @@ func estimate(fromId: int, targetId: int, name: String = "") -> Dictionary:
 		res["area"] = {"tag": str(area.get("tag", "")), "round": int(area.get("round", 0))}
 	if info.has_range_impact():
 		res["terrain_effects"] = _range_effects(info, se, targetWA.position)
+	# 给 LLM 的一句话结论：中计概率 + 中计后会怎样（明细 JSON 仍保留，人看的）
+	res["summary"] = _summary(res, fromWA, targetWA)
 	return res
+
+
+# ---------------- 给模型看的文字结论 ----------------
+# 只输出「中计概率」与「中计后的结果」，避免把逐目标的原始行堆给模型。
+func _summary(res: Dictionary, fromWA, targetWA) -> String:
+	if res.get("ok", false) != true:
+		return "不可用：%s" % [str(res.get("reason", ""))]
+	var parts = ["命中率 %d%%" % [int(res["rate"])]]
+	parts.append("耗机动力 %d" % [int(res.get("cost_ap", 0))])
+	parts.append("命中后：" + _summary_effect(res, fromWA, targetWA))
+	return "，".join(parts)
+
+
+static func _summary_effect(res: Dictionary, fromWA, targetWA) -> String:
+	var officer = res.get("officer_impacts", {})
+	var items = []
+	items.append_array(_summary_soldier(officer.get("soldier", [])))
+	items.append_array(_summary_hp(officer.get("hp", [])))
+	items.append_array(_summary_rice(officer.get("rice", [])))
+	items.append_array(_summary_heal(officer.get("heal", [])))
+	items.append_array(_summary_buff(officer.get("buff", [])))
+	items.append_array(_summary_special(officer.get("special", [])))
+	if res.has("area"):
+		var area = res["area"]
+		if int(area.get("round", 0)) > 0:
+			items.append("布下【%s】持续 %d 回合" % [str(area.get("tag", "")), int(area["round"])])
+		else:
+			items.append("布下【%s】" % [str(area.get("tag", ""))])
+	for eff in res.get("terrain_effects", []):
+		var note = str(eff.get("note", ""))
+		if str(eff.get("effect", "")) == "flame_over":
+			items.append(note + "（持续燃烧）")
+		elif str(eff.get("effect", "")) == "rain":
+			items.append(note)
+	if items.empty():
+		return "按当前兵力与属性算不出兵力/体力/粮草损失，也无状态效果"
+	return "；".join(items)
+
+
+static func _who(id: int) -> String:
+	var wa = DataManager.get_war_actor(id)
+	if wa == null:
+		return "#%d" % [id]
+	return "%s#%d" % [wa.get_name(), id]
+
+
+static func _summary_soldier(rows: Array) -> Array:
+	var ret = []
+	for row in rows:
+		if int(row.get("damage", 0)) <= 0:
+			continue
+		ret.append("%s 损兵 %d（%d→%d）" % [
+			_who(int(row["id"])), int(row["damage"]), int(row["soldiers"]), int(row["soldiers_after"]),
+		])
+	return ret
+
+
+static func _summary_hp(rows: Array) -> Array:
+	var ret = []
+	for row in rows:
+		var text = "%s 伤体 %d（%d→%d）" % [
+			_who(int(row["id"])), int(row["damage"]), int(row["hp"]), int(row["hp_after"]),
+		]
+		if row.get("captured", false):
+			text += "，体力归零将被俘"
+		ret.append(text)
+	return ret
+
+
+static func _summary_rice(rows: Array) -> Array:
+	var ret = []
+	for row in rows:
+		if int(row.get("damage", 0)) <= 0:
+			continue
+		ret.append("敌方粮草 -%d（剩 %d）" % [int(row["damage"]), max(0, int(row.get("rice", 0)) - int(row["damage"]))])
+	return ret
+
+
+static func _summary_heal(rows: Array) -> Array:
+	var ret = []
+	for row in rows:
+		ret.append("%s 回复体力 %d（%d→%d）" % [
+			_who(int(row["id"])), int(row["heal"]), int(row["hp"]), int(row["hp_after"]),
+		])
+	return ret
+
+
+static func _summary_buff(rows: Array) -> Array:
+	var ret = []
+	for row in rows:
+		var text = "%s 【%s】%d 回合" % [_who(int(row["id"])), str(row.get("buff", "")), int(row.get("turns", 0))]
+		var daily = row.get("daily_effect", {})
+		if typeof(daily) == TYPE_DICTIONARY and not daily.empty():
+			var bits = []
+			if daily.has("soldier"):
+				bits.append("每日损兵 %d" % [int(daily["soldier"])])
+			if daily.has("hp"):
+				bits.append("每日伤体 %d" % [int(daily["hp"])])
+			if not bits.empty():
+				text += "（" + "、".join(bits) + "）"
+		ret.append(text)
+	return ret
+
+
+static func _summary_special(rows: Array) -> Array:
+	var ret = []
+	for row in rows:
+		var eff = str(row.get("effect", ""))
+		var who = _who(int(row.get("id", - 1)))
+		match eff:
+			"笼络":
+				if row.get("defect", false):
+					ret.append("%s 有被招降的风险" % [who])
+				else:
+					ret.append("%s 不会被招降（%s）" % [who, str(row.get("note", ""))])
+			"撤退":
+				if row.get("no_retreat", false):
+					ret.append("%s 无可退城池，撤退无效" % [who])
+				else:
+					ret.append("%s 被强制撤回 %s" % [who, str(row.get("to_city_name", ""))])
+			"机动力回复":
+				ret.append("自身回复 1 点机动力")
+			"随机位移":
+				ret.append("%s 被随机移走" % [who])
+			_:
+				ret.append("%s %s" % [who, eff])
+	return ret
 
 
 # ---------------- 可用性 ----------------

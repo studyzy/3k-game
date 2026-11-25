@@ -36,10 +36,17 @@ test("Godot 3.6.3 headless 解析 AI Agent 脚本（无 Parse Error）", (t) => 
   const okCount = (out.match(/AI_VALIDATE OK/g) ?? []).length;
   assert.equal(okCount, expected, `期望 ${expected} 个脚本全部 load 成功，实际 ${okCount}`);
 
-  // load() 在存在 Parse Error 时仍可能返回 GDScript 对象，因此必须扫日志
-  const parseErrors = out.split("\n").filter((line) => /SCRIPT ERROR: Parse Error|Parse Error:/.test(line));
-  const aiParseErrors = parseErrors.filter((line) => AI_SCRIPT_RE.test(line));
-  assert.deepEqual(aiParseErrors, [], `AI Agent 脚本存在解析错误：\n${aiParseErrors.join("\n")}`);
+  // load() 在存在 Parse Error 时仍可能返回 GDScript 对象，因此必须扫日志。
+  // 错误头行（含 Parse Error）与定位行（含脚本路径）是分开的两行，必须按块匹配：
+  // 逐行过滤会同时漏掉两行（头行无路径、定位行无 Parse Error 字样）。
+  const lines = out.split("\n");
+  const aiParseErrors: string[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (!/Parse Error/.test(lines[i])) continue;
+    const block = lines.slice(i, i + 4).join("\n");
+    if (AI_SCRIPT_RE.test(block)) aiParseErrors.push(block);
+  }
+  assert.deepEqual(aiParseErrors, [], `AI Agent 脚本存在解析错误：\n${aiParseErrors.join("\n---\n")}`);
 
   // 附带确认工程自带 make check 的等价命令不含 SCRIPT ERROR 解析错误
   const check = spawnSync(

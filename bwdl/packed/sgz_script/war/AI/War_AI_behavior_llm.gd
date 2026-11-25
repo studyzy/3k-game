@@ -74,9 +74,14 @@ func next_behavior_actor(wv) -> int:
 		_ensure_fallback_wab()
 		return _fallback_wab.next_behavior_actor(wv)
 
-	# 有待执行动作：交给 AI_control 选中该武将
+	# 有待执行动作：交给 AI_control 选中该武将。
+	# 注意动作存在 _ready["action"] 里（_accept_action 的结构是 {seq, action, reasoning}），
+	# 直接读 _ready["actor"] 会拿到 null → actor 0 → 后续 AI_before_ready 中断、动作不执行。
 	if not _ready.empty():
-		return int(_ready["actor"])
+		var act = _ready.get("action", {})
+		if typeof(act) == TYPE_DICTIONARY and act.has("actor"):
+			return int(act["actor"])
+		return _current_actor if _current_actor >= 0 else wv.main_actorId
 
 	# 会话未开：开会话（POST /ai/turn）
 	if _session_id == "":
@@ -151,6 +156,17 @@ func _on_polled(result: int, response_code: int, body: PoolByteArray) -> void:
 	match kind:
 		"action":
 			_accept_action(reply["action"])
+		"ask":
+			# 只读查询（用计预估）：模型没有动作在飞时直接问，走与 /result 捎带相同的回填逻辑
+			DataManager.ai_debug_log("ASK recv n={0} sid={1} raw={2}".format([
+				str(reply.get("asks", []).size() if typeof(reply.get("asks", [])) == TYPE_ARRAY else - 1),
+				_session_id, to_json(reply),
+			]), true)
+			var posted = _answer_asks(reply.get("asks", []), _session_id)
+			DataManager.ai_debug_log("ASK posted={0}".format([str(posted)]), true)
+			if not posted:
+				FlowManager.add_flow("AI_before_ready")
+			return
 		"progress":
 			# Agent 的中间进度（思考文本 / 只读侦察），只展示，不执行
 			_show_progress(str(reply.get("text", "")))
@@ -198,6 +214,9 @@ func _flush_results(wv) -> void:
 	result_payload["seq"] = item["seq"]
 	_posting = true
 	var url = "{0}/{1}/result".format([_base_url(), _session_id])
+	DataManager.ai_debug_log("RESULT POST seq={0} ok={1} outcome={2}".format([
+		item["seq"], str(item["ok"]), str(item["outcome"]),
+	]), true)
 	var ok = _http.post(url, to_json(result_payload), self, "_on_result_posted", POLL_TIMEOUT_SEC)
 	if not ok:
 		_posting = false
@@ -211,33 +230,71 @@ func _on_result_posted(result: int, response_code: int, body: PoolByteArray) -> 
 		return
 	# 服务端可能在同一响应里附带「用计预估」查询（模型想先看命中率和结果再决定是否用计）
 	var reply = _parse_json_object(body)
-	if typeof(reply.get("estimates")) == TYPE_ARRAY and not reply["estimates"].empty():
-		var answers = []
-		for q in reply["estimates"]:
-			if typeof(q) != TYPE_DICTIONARY:
-				continue
-			answers.append(_estimator.estimate(
-				int(q.get("actor", - 1)), int(q.get("target", - 1)), str(q.get("skill", ""))
-			))
-		var sid = _session_id
-		if str(reply.get("sid", "")) != "":
-			sid = str(reply["sid"])
-		# 回传失败不阻塞决策：按正常流程继续，模型下轮会重新要
-		if _post_estimates(answers, sid):
-			return
+	var asks = reply.get("estimates")
+	if typeof(asks) != TYPE_ARRAY or asks.empty():
+		FlowManager.add_flow("AI_before_ready")
+		return
+	var sid = _session_id
+	if str(reply.get("sid", "")) != "":
+		sid = str(reply["sid"])
+	if _answer_asks(asks, sid):
+		return
 	FlowManager.add_flow("AI_before_ready")
 	return
+
+# 把一组用计预估查询交给引擎现算并回传服务端。
+# 两条通道共用：/pending 长轮询的 ask 响应（模型无动作在飞时的只读查询）、
+# /result 响应捎带的下发。返回 true 表示已发出 POST，回调会继续驱动 flow。
+func _answer_asks(asks, sid: String) -> bool:
+	DataManager.ai_debug_log("ASK parse type={0} n={1} sid='{2}'".format([
+		typeof(asks), str(asks.size() if typeof(asks) == TYPE_ARRAY else - 1), sid,
+	]), true)
+	if typeof(asks) != TYPE_ARRAY or asks.empty() or sid == "":
+		DataManager.ai_debug_log("ASK abort: bad input", true)
+		return false
+	var answers = []
+	for q in asks:
+		if typeof(q) != TYPE_DICTIONARY:
+			continue
+		if str(q.get("kind", "estimate_stratagem")) != "estimate_stratagem":
+			continue
+			# 只回传「中计概率 + 中计后的结果」这段文字，逐目标的原始明细模型读不懂也用不上
+			var summary = _estimate_summary(
+				int(q.get("actor", - 1)), int(q.get("target", - 1)), str(q.get("skill", ""))
+			)
+			answers.append({"id": int(q.get("id", 0)), "data": {"ok": summary != "预估失败", "summary": summary}})
+	if answers.empty():
+		DataManager.ai_debug_log("ASK abort: no answers built", true)
+		return false
+	# 回传失败不阻塞决策：按正常流程继续，模型下轮会重新要
+	return _post_estimates(answers, sid)
+
+# 用计预估的文字结论（给模型看）：命中率 + 中计后的结果，不夹带原始 JSON 明细。
+func _estimate_summary(actorId: int, targetId: int, skill: String) -> String:
+	var res = _estimator.estimate(actorId, targetId, skill)
+	if typeof(res) != TYPE_DICTIONARY:
+		return "预估失败"
+	var text = str(res.get("summary", ""))
+	if text == "":
+		return "预估失败"
+	return text
 
 # 把用计预估结果回传服务端（不带动作），成功后等服务端回包再继续
 func _post_estimates(answers: Array, sid: String) -> bool:
 	var url = DataManager.resolve_ai_agent_url("/ai/turn/{0}/estimate".format([sid]))
+	var body = to_json({"answers": answers})
+	DataManager.ai_debug_log("EST POST " + url + " body=" + body, true)
 	_posting = true
-	var ok = _http.post(url, to_json({"answers": answers}), self, "_on_estimates_posted", POLL_TIMEOUT_SEC)
+	var ok = _http.post(url, body, self, "_on_estimates_posted", POLL_TIMEOUT_SEC)
 	if not ok:
 		_posting = false
+	DataManager.ai_debug_log("EST POST ok=" + str(ok), true)
 	return ok
 
 func _on_estimates_posted(_result: int, _response_code: int, _body: PoolByteArray) -> void:
+	DataManager.ai_debug_log("EST DONE result={0} code={1} body={2}".format([
+		_result, _response_code, _body.get_string_from_utf8(),
+	]), true)
 	_posting = false
 	# 无论成败都回到正常流程；服务端没收会重发查询
 	FlowManager.add_flow("AI_before_ready")
@@ -344,7 +401,9 @@ func behavior(wvId: int) -> void:
 	var act = entry["action"]
 	_show_reason(str(entry.get("reasoning", "")))
 	var seq = int(entry["seq"])
-	var actorId = int(act["actor"])
+	# end 这类工具没有 actor 参数（它结束的是整个回合），此时沿用 AI_before_ready
+	# 选定的当前行动武将；直接读 act["actor"] 会在这里报错中断，动作和回传都发不出去。
+	var actorId = int(act["actor"]) if act.has("actor") else DataManager.get_env_int(VAR_CUR_ACTOR)
 	DataManager.set_env(VAR_CUR_ACTOR, actorId)
 	var wa = DataManager.get_war_actor(actorId)
 	if wa == null or wa.disabled or not wa.has_position():
@@ -354,7 +413,9 @@ func behavior(wvId: int) -> void:
 	var outcome = _describe(act)
 	_actions_done += 1
 	_pending.append({"seq": seq, "ok": true, "outcome": outcome})
-	DataManager.ai_debug_log("ACTION exec seq={0} {1} -> {2}".format([seq, str(act["tool"]), outcome]))
+	DataManager.ai_debug_log("ACTION exec seq={0} actor={1} {2} -> {3}".format([
+		seq, actorId, str(act["tool"]), outcome,
+	]), true)
 	if not _execute(act, wa):
 		# 执行失败：仍回传失败结果，然后回退
 		_pending[_pending.size() - 1]["ok"] = false
@@ -364,6 +425,12 @@ func behavior(wvId: int) -> void:
 	# 移动的 outcome 用实际结果（走到哪、扣多少、为何停下），而不是计划描述
 	if str(act["tool"]) == "move" and _last_move_outcome != "":
 		_pending[_pending.size() - 1]["outcome"] = _last_move_outcome
+	# move / end 在自己的实现里已经 add_flow；attack / stratagem / retreat 只是把
+	# 目标写进环境，真正的结算由下一轮 AI_before_ready（bf.pending_start / 计策流程）接手。
+	# 这里不补这一句，AI 回合会停在 AI_ready，动作结果永远回传不出去。
+	var tool_name = str(act["tool"])
+	if tool_name == "attack" or tool_name == "strategem" or tool_name == "retreat":
+		FlowManager.add_flow("AI_before_ready")
 	return
 
 func _describe(act: Dictionary) -> String:
@@ -408,11 +475,15 @@ func _execute(act: Dictionary, wa) -> bool:
 # 计价口径与玩家手操一致（player_move.gd:_push_move）：进入一格算一次 get_move_cost。
 func _move_stepwise(wa, path: Array) -> bool:
 	_last_move_outcome = ""
+	# 下面几处提前返回都必须驱动 flow：behavior() 执行完不会再补 add_flow，
+	# 少了这一句整个 AI 回合会停在 AI_ready，动作结果永远回传不出去。
 	if not wa.can_move():
 		_last_move_outcome = "该武将现在无法移动"
+		FlowManager.add_flow("AI_before_ready")
 		return true
 	if path.empty():
 		_last_move_outcome = "路径为空，未移动"
+		FlowManager.add_flow("AI_before_ready")
 		return true
 	var map = SceneManager.current_scene().war_map
 	var start = wa.position
@@ -427,6 +498,9 @@ func _move_stepwise(wa, path: Array) -> bool:
 			stop_reason = "路径里有非法坐标"
 			break
 		var next = Vector2(int(point[0]), int(point[1]))
+		# 模型有时会把起点也塞进 path（schema 要求不含起点）。重复点直接跳过，不当错误。
+		if next == cur:
+			continue
 		var d = next - cur
 		# 只能上下左右走一格，不能斜走、不能跳跃
 		if abs(d.x) + abs(d.y) != 1:
@@ -454,7 +528,10 @@ func _move_stepwise(wa, path: Array) -> bool:
 
 	var reached = "%s→%s" % [str(start), str(cur)]
 	if walked == 0:
+		if stop_reason == "":
+			stop_reason = "路径没有可走的格子（可能全是重复点）"
 		_last_move_outcome = "未移动（%s）；原因：%s" % [str(start), stop_reason]
+		FlowManager.add_flow("AI_before_ready")
 		return true
 	var msg = "移动 %s，共 %d 格，消耗机动力 %d、点数 %d" % [
 		reached, walked, int(total["机"]), int(total["点"])
