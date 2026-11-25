@@ -215,14 +215,14 @@ export function buildTools(
     execute: async () => result(live.economy),
   };
 
-  // 只读：用计预估。由 Godot 用引擎现算命中率与命中后的结果，服务端只做搬运。
+  // 只读：用计预估。由 Godot 用引擎现算，服务端只做搬运。
+  // Godot 只回一段文字结论（命中率 + 中计后的结果），逐目标明细不进模型上下文。
   const estimate_stratagem: AgentTool<any> = {
     name: "estimate_stratagem",
     label: "预估用计",
     description: [
       "预估某个武将用某个计策打某个目标的命中率与命中后的结果（只读，不消耗机动力、不推进战局）。",
-      "返回 rate=综合命中率(%)，rate_by_target=逐目标命中率（引擎对每个受影响目标单独判定成功），",
-      "impacts=每个受影响武将受到的伤兵/伤体/扣米/治疗/状态/特殊效果，chained=被连带波及的武将。",
+      "返回一句话：命中率、耗机动力，以及中计后各目标会损多少兵/伤多少体/扣多少米/附加什么状态；",
       "伤害是按引擎公式取随机均值算的基准值，实际结算会在此上下浮动。",
       "想用计但拿不准划不划算时先调它；确定要用再调 stratagem。",
     ].join(""),
@@ -240,7 +240,9 @@ export function buildTools(
       const data = await session.askEstimate(
         Number(params.actor), Number(params.target), String(params.skill),
       );
-      return result(data, { ok: data.ok === true });
+      const text = typeof data.summary === "string" ? data.summary : "";
+      if (text === "") return result(data, { ok: data.ok === true });
+      return result(text, { ok: data.ok === true });
     },
   };
 
