@@ -35,18 +35,15 @@ Godot                             服务端
 - **提示词不带动作清单**：`units[]` 已含 `skills`（计名 + 真实 `ap_cost`）、`main`、`atk_range`，模型据此自行决策；拿不准时才调 `list_legal_actions` 按需查（只列我方、不含 `end`）。猜错目标时工具直接返回该武将当前可选项，模型在会话内自纠，不会把非法动作交给 Godot。
 - 等待期间显示「敌方思考中……」。
 
-### 白兵战（两军对垒）
+### 白兵战（两军对垒，异步 tick）
 
-`attack` 触发白兵战时，Godot 主动开一个**独立的战斗会话**：新提示词、新场景数据、新工具。
+白兵战是准实时的：玩家随时可以暂停、改命令、用计，引擎不会等 AI。
 
-| 工具 | 说明 |
-|---|---|
-| `inspect_battlefield` | 查看双方武将/兵力/战术值/各兵种血量与命令 |
-| `set_order` | 给**一个**兵种下命令：`前进` / `待机` / `后退` |
-| `use_tactic` | 用计：咒缚/挑衅/强弩/士气向上/火矢（消耗战术值） |
-| `end_turn` | 结束**本战斗回合**的决策，交还引擎结算 |
-
-**整场战斗是一个会话**（跨多个战斗回合），每回合 `end_turn` 后由引擎推进，Godot 调 `/resume` 继续问 LLM。主回合会话在此期间挂起——等待 Godot 执行不计入 Agent 空闲超时。
+- 一场战斗 = 一个服务端会话，同一个 Agent 从开场对话到结束。
+- Godot 每 3 秒（上一次没回就跳过）POST 一次战场快照到 `/ai/battle/:id/tick`。
+- 模型一次输出 JSON 计划：`orders` 差分 + 至多一个 `tactic` + `memory`。
+- Godot 立即应用 `orders`；`tactic` 排队到 flow 空闲且步骤 4/5/6/7 时执行。
+- 没有工具、没有 `end_turn`；连续 3 拍失败回退本地规则 AI。
 
 ## 服务地址配置
 
@@ -86,10 +83,9 @@ node src/server.ts --mode stub --port 8060 --web-dir ../bwdl/build/web
 | `POST /ai/turn` | 开启一个 AI 回合会话，返回 `session_id` |
 | `GET /ai/turn/:id/pending` | 长轮询取下一个待执行动作 / `progress` / `end` / `idle_timeout` |
 | `POST /ai/turn/:id/result` | 回传执行结果（最新 `units` + `legal_actions`） |
-| `POST /ai/battle` | 白兵战：开启战斗会话（独立 Agent / 提示词 / 工具） |
-| `GET /ai/battle/:id/pending` | 白兵战：长轮询取指令（`order`/`tactic`/`end_turn`） |
-| `POST /ai/battle/:id/result` | 白兵战：回传执行后的战斗态势 |
-| `POST /ai/battle/:id/resume` | 白兵战：引擎推进到下一战斗回合 |
+| `POST /ai/battle` | 白兵战：开启战斗会话 |
+| `POST /ai/battle/:id/tick` | 白兵战：提交快照，返回本拍计划 |
+| `POST /ai/battle/:id/end` | 白兵战：结束会话 |
 | `PUT /save/:id/:slot` | 云存档：写入一个槽位（只接受奇数槽位） |
 | `GET /save/:id` | 云存档：读取该 ID 的全部槽位（无存档 404） |
 
@@ -184,13 +180,14 @@ OPENAI_API_KEY=...               # 仅回退路径，或 PI_API_KEY
 | 文件 | 职责 |
 |---|---|
 | `War_AI_behavior_llm.gd` | `wab` 实现：开会话 / 长轮询 / 执行 / 回传 / 回退 `hard` |
-| `battle/AI/BattleProjection.gd` | 白兵战态势投影（兵种/命令/计策） |
-| `battle/AI/BattleAgent.gd` | 白兵战会话驱动（开战会话 / 长轮询 / 执行指令 / 回传） |
+| `battle/AI/BattleProjection.gd` | 白兵战快照 v2（位置/距离/buff/计策摘要） |
+| `battle/AI/BattleAgent.gd` | 白兵战 3 秒异步状态机（tick / 应用计划 / 用计排队） |
+| `battle/AI/BattleHttpClient.gd` | 白兵战独立 HTTP 单请求客户端（不排队、不干扰战场） |
 | `StateProjection.gd` | 全知去噪状态 + 能力投影（`skills`/`main`/`atk_range`）+ `legal_actions` |
 | `AIHttpClient.gd` | `HTTPRequest` 异步封装 |
 | `ActionValidator.gd` | 单动作二次校验（双防线） |
 | `war/AI/StratagemProjection.gd` | 大战场用计预估（命中率 / 伤兵 / 状态 / 连锁） |
-| `battle/AI/TacticProjection.gd` | 白兵战战术预估（消耗 / 咒缚与挑衅命中率 / 攻击防御射程变化） |
+| `battle/AI/TacticProjection.gd` | 白兵战计策摘要 `brief()`（逐拍无随机；`estimate()` 仅诊断） |
 
 `war/AI_control.gd` 仅在 `DataManager.ai_agent_mode == true` 时加载 LLM `wab`。该标记由**标题界面新增的「大模型」难度**设置（[scene_title.gd](../bwdl/scene/scene_title/scene_title.gd) / [scene_title.tscn](../bwdl/scene/scene_title/scene_title.tscn)），并随存档持久化（[Data_Manager.gd](../bwdl/script/Data_Manager.gd)）。选其他难度一律零网络请求。
 
@@ -216,7 +213,7 @@ OPENAI_API_KEY=...               # 仅回退路径，或 PI_API_KEY
 ## 测试
 
 ```bash
-npm test        # 81 项：单元 + 集成（agent loop 场景矩阵 / 服务契约 / 难度预算对齐 / pi 端点 / 并发）/ GDScript 静态引用 / Godot 3.6.3 运行时解析 / 跨语言端到端契约
+npm test        # 单元 + 集成（agent loop 场景矩阵 / 服务契约 / 难度预算对齐 / pi 端点 / 并发）/ GDScript 静态引用 / Godot 3 运行时与白兵战契约（未安装 Godot 时自动 skip）
 
 # 带真实端点跑（最后一项端到端测试仅在 LLM_BASE_URL + LLM_API_KEY 存在时启用，否则 skip）
 LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=... npm test
@@ -226,8 +223,8 @@ LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=... npm test
 
 - 服务侧 `validateTurnRequest` / `validateAction` / `validateToolResult` 与 Godot 侧 `ActionValidator.accept_action` 同规则
 - 工具注册表恰好 10 个：5 只读（含 `estimate_stratagem` 用计预估）+ 4 动作 + `end`；**不含 read/write/edit/bash**，有回归断言
-- 白兵战工具表恰好 5 个（含只读 `estimate_tactic`），与战役工具完全不重叠；`set_order` 按兵种单独设置
-- 白兵战多回合：3 个战斗回合连续下命令，会话全程存活（防 `max_tool_calls` 跨回合累加回归）
+- 白兵战不再有工具表；计划是纯 JSON，服务端单测覆盖 orders 差分、计策校验与并发锁
+- 白兵战多拍：连续 8 拍仍是一个会话，对话裁剪到 system + 最近 6 拍
 - `move` 路径：路径由模型按地图规划（`legal_actions` 不再带逐格 `path`），服务端只做结构检查，Godot 逐格判断墙/占位/机动力
 - `stub` 模式端到端跑通 `pi-agent-core`：会话内读动作 → 执行 → `end`
 - HTTP 五态（ok / error / budget_exhausted / invalid / 静态路径穿越）
