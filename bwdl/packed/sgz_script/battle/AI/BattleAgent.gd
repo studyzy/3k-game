@@ -126,6 +126,14 @@ func tick() -> void:
 	if bf == null or not DataManager.battle_run:
 		end_battle()
 		return
+	# 布阵完成前没有单位数据：快照会显示「全灭」，既不能发给模型，也不该开会话。
+	if DataManager.battle_units.empty():
+		return
+	# 兜底：有绕过 battle_over 的结束路径（如斧手强制退出单挑），tick 看到胜负已分就收尾。
+	var lost = bf.get("lostType")
+	if lost != null and int(lost) != 0:
+		end_battle()
+		return
 	if _actor_id < 0:
 		attach(bf)
 	if _local or _actor_id < 0:
@@ -503,6 +511,10 @@ func _fail(reason: String) -> void:
 	return
 
 func _fallback(reason: String) -> void:
+	# 回退后服务端会话已无意义：发一次 /end，避免僵尸会话占满 MAX_SESSIONS。
+	_close_session()
+	DataManager.unset_env(TACTIC_ACTOR_KEY)
+	DataManager.unset_env(TACTIC_NAME_KEY)
 	_local = true
 	_in_flight = false
 	_opening = false
@@ -515,8 +527,20 @@ func _fallback(reason: String) -> void:
 func _on_ended(_result: int, _code: int, _body: PoolByteArray) -> void:
 	return
 
+# 主动收掉服务端会话但不重置本地状态（_fallback 用；end_battle 会顺带 _reset）。
+func _close_session() -> void:
+	if _session_id == "":
+		return
+	if _http != null and not _http.is_pending():
+		var url = "{0}/{1}/end".format([_base(), _session_id])
+		_http.post(url, "{}", self, "_on_ended", REQUEST_TIMEOUT_SEC)
+	_session_id = ""
+	return
+
 func end_battle() -> void:
 	_closed = true
+	DataManager.unset_env(TACTIC_ACTOR_KEY)
+	DataManager.unset_env(TACTIC_NAME_KEY)
 	# 重复调用（tick 里 bf 为空会再次进来）不得取消首个 /end 请求。
 	if _session_id == "" and not _in_flight and not _opening:
 		_reset()

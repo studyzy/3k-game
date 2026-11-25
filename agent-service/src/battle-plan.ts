@@ -106,14 +106,16 @@ export function validateBattlePlan(
   }
 
   if (o.tactic !== undefined && o.tactic !== null && typeof o.tactic !== "string") {
-    rejected.push({ kind: "tactic", value: String(o.tactic), reason: "计策不是字符串" });
+    // value 会被客户端写入 last_plan.tactic 回喂，长度必须受 last_plan 的 40 字上限约束，
+    // 否则一条超长幻觉计策会让之后每一拍快照都 422、整场降级本地 AI。
+    rejected.push({ kind: "tactic", value: truncate(String(o.tactic), 40), reason: "计策不是字符串" });
   } else if (typeof o.tactic === "string" && o.tactic.trim() !== "") {
     const tactic = o.tactic.trim();
     const legal = snapshot.legal_tactics.find((t) => t.name === tactic);
     if (!legal) {
-      rejected.push({ kind: "tactic", value: tactic, reason: "不在可用计策中" });
+      rejected.push({ kind: "tactic", value: truncate(tactic, 40), reason: "不在可用计策中" });
     } else if (legal.cost > snapshot.controlled.tactic_point) {
-      rejected.push({ kind: "tactic", value: tactic, reason: "战术值不足" });
+      rejected.push({ kind: "tactic", value: truncate(tactic, 40), reason: "战术值不足" });
     } else {
       plan.tactic = tactic;
     }

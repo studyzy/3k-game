@@ -2,6 +2,7 @@
 extends Resource
 
 var order_calls = []
+var lostType = 0
 var _states = {"将": "待机", "骑": "待机", "弓": "待机", "步": "待机"}
 var _turn = 1
 

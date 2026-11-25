@@ -166,6 +166,7 @@ const MAX_BATTLE_KEY = 80;
 const MAX_SIDE_NAME = 80;
 const MAX_BUFF_NAME = 40;
 const MAX_UNITS = 8;
+const MAX_BUFFS = 8;
 const MAX_LEGAL_TACTICS = 8;
 const MAX_TACTIC_NAME = 20;
 const MAX_TACTIC_SUMMARY = 200;
@@ -224,12 +225,13 @@ function checkBattleSideV2(side: unknown, label: string): void {
     if (typeof side[k] !== "number") throw new ValidationError("bad_schema", label + "." + k + " must be a number");
   }
   if (!Array.isArray(side.buffs)) throw new ValidationError("bad_schema", label + ".buffs must be an array");
-  for (const b of side.buffs as unknown[]) {
-    if (!isObject(b) || typeof b.name !== "string" || typeof b.turns !== "number") {
-      throw new ValidationError("bad_schema", label + ".buffs entries need name and turns");
-    }
-    if (b.name.length > MAX_BUFF_NAME) throw new ValidationError("bad_schema", label + ".buffs[].name too long");
+  // buff 只用于提示词展示：超量/超长一律裁剪，不因展示数据拒绝整拍。
+  const buffs: { name: string; turns: number }[] = [];
+  for (const b of (side.buffs as unknown[]).slice(0, MAX_BUFFS)) {
+    if (!isObject(b) || typeof b.name !== "string" || typeof b.turns !== "number") continue;
+    buffs.push({ name: b.name.slice(0, MAX_BUFF_NAME), turns: b.turns });
   }
+  side.buffs = buffs;
   if (!Array.isArray(side.units)) throw new ValidationError("bad_schema", label + ".units must be an array");
   if (side.units.length > MAX_UNITS) throw new ValidationError("bad_schema", label + ".units too many entries");
   for (const u of side.units as unknown[]) checkBattleUnitV2(u, label + ".units[]");
@@ -257,9 +259,11 @@ function checkBattleLastPlan(lp: unknown): void {
   if (!Array.isArray(lp.orders_applied)) {
     throw new ValidationError("bad_schema", "last_plan.orders_applied must be an array");
   }
-  for (const u of lp.orders_applied as unknown[]) {
-    if (typeof u !== "string") throw new ValidationError("bad_schema", "last_plan.orders_applied entries must be strings");
+  const applied: string[] = [];
+  for (const u of (lp.orders_applied as unknown[]).slice(0, MAX_UNITS)) {
+    if (typeof u === "string") applied.push(u.slice(0, MAX_REJECT_UNIT));
   }
+  lp.orders_applied = applied;
   if (!Array.isArray(lp.orders_rejected)) {
     throw new ValidationError("bad_schema", "last_plan.orders_rejected must be an array");
   }
@@ -270,8 +274,12 @@ function checkBattleLastPlan(lp: unknown): void {
     rejected.push({ unit: r.unit.slice(0, MAX_REJECT_UNIT), reason: r.reason.slice(0, MAX_REJECT_TEXT) });
   }
   lp.orders_rejected = rejected;
-  if (lp.tactic !== null && (typeof lp.tactic !== "string" || lp.tactic.length > 40)) {
-    throw new ValidationError("bad_schema", "last_plan.tactic must be null or a short string");
+  if (lp.tactic !== null && typeof lp.tactic !== "string") {
+    throw new ValidationError("bad_schema", "last_plan.tactic must be null or a string");
+  }
+  if (typeof lp.tactic === "string") {
+    // 模型幻觉的计策名可能很长：裁剪而不是 422，否则客户端会把超长值继续回喂，整场卡死。
+    lp.tactic = Array.from(lp.tactic).slice(0, 40).join("");
   }
   if (typeof lp.tactic_status !== "string" || !BATTLE_TACTIC_STATUS.includes(lp.tactic_status)) {
     throw new ValidationError("bad_schema", "last_plan.tactic_status invalid");

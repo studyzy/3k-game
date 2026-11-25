@@ -74,6 +74,9 @@ func _ready():
 		bu._hp = int(s["hp"])
 		bu._shoot = int(s["shoot"])
 		DataManager.battle_units.append(bu)
+	if _scenario == "no_units":
+		# 布阵完成前 battle_units 为空：Agent 不应开会话、不应发快照。
+		DataManager.battle_units = []
 
 	if _scenario == "normalize":
 		# 引擎真实会给出包围/战术这类快照契约外的命令，这里固定一组越界值。
@@ -129,6 +132,11 @@ func _process(_delta):
 		return
 	if _scenario == "fallback_410" or _scenario == "fallback_422":
 		_track_fallback()
+		return
+	if _scenario == "no_units":
+		if OS.get_ticks_msec() - _started_ms >= 3000:
+			print("BATTLE_NO_OPEN=", _agent.get_session_id() == "")
+			_finish()
 		return
 	if _bf.order_calls.size() > 0 and not _printed_orders:
 		_printed_orders = true

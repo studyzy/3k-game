@@ -2,7 +2,7 @@
 
 对应设计文档：[docs/plans/2026-11-18-ai-agent-enemy-design.md](../docs/plans/2026-11-18-ai-agent-enemy-design.md)
 
-只接入**战争场景**（`bwdl/packed/sgz_script/war/`）：从内政发起攻击一座城市后进入的大战场，布阵完成后的逐武将移动 / 攻击 / 用计 / 撤退。内政、单挑、白兵战不接入；布阵保持规则实现。
+战争场景（`bwdl/packed/sgz_script/war/`）走**回合制会话**（见下）；白兵战（`battle/`）走**异步 tick**（见「白兵战（两军对垒，异步 tick）」）。内政、单挑不接入；布阵保持规则实现。
 
 ## 决策模型：服务端驱动的回合会话
 
@@ -44,6 +44,7 @@ Godot                             服务端
 - 模型一次输出 JSON 计划：`orders` 差分 + 至多一个 `tactic` + `memory`。
 - Godot 立即应用 `orders`；`tactic` 排队到 flow 空闲且步骤 4/5/6/7 时执行。
 - 没有工具、没有 `end_turn`；连续 3 拍失败回退本地规则 AI。
+- 暂停（暂停面板 / 对话框 / `view_model >= 0`）时降为 10 秒一拍；单拍服务端超时 20 秒。
 
 ## 服务地址配置
 

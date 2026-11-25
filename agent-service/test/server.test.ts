@@ -347,6 +347,26 @@ test("validateBattleSnapshot：完整 last_plan 通过，超长/畸形拒绝明�
   }
   assert.equal(snap.last_plan.reason.length, 200);
 
+  // 超长计策名不 422：客户端会原样回喂 last_plan，裁剪后仍在 body 上生效
+  const longTactic = "计".repeat(60);
+  const snap2: any = battleSnapshot({ last_plan: lastPlan({ tactic: longTactic }) });
+  const out2: any = validateBattleSnapshot(snap2);
+  assert.equal(out2.last_plan.tactic.length, 40);
+
+  // buffs / orders_applied 只用于展示：超量、超长一律裁剪
+  const snap3: any = battleSnapshot({
+    controlled: {
+      ...(battleSnapshot().controlled as any),
+      buffs: Array.from({ length: 20 }, () => ({ name: "状".repeat(60), turns: 2 })),
+    },
+    last_plan: lastPlan({ orders_applied: Array.from({ length: 20 }, () => "单".repeat(100)) }),
+  });
+  const out3: any = validateBattleSnapshot(snap3);
+  assert.equal(out3.controlled.buffs.length, 8);
+  assert.equal(out3.controlled.buffs[0].name.length, 40);
+  assert.equal(out3.last_plan.orders_applied.length, 8);
+  assert.equal(out3.last_plan.orders_applied[0].length, 80);
+
   // 真正错的形状仍然拒绝
   assert.throws(() => validateBattleSnapshot(battleSnapshot({ last_plan: lastPlan({ orders_rejected: "x" }) }) as any), /orders_rejected/);
   assert.throws(() => validateBattleSnapshot(battleSnapshot({ last_plan: lastPlan({ reason: 5 }) }) as any), /last_plan.reason/);

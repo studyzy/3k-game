@@ -159,10 +159,10 @@ function sleep(ms: number): Promise<void> {
 /** 假服务：open 200 + tick 恒为指定错误码，用于验证兜底有界。 */
 async function startFailingServer(tickCode: number): Promise<{
   url: string;
-  counts: { open: number; tick: number };
+  counts: { open: number; tick: number; end: number };
   close: () => Promise<void>;
 }> {
-  const counts = { open: 0, tick: 0 };
+  const counts = { open: 0, tick: 0, end: 0 };
   const server = http.createServer((req, res) => {
     const url = req.url ?? "";
     req.on("data", () => {});
@@ -172,6 +172,12 @@ async function startFailingServer(tickCode: number): Promise<{
         counts.open += 1;
         res.writeHead(200);
         res.end(JSON.stringify({ battle_session_id: "s-" + counts.open }));
+        return;
+      }
+      if (/^\/ai\/battle\/[^/]+\/end$/.test(url)) {
+        counts.end += 1;
+        res.writeHead(200);
+        res.end(JSON.stringify({ ok: true }));
         return;
       }
       if (/^\/ai\/battle\/[^/]+\/tick$/.test(url)) {
@@ -338,6 +344,18 @@ test("Godot 白兵战 v2 快照 / tick / 计策排队", { timeout: 180000 }, asy
       }
     });
 
+    await t.test("no_units：布阵完成前不开会话", async () => {
+      const h = startHarness(baseUrl, "no_units");
+      try {
+        assert.equal((await h.waitFor("BATTLE_NO_OPEN", 20000)).trim(), "True", "布阵前不应开会话：\n" + h.output().slice(-1500));
+        assert.ok(!h.output().includes("BATTLE_OPEN"), "布阵前不应打印 BATTLE_OPEN");
+        await h.exit(5000);
+        assertNoScriptError(h);
+      } finally {
+        h.kill();
+      }
+    });
+
     await t.test("queue_ttl：用计排队超时被拒绝", async () => {
       const h = startHarness(baseUrl, "queue_ttl");
       try {
@@ -389,6 +407,7 @@ test("Godot 白兵战 v2 快照 / tick / 计策排队", { timeout: 180000 }, asy
       assert.equal(fake.counts.open, 1, "422 不需要重开会话");
       assert.equal(fake.counts.tick, 3, "3 次失败后回退");
       await h.exit(5000);
+      assert.equal(fake.counts.end, 1, "回退本地前应补发一次 /end，避免僵尸会话");
       assertNoScriptError(h);
     } finally {
       cleanup(h);

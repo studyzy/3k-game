@@ -84,8 +84,8 @@
 
 错误：
 
-- `409 tick_in_progress`：同一会话已有一拍在跑（客户端串行，理论上不会发生；服务端防御）。客户端跳过本拍。
-- `410 session_ended`：会话已结束或 TTL 过期。客户端重开会话一次；仍失败则回退本地 AI。
+- `409 tick_in_progress`：同一会话已有一拍在跑（客户端串行，理论上不会发生；服务端防御）。客户端计一次失败，连续 3 次回退。
+- `410 session_ended`：会话已结束或 TTL 过期。客户端重开会话，累计 3 次重开仍失败则回退本地 AI。
 - `422 invalid_snapshot`：版本/兵种/字段不合法，附 `detail`。客户端记一次失败，连续 3 次回退。
 - HTTP 200 但计划解析失败：不算失败，返回空计划；客户端照常进入下一拍。
 
@@ -201,7 +201,7 @@ OFF(0) → OPENING(1) → ACTIVE(2) → FALLBACK(3)
 - `_opening`、`_in_flight`、`_next_tick_at`、`_errors`、`_tactic_queue`、`_tactic_busy`
 - `_started_ms`、`_last_plan_at`
 
-`_init()` 必须幂等：`_actor_id >= 0` 时只补默认值，不清会话、在飞请求、队列。原因见「现状与约束」的 `Global.load_script` 行为。
+`_init()` 不保证幂等：`Global.load_script` 命中缓存会先重放成员初始化再调 `_init()`（Godot 3 实测），会话/在飞请求/队列都会被清空。因此 `tick()` 发现 `_actor_id < 0` 时要重新 `attach()` 并按需重开会话；同一场战斗内不要重复 `load_script`。
 
 公开方法：
 
@@ -304,7 +304,7 @@ OFF(0) → OPENING(1) → ACTIVE(2) → FALLBACK(3)
   4. 取最后一条 assistant 文本 → 剥代码块 → `JSON.parse` → 校验 → 存 `lastPlan`；`memory` 非空时覆盖，空字符串保留上一拍笔记，超 120 字截断。
   5. 追加 trace（user / assistant / tick 元数据），`session.tick++`、`lastActivityAt = now`，返回计划。
 - `endBattle(session)`：幂等；`traceStore.finish`，标记 `ended`。TTL 清理时同样 finish，状态记 `expired`。
-- 失败：JSON 解析失败返回空计划 + `error:"invalid_json"`；不重试，下一拍模型会在对话里看到错误提示。
+- 失败：JSON 解析失败返回空计划（非法条目进 `rejected`，不抛错）；不重试，下一拍模型会在对话里看到错误提示。
 
 Agent 构造：
 

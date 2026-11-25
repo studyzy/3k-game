@@ -95,6 +95,15 @@ test("tactic 不是字符串被拒，空字符串仍视为 null", () => {
   assert.equal(r.rejected[0].value, "5");
 });
 
+test("超长幻觉计策名在 rejected 里截到 40 字（避免回喂 last_plan 时整场 422）", () => {
+  const long = "计".repeat(60);
+  const r = validateBattlePlan({ orders: {}, tactic: long }, snapshot());
+  assert.equal(r.plan.tactic, null);
+  assert.equal(r.rejected.length, 1);
+  assert.equal(r.rejected[0].kind, "tactic");
+  assert.equal(r.rejected[0].value.length, 40);
+});
+
 test("计策合法但战术值不足：丢弃 tactic 并给出战术值不足原因", () => {
   const snap = snapshot({
     controlled: { ...snapshot().controlled, tactic_point: 3 },
