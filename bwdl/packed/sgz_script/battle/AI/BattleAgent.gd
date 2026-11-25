@@ -214,7 +214,11 @@ func _on_tick(result: int, code: int, body: PoolByteArray) -> void:
 		_fail("tick_transport")
 		return
 	if code == 409:
+		# 串行客户端不该撞上（上一拍未结束）；持续 409 说明会话卡死，计入错误走 3 次兜底。
+		_errors += 1
 		_next_tick_at = OS.get_ticks_msec() + _interval()
+		if _errors >= MAX_ERRORS:
+			_fallback("tick_conflict")
 		return
 	if code == 410:
 		_session_id = ""
@@ -354,14 +358,19 @@ func _reject_tactic(tactic: String, reason: String) -> void:
 	return
 
 func _try_execute_tactic(bf) -> void:
-	if _tactic_queue == null:
-		return
+	# 验算块必须在排队守卫之前：施计后队列已清空，但通道仍被 _tactic_busy 占着，
+	# 放在守卫之后会让状态永远停在 pending。
 	if _tactic_busy:
 		var now = OS.get_ticks_msec()
 		var elapsed = now - _tactic_sent_at
+		# 若期间已换了新计划，别拿旧施计的凭据去改新计划的状态。
+		var plan_tactic = ""
+		if _last_plan != null and _last_plan.get("tactic") != null:
+			plan_tactic = str(_last_plan.get("tactic"))
+		var owns_plan = _tactic_sent_name != "" and plan_tactic == _tactic_sent_name
 		if elapsed > 10000:
 			# flow 卡住：强制解锁，不能一直占着用计通道。
-			if _last_plan != null:
+			if owns_plan:
 				_last_plan["tactic_status"] = "rejected"
 				_last_plan["reason"] = "用计超时"
 			_tactic_busy = false
@@ -370,11 +379,7 @@ func _try_execute_tactic(bf) -> void:
 				and not FlowManager.has_task() \
 				and int(DataManager.get_env_int(CURRENT_STEP_KEY, 0)) in [2, 4, 5, 6]:
 			# 战术流程已走完：核对战术值/状态是否真的变了，再解锁。
-			# 若期间已换了新计划，别拿旧施计的凭据去改新计划的状态。
-			var plan_tactic = ""
-			if _last_plan != null and _last_plan.get("tactic") != null:
-				plan_tactic = str(_last_plan.get("tactic"))
-			if _tactic_sent_name != "" and plan_tactic == _tactic_sent_name:
+			if owns_plan:
 				var cast = false
 				var wa_now = DataManager.get_war_actor(_actor_id)
 				if wa_now != null:
@@ -387,6 +392,8 @@ func _try_execute_tactic(bf) -> void:
 				_last_plan["reason"] = "" if cast else "用计未生效"
 			_tactic_busy = false
 			_tactic_sent_name = ""
+		return
+	if _tactic_queue == null:
 		return
 	if OS.get_ticks_msec() > int(_tactic_queue["expires_at"]):
 		var expired = str(_tactic_queue["tactic"])
