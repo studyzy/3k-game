@@ -42,10 +42,9 @@ var _tactic_buff_before := 0
 var _request_kind := ""
 var _request_started_at := 0
 
+# 注意：Global.load_script 命中缓存会重放成员初始化并再次调用 _init()，
+# 所以这里保不住会话；tick() 发现 _actor_id < 0 会自动 attach 当前战斗并重新开会话。
 func _init() -> void:
-	# Global.load_script 命中缓存会再次调用 _init()；已有会话时保持原状。
-	if _actor_id >= 0:
-		return
 	_reset()
 	return
 

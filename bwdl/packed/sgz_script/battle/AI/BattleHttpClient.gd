@@ -7,14 +7,6 @@ var _owner: Object = null
 var _owner_method: String = ""
 var _pending: bool = false
 
-func _init() -> void:
-	# Global.load_script 命中缓存会再次调用 _init()；有请求在飞时保持原状。
-	if _pending:
-		return
-	_owner = null
-	_owner_method = ""
-	return
-
 func is_pending() -> bool:
 	return _pending
 

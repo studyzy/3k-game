@@ -297,10 +297,9 @@ test("Godot 白兵战 v2 快照 / tick / 计策排队", { timeout: 180000 }, asy
       const h = startHarness(baseUrl, "reinit");
       try {
         assert.equal((await h.waitFor("BATTLE_REINIT_SAME", 20000)).trim(), "True", "缓存命中应是同一实例：\n" + h.output().slice(-1500));
-        // 实测（Godot 3.6.3）：外部再调一次 _init() 会先把成员重新初始化 —— attach 后的
-        // _actor_id=12 在重入后变回 -1，BattleAgent._init 里「已有会话就保持原状」的守卫
-        // 因此进不去。这是生产脚本的既有缺陷，本任务只改 harness，故这里钉住实测值；
-        // 守卫哪天真正生效（需要生产侧改法），这里应改为 12。
+        // Godot 3.6.3：外部再调一次 _init() 会先重放成员初始化器，attach 后的 _actor_id=12
+        // 在重入后变回 -1。BattleAgent 已按此语义去掉失效守卫：tick() 发现 _actor_id<0
+        // 会自动 attach 当前战斗并重新开会话。这里钉住实测值，防止有人误以为会话能跨 _init 保活。
         assert.equal((await h.waitFor("BATTLE_REINIT_ACTOR", 20000)).trim(), "-1", "Godot 3 重放成员初始化器，attach 结果被清掉");
         await h.exit(5000);
         assertNoScriptError(h);
