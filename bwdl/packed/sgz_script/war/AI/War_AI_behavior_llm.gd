@@ -258,11 +258,11 @@ func _answer_asks(asks, sid: String) -> bool:
 			continue
 		if str(q.get("kind", "estimate_stratagem")) != "estimate_stratagem":
 			continue
-			# 只回传「中计概率 + 中计后的结果」这段文字，逐目标的原始明细模型读不懂也用不上
-			var summary = _estimate_summary(
-				int(q.get("actor", - 1)), int(q.get("target", - 1)), str(q.get("skill", ""))
-			)
-			answers.append({"id": int(q.get("id", 0)), "data": {"ok": summary != "预估失败", "summary": summary}})
+		# 只回传「中计概率 + 中计后的结果」这段文字，逐目标的原始明细模型读不懂也用不上
+		var summary = _estimate_summary(
+			int(q.get("actor", - 1)), int(q.get("target", - 1)), str(q.get("skill", ""))
+		)
+		answers.append({"id": int(q.get("id", 0)), "data": {"ok": summary != "预估失败", "summary": summary}})
 	if answers.empty():
 		DataManager.ai_debug_log("ASK abort: no answers built", true)
 		return false

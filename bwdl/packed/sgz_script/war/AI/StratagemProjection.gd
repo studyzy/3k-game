@@ -113,7 +113,7 @@ func _summary(res: Dictionary, fromWA, targetWA) -> String:
 	return "，".join(parts)
 
 
-static func _summary_effect(res: Dictionary, fromWA, targetWA) -> String:
+func _summary_effect(res: Dictionary, fromWA, targetWA) -> String:
 	var officer = res.get("officer_impacts", {})
 	var items = []
 	items.append_array(_summary_soldier(officer.get("soldier", [])))
@@ -139,14 +139,14 @@ static func _summary_effect(res: Dictionary, fromWA, targetWA) -> String:
 	return "；".join(items)
 
 
-static func _who(id: int) -> String:
+func _who(id: int) -> String:
 	var wa = DataManager.get_war_actor(id)
 	if wa == null:
 		return "#%d" % [id]
 	return "%s#%d" % [wa.get_name(), id]
 
 
-static func _summary_soldier(rows: Array) -> Array:
+func _summary_soldier(rows: Array) -> Array:
 	var ret = []
 	for row in rows:
 		if int(row.get("damage", 0)) <= 0:
@@ -157,7 +157,7 @@ static func _summary_soldier(rows: Array) -> Array:
 	return ret
 
 
-static func _summary_hp(rows: Array) -> Array:
+func _summary_hp(rows: Array) -> Array:
 	var ret = []
 	for row in rows:
 		var text = "%s 伤体 %d（%d→%d）" % [
@@ -169,7 +169,7 @@ static func _summary_hp(rows: Array) -> Array:
 	return ret
 
 
-static func _summary_rice(rows: Array) -> Array:
+func _summary_rice(rows: Array) -> Array:
 	var ret = []
 	for row in rows:
 		if int(row.get("damage", 0)) <= 0:
@@ -178,7 +178,7 @@ static func _summary_rice(rows: Array) -> Array:
 	return ret
 
 
-static func _summary_heal(rows: Array) -> Array:
+func _summary_heal(rows: Array) -> Array:
 	var ret = []
 	for row in rows:
 		ret.append("%s 回复体力 %d（%d→%d）" % [
@@ -187,7 +187,7 @@ static func _summary_heal(rows: Array) -> Array:
 	return ret
 
 
-static func _summary_buff(rows: Array) -> Array:
+func _summary_buff(rows: Array) -> Array:
 	var ret = []
 	for row in rows:
 		var text = "%s 【%s】%d 回合" % [_who(int(row["id"])), str(row.get("buff", "")), int(row.get("turns", 0))]
@@ -204,7 +204,7 @@ static func _summary_buff(rows: Array) -> Array:
 	return ret
 
 
-static func _summary_special(rows: Array) -> Array:
+func _summary_special(rows: Array) -> Array:
 	var ret = []
 	for row in rows:
 		var eff = str(row.get("effect", ""))
@@ -231,7 +231,7 @@ static func _summary_special(rows: Array) -> Array:
 
 # ---------------- 可用性 ----------------
 
-static func _unavailable_reason(info, fromWA, targetWA) -> String:
+func _unavailable_reason(info, fromWA, targetWA) -> String:
 	if fromWA.disabled or not fromWA.has_position():
 		return "施术者当前无法行动"
 	if fromWA.get_buff_label_turn(["禁用计策"]) > 0:
@@ -276,7 +276,7 @@ static func _unavailable_reason(info, fromWA, targetWA) -> String:
 
 # ---------------- 命中后的结果 ----------------
 
-static func _target_impacts(se, info, fromWA, mainWA, mainTargetId: int) -> Dictionary:
+func _target_impacts(se, info, fromWA, mainWA, mainTargetId: int) -> Dictionary:
 	# 引擎的实际受害名单：主目标 + 连锁/范围波及（主目标排首位，与执行顺序一致）
 	var allTargets = info._get_extended_targets(fromWA, mainWA)
 	allTargets.erase(mainTargetId)
@@ -318,7 +318,7 @@ static func _target_impacts(se, info, fromWA, mainWA, mainTargetId: int) -> Dict
 	}
 
 
-static func _soldier_rows(info, fromWA, targets: PoolIntArray, formula: String, isStratagem: bool) -> Array:
+func _soldier_rows(info, fromWA, targets: PoolIntArray, formula: String, isStratagem: bool) -> Array:
 	var ret = []
 	# 引擎的兵力系数读的是「施术者当前兵力」（clStratagem.gd _impact_for_soldier_damage），
 	# 且每打掉一个目标就减少，后续目标的系数跟着变
@@ -360,7 +360,7 @@ static func _soldier_rows(info, fromWA, targets: PoolIntArray, formula: String, 
 	return ret
 
 
-static func _hp_rows(info, fromWA, targets: PoolIntArray, formula: String, isStratagem: bool) -> Array:
+func _hp_rows(info, fromWA, targets: PoolIntArray, formula: String, isStratagem: bool) -> Array:
 	var ret = []
 	var feature = info.get_feature()
 	for tid in targets:
@@ -386,7 +386,7 @@ static func _hp_rows(info, fromWA, targets: PoolIntArray, formula: String, isStr
 	return ret
 
 
-static func _rice_rows(fromWA, targets: PoolIntArray, formula: String) -> Array:
+func _rice_rows(fromWA, targets: PoolIntArray, formula: String) -> Array:
 	var ret = []
 	for tid in targets:
 		var targetWA = DataManager.get_war_actor(tid)
@@ -408,7 +408,7 @@ static func _rice_rows(fromWA, targets: PoolIntArray, formula: String) -> Array:
 	return ret
 
 
-static func _heal_rows(fromWA, targets: PoolIntArray, formula: String) -> Array:
+func _heal_rows(fromWA, targets: PoolIntArray, formula: String) -> Array:
 	var ret = []
 	for tid in targets:
 		var targetWA = DataManager.get_war_actor(tid)
@@ -432,7 +432,7 @@ static func _heal_rows(fromWA, targets: PoolIntArray, formula: String) -> Array:
 	return ret
 
 
-static func _buff_rows(info, fromWA, targets: PoolIntArray, impact: Dictionary) -> Array:
+func _buff_rows(info, fromWA, targets: PoolIntArray, impact: Dictionary) -> Array:
 	var ret = []
 	var buff = str(impact["name"])
 	var feature = info.get_feature()
@@ -468,7 +468,7 @@ static func _buff_rows(info, fromWA, targets: PoolIntArray, impact: Dictionary) 
 	return ret
 
 
-static func _special_rows(fromWA, targets: PoolIntArray, effect: String) -> Array:
+func _special_rows(fromWA, targets: PoolIntArray, effect: String) -> Array:
 	var ret = []
 	for tid in targets:
 		var targetWA = DataManager.get_war_actor(tid)
@@ -512,7 +512,7 @@ static func _special_rows(fromWA, targets: PoolIntArray, effect: String) -> Arra
 
 # ---------------- 范围地块影响（火原/树林后续燃烧、浇灭） ----------------
 
-static func _range_effects(info, se, pos: Vector2) -> Array:
+func _range_effects(info, se, pos: Vector2) -> Array:
 	var ret = []
 	var positions = se.get_affected_positions(pos)
 	var map = SceneManager.current_scene().war_map
@@ -549,7 +549,7 @@ static func _range_effects(info, se, pos: Vector2) -> Array:
 
 # ---------------- 公式求值 ----------------
 
-static func _terrain_of(actorId: int) -> String:
+func _terrain_of(actorId: int) -> String:
 	var wa = DataManager.get_war_actor(actorId)
 	if wa == null or not wa.has_position():
 		return ""
@@ -561,7 +561,7 @@ static func _terrain_of(actorId: int) -> String:
 # 属性替换、int()/min()/max() 的语义与引擎完全一致。
 # random 的参数本身可能是表达式（如 a.等级-1+(a.武+a.知)/10），
 # 所以先用引擎把参数算成数字，再取均值。
-static func _avg_formula(formula: String, aId: int, bId: int, dic: Dictionary) -> int:
+func _avg_formula(formula: String, aId: int, bId: int, dic: Dictionary) -> int:
 	var f = formula
 	var pos = f.find("random(")
 	while pos >= 0:
@@ -580,6 +580,10 @@ static func _avg_formula(formula: String, aId: int, bId: int, dic: Dictionary) -
 
 
 # 从 openPos（指向 random 后的 "("）起找到配对的 ")"
+# depth 是「当前仍在配对栈里的开括号数」：openPos 处就是第一个 "("，
+# 因此要在读到配对的 ")" 时先减到 0 再返回。若按「读到 0 即返回」的写法，
+# 会在第一个 ")" 处（depth 已为 1）减到 0 却不返回，继续吞到公式末尾的 ")"，
+# 把 random 参数截成 "9,13)/10+..." 导致整条公式解析失败（实测返回 0）。
 static func _match_paren(s: String, openPos: int) -> int:
 	var depth = 0
 	for k in range(openPos, s.length()):
@@ -587,7 +591,7 @@ static func _match_paren(s: String, openPos: int) -> int:
 		if c == "(":
 			depth += 1
 		elif c == ")":
+			depth -= 1
 			if depth == 0:
 				return k
-			depth -= 1
 	return - 1
