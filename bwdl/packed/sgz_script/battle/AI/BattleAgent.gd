@@ -18,6 +18,9 @@ var _tick := 0
 var _in_flight := false
 var _opening := false
 var _local := false
+# 本场已收尾：结束后引擎侧还会继续跑 _process（结算对话/切场景），
+# 此时不能再 attach + /open，否则会给已分胜负的战斗开第二个会话。
+var _closed := false
 var _errors := 0
 var _next_tick_at := 0
 var _started_ms := 0
@@ -81,6 +84,7 @@ func attach(bf) -> void:
 			continue
 		if wa.get_controlNo() < 0:
 			_actor_id = wa.actorId
+			_closed = false
 			_started_ms = OS.get_ticks_msec()
 			DataManager.ai_debug_log("B_ATTACH actor={0}".format([_actor_id]), true)
 			return
@@ -103,6 +107,8 @@ func is_busy() -> bool:
 	return _in_flight or _opening
 
 func tick() -> void:
+	if _closed:
+		return
 	var bf = DataManager.get_current_battle_fight()
 	if bf == null or not DataManager.battle_run:
 		end_battle()
@@ -486,6 +492,7 @@ func _on_ended(_result: int, _code: int, _body: PoolByteArray) -> void:
 	return
 
 func end_battle() -> void:
+	_closed = true
 	# 重复调用（tick 里 bf 为空会再次进来）不得取消首个 /end 请求。
 	if _session_id == "" and not _in_flight and not _opening:
 		_reset()
