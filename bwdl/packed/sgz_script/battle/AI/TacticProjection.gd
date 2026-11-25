@@ -41,6 +41,77 @@ func _init() -> void:
 	return
 
 
+# 无随机摘要：每拍快照专用。只读静态数据与非随机 getter，
+# 绝不调用 get_basic_attack_val / get_defence_val / Global.get_random / get_rate_result。
+func brief(actorId: int, tactic: String) -> Dictionary:
+	var ret = {
+		"available": false,
+		"reason": "",
+		"name": tactic,
+		"cost": 0,
+		"rate": 100,
+		"summary": "",
+	}
+	if _itactic == null:
+		ret["reason"] = "战术脚本 ITactic 未加载"
+		return ret
+	if not StaticManager.TACTICS.has(tactic):
+		ret["reason"] = "「{0}」不是白兵战战术".format([tactic])
+		return ret
+	var wa = DataManager.get_war_actor(actorId)
+	if wa == null:
+		ret["reason"] = "取不到施计武将 #{0}".format([actorId])
+		return ret
+	var cost = int(_itactic.get_tactic_cost(wa, tactic))
+	ret["cost"] = cost
+	if not wa.can_use_tactic():
+		ret["reason"] = str(DataManager.get_env_str("战斗.战术禁用原因"))
+		return ret
+	if wa.continuous_tactic_on(true):
+		ret["reason"] = "已有战术状态生效，连续战术期间不能再发战术"
+		return ret
+	if cost > int(wa.battle_tactic_point):
+		ret["reason"] = "战术值不足：需要 {0}，当前 {1}".format([cost, int(wa.battle_tactic_point)])
+		return ret
+	ret["available"] = true
+	var bf = DataManager.get_current_battle_fight()
+	var enemy = wa.get_battle_enemy_war_actor()
+	match tactic:
+		"咒缚":
+			var rate = int(_itactic.get_stop_tactic_rate(actorId))
+			var turns = int(TACTIC_TURNS["咒缚"]) + _actual_turns(enemy)
+			ret["rate"] = rate
+			ret["summary"] = "命中率 {0}%；敌主将定止 {1} 回合".format([rate, turns])
+		"挑衅":
+			if bf != null and bf.solo_disabled():
+				ret["available"] = false
+				ret["reason"] = "本场禁用单挑"
+				return ret
+			var rate = 100
+			if enemy != null:
+				rate = int(enemy.get_solo_accept_rate(wa))
+			ret["rate"] = rate
+			ret["summary"] = "接受率 {0}%；拒绝则敌士气 -4、胆 -10".format([rate])
+		"强弩":
+			var n = 0
+			for bu in _my_units(bf, wa):
+				if bu == null or bu.get_unit_type() == "将":
+					continue
+				if int(bu.get_shoot_distance()) > 0:
+					n += 1
+			ret["summary"] = "射程 +2、射箭必发；{0} 个弓兵受益".format([n])
+		"士气向上":
+			ret["summary"] = "全体攻击 +5~9、士兵防御 ×1.2"
+		"火矢":
+			ret["summary"] = "射箭攻击 +9~15、无视 1/3 防御"
+	return ret
+
+
+# 注意：estimate() 会经 _morale_impacts/_fire_arrow_impacts 调用
+# Battle_Unit.get_basic_attack_val()，其内部有 Global.get_random(5,9)（士气向上生效时）。
+# 因此 estimate/summary 只能用于诊断，**禁止**放在每拍快照路径（每 3s 一次）——
+# 否则会推进战斗随机数序列、改变战斗结果。快照用下面的 brief()。
+#
 # 入口：actorId 用 tactic 的预估。actorId < 0 时取 env「当前武将」（BattleAgent 施计同源）。
 func estimate(actorId: int, tactic: String) -> Dictionary:
 	if actorId < 0:

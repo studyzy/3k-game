@@ -135,13 +135,14 @@ func _legal_tactics(wa) -> Array:
 	if tp == null:
 		return ret
 	for name in StaticManager.TACTICS.keys():
-		var est = tp.estimate(wa.actorId, str(name))
-		if typeof(est) != TYPE_DICTIONARY or not est.get("available", false):
+		# 每拍路径必须无随机：brief() 不碰 get_basic_attack_val / Global.get_random。
+		var info = tp.brief(wa.actorId, str(name))
+		if typeof(info) != TYPE_DICTIONARY or not info.get("available", false):
 			continue
 		ret.append({
 			"name": str(name),
-			"cost": int(est.get("cost", 0)),
-			"rate": int(est.get("rate", 100)),
-			"summary": str(tp.summary(est)),
+			"cost": int(info.get("cost", 0)),
+			"rate": int(info.get("rate", 100)),
+			"summary": str(info.get("summary", "")),
 		})
 	return ret
