@@ -23,10 +23,13 @@ var _next_tick_at := 0
 var _started_ms := 0
 var _last_plan = null
 var _last_plan_at := 0
-var _memory := ""
+var _reopens := 0
 var _tactic_queue = null
 var _tactic_busy := false
 var _tactic_sent_at := 0
+var _tactic_sent_name := ""
+var _tactic_points_before := 0
+var _tactic_buff_before := 0
 var _request_kind := ""
 var _request_started_at := 0
 
@@ -49,10 +52,13 @@ func _reset() -> void:
 	_started_ms = 0
 	_last_plan = null
 	_last_plan_at = 0
-	_memory = ""
+	_reopens = 0
 	_tactic_queue = null
 	_tactic_busy = false
 	_tactic_sent_at = 0
+	_tactic_sent_name = ""
+	_tactic_points_before = 0
+	_tactic_buff_before = 0
 	_request_kind = ""
 	_request_started_at = 0
 	return
@@ -169,7 +175,7 @@ func _on_open(result: int, code: int, body: PoolByteArray) -> void:
 		_fail("open_bad_json")
 		return
 	_session_id = str(reply["battle_session_id"])
-	_errors = 0
+	# 不在这里清 _errors：410 → 重开 → 410 会被无限刷成零，永远到不了 fallback。
 	_next_tick_at = OS.get_ticks_msec()
 	DataManager.ai_debug_log("B_OPEN sid=" + _session_id, true)
 	DataManager.game_trace("[BattleAI] session " + _session_id)
@@ -212,8 +218,12 @@ func _on_tick(result: int, code: int, body: PoolByteArray) -> void:
 		return
 	if code == 410:
 		_session_id = ""
+		_reopens += 1
 		_errors += 1
 		_next_tick_at = OS.get_ticks_msec()
+		if _reopens > 2:
+			_fallback("session_reopen_limit")
+			return
 		if _errors >= MAX_ERRORS:
 			_fallback("session_ended")
 		return
@@ -225,10 +235,12 @@ func _on_tick(result: int, code: int, body: PoolByteArray) -> void:
 		_errors = 0
 		_next_tick_at = OS.get_ticks_msec() + _interval()
 		return
+	# timeout:true 是服务端等模型超时后返回的兜底计划，同样算一次模型失败。
 	if bool(reply.get("timeout", false)):
 		_errors += 1
 	else:
 		_errors = 0
+		_reopens = 0
 	_tick = int(reply.get("tick", _tick))
 	_apply_plan(reply["plan"], reply.get("rejected", []), _tick)
 	_next_tick_at = OS.get_ticks_msec() + _interval()
@@ -257,13 +269,19 @@ func _apply_plan(plan: Dictionary, rejected, plan_tick: int) -> void:
 		if bf.get_units_state(_actor_id, str(unit)) != order:
 			diff[unit] = order
 			applied.append(str(unit))
+	var server_tactic = null
 	if typeof(rejected) == TYPE_ARRAY:
 		for r in rejected:
-			if typeof(r) == TYPE_DICTIONARY:
-				local_rejected.append({
-					"unit": str(r.get("value", r.get("unit", ""))),
-					"reason": str(r.get("reason", "")),
-				})
+			if typeof(r) != TYPE_DICTIONARY:
+				continue
+			if str(r.get("kind", "")) == "tactic":
+				# 计策不是兵种命令，不能混进 orders_rejected。
+				server_tactic = r
+				continue
+			local_rejected.append({
+				"unit": str(r.get("value", r.get("unit", ""))),
+				"reason": str(r.get("reason", "")),
+			})
 	if not diff.empty():
 		bf.set_unit_state(_actor_id, diff)
 	_last_plan = {
@@ -281,9 +299,15 @@ func _apply_plan(plan: Dictionary, rejected, plan_tick: int) -> void:
 		tactic = str(plan.get("tactic", "")).strip_edges()
 	if tactic != "":
 		_queue_tactic(tactic, plan_tick)
-	var mem = plan.get("memory", "")
-	if typeof(mem) == TYPE_STRING and str(mem).strip_edges() != "":
-		_memory = str(mem).strip_edges().substr(0, 120)
+	elif server_tactic != null:
+		_last_plan["tactic"] = str(server_tactic.get("value", ""))
+		_last_plan["tactic_status"] = "rejected"
+		_last_plan["reason"] = str(server_tactic.get("reason", ""))
+	elif _tactic_queue != null:
+		# 本拍没给新计，让模型看到之前排队的计策仍在等待执行。
+		_last_plan["tactic"] = str(_tactic_queue["tactic"])
+		_last_plan["tactic_status"] = "pending"
+		_last_plan["reason"] = "排队中"
 	_last_plan_at = OS.get_ticks_msec()
 	DataManager.ai_debug_log("B_PLAN tick={0} orders={1} tactic={2}".format([
 		plan_tick, to_json(orders), tactic,
@@ -293,8 +317,12 @@ func _apply_plan(plan: Dictionary, rejected, plan_tick: int) -> void:
 func _queue_tactic(tactic: String, plan_tick: int) -> void:
 	_last_plan["tactic"] = tactic
 	if _tactic_queue != null:
-		_last_plan["tactic_status"] = "pending"
-		_last_plan["reason"] = "上一计策还在队列中"
+		if tactic == str(_tactic_queue["tactic"]):
+			_last_plan["tactic_status"] = "pending"
+			_last_plan["reason"] = "已在队列中"
+		else:
+			_last_plan["tactic_status"] = "rejected"
+			_last_plan["reason"] = "已有计策排队，本拍未入队"
 		return
 	var wa = DataManager.get_war_actor(_actor_id)
 	if wa == null:
@@ -332,17 +360,38 @@ func _try_execute_tactic(bf) -> void:
 		var now = OS.get_ticks_msec()
 		var elapsed = now - _tactic_sent_at
 		if elapsed > 10000:
+			# flow 卡住：强制解锁，不能一直占着用计通道。
+			if _last_plan != null:
+				_last_plan["tactic_status"] = "rejected"
+				_last_plan["reason"] = "用计超时"
 			_tactic_busy = false
+			_tactic_sent_name = ""
 		elif elapsed > 500 \
 				and not FlowManager.has_task() \
 				and int(DataManager.get_env_int(CURRENT_STEP_KEY, 0)) in [2, 4, 5, 6]:
-			# 战术流程已走完：及早解锁，否则下一计要白等满 10 秒。
+			# 战术流程已走完：核对战术值/状态是否真的变了，再解锁。
+			# 若期间已换了新计划，别拿旧施计的凭据去改新计划的状态。
+			var plan_tactic = ""
+			if _last_plan != null and _last_plan.get("tactic") != null:
+				plan_tactic = str(_last_plan.get("tactic"))
+			if _tactic_sent_name != "" and plan_tactic == _tactic_sent_name:
+				var cast = false
+				var wa_now = DataManager.get_war_actor(_actor_id)
+				if wa_now != null:
+					if int(wa_now.battle_tactic_point) < _tactic_points_before:
+						cast = true
+					elif _tactic_sent_name != "挑衅" \
+							and int(wa_now.get_buff(_tactic_sent_name)["回合数"]) > _tactic_buff_before:
+						cast = true
+				_last_plan["tactic_status"] = "applied" if cast else "rejected"
+				_last_plan["reason"] = "" if cast else "用计未生效"
 			_tactic_busy = false
+			_tactic_sent_name = ""
 		return
 	if OS.get_ticks_msec() > int(_tactic_queue["expires_at"]):
-		_last_plan["tactic_status"] = "rejected"
-		_last_plan["reason"] = "用计排队超时"
+		var expired = str(_tactic_queue["tactic"])
 		_tactic_queue = null
+		_reject_tactic(expired, "用计排队超时")
 		return
 	if FlowManager.has_task():
 		return
@@ -357,25 +406,43 @@ func _try_execute_tactic(bf) -> void:
 	if LoadControl.get_view_model() >= 0:
 		return
 	var tactic = str(_tactic_queue["tactic"])
+	_tactic_queue = null
 	var wa = DataManager.get_war_actor(_actor_id)
 	if wa == null:
-		_last_plan["tactic_status"] = "rejected"
-		_last_plan["reason"] = "取不到武将"
-		_tactic_queue = null
+		_reject_tactic(tactic, "取不到武将")
+		return
+	if not wa.can_use_tactic():
+		var why = str(DataManager.get_env_str("战斗.战术禁用原因")).strip_edges()
+		_reject_tactic(tactic, why if why != "" else "战术被禁用")
+		return
+	if tactic == "挑衅" and bf != null and bf.solo_disabled():
+		_reject_tactic(tactic, "本场禁用单挑")
 		return
 	if int(wa.get_buff(tactic)["回合数"]) > 0:
-		_last_plan["tactic_status"] = "rejected"
-		_last_plan["reason"] = "同名战术已生效"
-		_tactic_queue = null
+		_reject_tactic(tactic, "同名战术已生效")
 		return
+	var iTactic = Global.load_script(DataManager.mod_path + "sgz_script/battle/ITactic.gd")
+	var cost = int(iTactic.get_tactic_cost(wa, tactic))
+	if cost > int(wa.battle_tactic_point):
+		_reject_tactic(tactic, "战术值不足")
+		return
+	_tactic_points_before = int(wa.battle_tactic_point)
+	_tactic_buff_before = int(wa.get_buff(tactic)["回合数"])
 	DataManager.set_env("当前武将", _actor_id)
 	DataManager.set_env("值", tactic)
-	_tactic_busy = true
+	_tactic_sent_name = tactic
 	_tactic_sent_at = OS.get_ticks_msec()
-	_tactic_queue = null
-	_last_plan["tactic_status"] = "applied"
+	_tactic_busy = true
+	var added = FlowManager.add_flow("before_AI_tactic")
+	if not added:
+		_tactic_busy = false
+		_tactic_sent_at = 0
+		_tactic_sent_name = ""
+		_last_plan["tactic_status"] = "rejected"
+		_last_plan["reason"] = "flow 忙，未执行"
+		return
+	_last_plan["tactic_status"] = "pending"
 	_last_plan["reason"] = ""
-	FlowManager.add_flow("before_AI_tactic")
 	DataManager.ai_debug_log("B_TACTIC " + tactic, true)
 	return
 
@@ -417,7 +484,6 @@ func end_battle() -> void:
 		_reset()
 		return
 	if _http != null:
-		_local = true
 		_http.cancel()
 	if _session_id != "" and _http != null:
 		var url = "{0}/{1}/end".format([_base(), _session_id])
