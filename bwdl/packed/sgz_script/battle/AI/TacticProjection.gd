@@ -79,7 +79,7 @@ func brief(actorId: int, tactic: String) -> Dictionary:
 	match tactic:
 		"咒缚":
 			var rate = int(_itactic.get_stop_tactic_rate(actorId))
-			var turns = int(TACTIC_TURNS["咒缚"]) + _actual_turns(enemy)
+			var turns = int(TACTIC_TURNS["咒缚"]) + _actual_turns(wa)
 			ret["rate"] = rate
 			ret["summary"] = "命中率 {0}%；敌主将定止 {1} 回合".format([rate, turns])
 		"挑衅":
@@ -99,11 +99,14 @@ func brief(actorId: int, tactic: String) -> Dictionary:
 					continue
 				if int(bu.get_shoot_distance()) > 0:
 					n += 1
-			ret["summary"] = "射程 +2、射箭必发；{0} 个弓兵受益".format([n])
+			var turns = int(TACTIC_TURNS["强弩"]) + _actual_turns(wa)
+			ret["summary"] = "射程 +2、射箭必发；{0} 个弓兵受益；{1} 回合".format([n, turns])
 		"士气向上":
-			ret["summary"] = "全体攻击 +5~9、士兵防御 ×1.2"
+			var turns = int(TACTIC_TURNS["士气向上"]) + _actual_turns(wa)
+			ret["summary"] = "全体攻击 +5~9、士兵防御 ×1.2；{0} 回合".format([turns])
 		"火矢":
-			ret["summary"] = "射箭攻击 +9~15、无视 1/3 防御"
+			var turns = int(TACTIC_TURNS["火矢"]) + _actual_turns(wa)
+			ret["summary"] = "射箭攻击 +9~15、无视 1/3 防御；{0} 回合".format([turns])
 	return ret
 
 
