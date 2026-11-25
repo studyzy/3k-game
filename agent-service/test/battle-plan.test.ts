@@ -43,12 +43,23 @@ test("extractJson 支持纯 JSON、代码围栏、前后散文与字符串里的
   assert.throws(() => extractJson("not json"));
 });
 
-test("合法计划：orders 差分 + 一个可用计策 + memory 截断", () => {
+test("extractJson 跳过非 JSON 围栏，取后面 json 围栏里的对象", () => {
+  const text = "```text\nhello }\n```\n```json\n{\"a\":1}\n```\n";
+  assert.deepEqual(extractJson(text), { a: 1 });
+});
+
+test("合法计划：orders 差分 + 一个可用计策 + 按码点截断 memory/reasoning", () => {
   const r = validateBattlePlan({ orders: { 弓: "待机" }, tactic: "强弩", memory: "x".repeat(200) }, snapshot());
   assert.deepEqual(r.plan.orders, { 弓: "待机" });
   assert.equal(r.plan.tactic, "强弩");
   assert.equal(r.plan.memory?.length, 120);
   assert.equal(r.rejected.length, 0);
+
+  const emoji = validateBattlePlan({ memory: "😀".repeat(200), reasoning: "🚩".repeat(250) }, snapshot());
+  assert.equal(Array.from(emoji.plan.memory ?? "").length, 120);
+  assert.equal(emoji.plan.memory, "😀".repeat(120));
+  assert.equal(Array.from(emoji.plan.reasoning ?? "").length, 200);
+  assert.equal(emoji.plan.reasoning, "🚩".repeat(200));
 });
 
 test("非法兵种、已灭兵种、非法命令、非法计策、战术值不足全部被拒", () => {
@@ -63,7 +74,35 @@ test("非法兵种、已灭兵种、非法命令、非法计策、战术值不�
   assert.deepEqual(r.plan, emptyPlan());
 });
 
-test("空字符串 tactic 视为 null；非对象计划返回空计划", () => {
+test("空字符串 tactic 视为 null；非对象计划与非法 orders 归入 plan 类拒绝", () => {
   assert.equal(validateBattlePlan({ orders: {}, tactic: "" }, snapshot()).plan.tactic, null);
-  assert.deepEqual(validateBattlePlan("x", snapshot()).plan, emptyPlan());
+
+  const nonObject = validateBattlePlan("x", snapshot());
+  assert.deepEqual(nonObject.plan, emptyPlan());
+  assert.equal(nonObject.rejected[0].kind, "plan");
+  assert.match(nonObject.rejected[0].reason, /不是 JSON 对象/);
+
+  const badOrders = validateBattlePlan({ orders: [1, 2] }, snapshot());
+  assert.deepEqual(badOrders.plan, emptyPlan());
+  assert.equal(badOrders.rejected[0].kind, "plan");
+  assert.match(badOrders.rejected[0].reason, /orders 不是对象/);
+});
+
+test("tactic 不是字符串被拒，空字符串仍视为 null", () => {
+  const r = validateBattlePlan({ tactic: 5 }, snapshot());
+  assert.equal(r.plan.tactic, null);
+  assert.deepEqual(r.rejected, [{ kind: "tactic", value: "5", reason: "计策不是字符串" }]);
+  assert.equal(r.rejected[0].value, "5");
+});
+
+test("计策合法但战术值不足：丢弃 tactic 并给出战术值不足原因", () => {
+  const snap = snapshot({
+    controlled: { ...snapshot().controlled, tactic_point: 3 },
+    legal_tactics: [{ name: "强弩", cost: 7, rate: 100, summary: "x" }],
+  });
+  const r = validateBattlePlan({ orders: {}, tactic: "强弩" }, snap);
+  assert.equal(r.plan.tactic, null);
+  assert.equal(r.rejected.length, 1);
+  assert.equal(r.rejected[0].kind, "tactic");
+  assert.ok(r.rejected[0].reason.includes("战术值不足"), r.rejected[0].reason);
 });

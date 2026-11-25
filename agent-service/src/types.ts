@@ -267,7 +267,7 @@ export interface BattlePlan {
 }
 
 export interface BattleValidationRejected {
-  kind: "order" | "tactic";
+  kind: "order" | "tactic" | "plan";
   value: string;
   reason: string;
 }
