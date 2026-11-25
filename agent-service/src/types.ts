@@ -292,4 +292,6 @@ export interface BattleTickResult {
   latency_ms: number;
   /** 服务端模型调用超时：客户端应计一次失败。 */
   timeout?: boolean;
+  /** 本拍实际消耗的模型 token（模型未调用时为 0）。 */
+  usage?: { tokens: number };
 }

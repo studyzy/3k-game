@@ -109,3 +109,56 @@ test("对话裁剪：第 8 拍仍不超过 13 条消息", async () => {
   assert.equal(s.trace?.events.some((e) => e.type === "user"), true);
   assert.equal(s.trace?.events.some((e) => e.type === "assistant"), true);
 });
+
+test("provider 报错：tick 抛 502 llm_error，而不是当成成功", async () => {
+  const model = scriptedModel(() => text('{"orders":{},"tactic":null}'), { throwOnCall: 0 });
+  const s = startBattle(openReq, { mode: "pi", config: testConfig, runtime: model.runtime });
+  await assert.rejects(
+    () => tickBattle(s, snapshot(), { mode: "pi", config: testConfig, runtime: model.runtime }),
+    (err: any) => err.status === 502 && err.code === "llm_error",
+  );
+  assert.equal(s.inFlight, false, "抛错后必须释放 tick 锁");
+});
+
+test("memory 跨拍回喂：第 2 拍能看到第 1 拍的战斗笔记", async () => {
+  const model = scriptedModel((ctx) => text(
+    ctx.callIndex === 0
+      ? '{"orders":{},"tactic":null,"memory":"压弓","reasoning":"先压住弓兵"}'
+      : '{"orders":{},"tactic":null}',
+  ));
+  const s = startBattle(openReq, { mode: "pi", config: testConfig, runtime: model.runtime });
+  const r1 = await tickBattle(s, snapshot(), { mode: "pi", config: testConfig, runtime: model.runtime });
+  assert.equal(r1.plan.memory, "压弓");
+  await tickBattle(s, snapshot({ tick: 2 }), { mode: "pi", config: testConfig, runtime: model.runtime });
+  assert.ok(model.requests[1].userMessage.includes("你的战斗笔记：压弓"));
+});
+
+test("空计划：orders 为空对象且不产生 rejected", async () => {
+  const model = scriptedModel(() => text('{"orders":{},"tactic":null}'));
+  const s = startBattle(openReq, { mode: "pi", config: testConfig, runtime: model.runtime });
+  const r = await tickBattle(s, snapshot(), { mode: "pi", config: testConfig, runtime: model.runtime });
+  assert.deepEqual(r.plan.orders, {});
+  assert.equal(r.rejected.length, 0);
+});
+
+test("裁剪后的对话：system 打头，第一条非 system 是 user", async () => {
+  const model = scriptedModel(() => text('{"orders":{},"tactic":null}'));
+  const s = startBattle(openReq, { mode: "pi", config: testConfig, runtime: model.runtime });
+  for (let i = 0; i < 8; i++) {
+    await tickBattle(s, snapshot({ tick: i + 1 }), { mode: "pi", config: testConfig, runtime: model.runtime });
+  }
+  const messages = model.requests[7].messages;
+  assert.ok(messages.length <= 13, "总长度不超过 13");
+  assert.equal(messages[0].role, "system");
+  const firstOther = messages.find((m) => m.role !== "system");
+  assert.equal(firstOther?.role, "user", "第一条非 system 必须是 user，不能是孤儿 assistant");
+});
+
+test("usage：pi 模式每拍返回本拍 token 消耗", async () => {
+  const model = scriptedModel(() => text('{"orders":{},"tactic":null}'));
+  const s = startBattle(openReq, { mode: "pi", config: testConfig, runtime: model.runtime });
+  const r = await tickBattle(s, snapshot(), { mode: "pi", config: testConfig, runtime: model.runtime });
+  assert.ok(r.usage, "必须带 usage");
+  assert.ok(r.usage.tokens > 0, "真实调用过模型就必须有 token 消耗");
+});
+

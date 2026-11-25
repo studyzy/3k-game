@@ -14,7 +14,12 @@ import { battleStore, type BattleSession } from "./battle-session.ts";
 import { emptyPlan, extractJson, validateBattlePlan } from "./battle-plan.ts";
 
 const TICK_TIMEOUT_MS = 20_000;
+// abort 之后最多再等这么久让 agent 自己停下来；超时说明底层 provider 不响应 abort，
+// 这一拍就放弃（会话标记 stuck），否则 waitForIdle() 会永远挂住。
+const ABORT_SETTLE_MS = 2_000;
 const MAX_MESSAGES = 13;
+// 白兵战每拍只是一份很小的 JSON 计划，600 token 足够；防止模型长篇大论拖慢 3 秒节拍。
+const BATTLE_MAX_TOKENS = 600;
 
 export const BATTLE_SYSTEM_PROMPT = [
   "你是三国策略游戏「霸王的大陆」白兵战（两军对阵）的我方指挥官。",
@@ -25,6 +30,7 @@ export const BATTLE_SYSTEM_PROMPT = [
   "- orders 是差分：只写要改的兵种；当前命令已经合适就不要写；都不想改就返回 {}。",
   "- 命令：前进（进攻）、待机（原地防守）、后退（撤退）。",
   "- tactic：每拍最多一个，必须是 legal_tactics 里的名字；不用就 null。",
+  "- tactic_status=pending 表示上一拍计策已入队、还没到安全点执行；看到 pending 不要重复下同一个计策。",
   "- memory：≤120 字，下一拍会原样回喂给你；写接下来 1-2 拍的意图。",
   "- 不要输出 end_turn，不要输出 JSON 以外的文字。",
   "",
@@ -35,7 +41,7 @@ export const BATTLE_SYSTEM_PROMPT = [
   "",
   "## 伤害与 C 值",
   "- 最终伤害 = 基础攻击 × 倍率 × C/100 − 免伤。C 只由攻击者体力决定：将 C=体力×2；士兵按兵力：<1500→20，<3500→40，<6000→50，<8000→70，<9000→85，<10000→95，≥10000→100。",
-  "- 士兵兵力 <3500 时伤害只有 40%，残兵不要主动进攻。",
+  "- 兵力 <3500 → C≤40，伤害只有 40%，残兵不要主动进攻。",
   "- 近身倍率：将/骑/步 1.0，象 2.2，弓 0.5；弓远射 1.0，投掷默认 0.5。武将打武将伤害 1~12，打士兵最少 1。",
   "",
   "## 射程",
@@ -102,15 +108,49 @@ export function startBattle(req: BattleOpenRequest, opts: BattleOptions): Battle
   return session;
 }
 
-function trimMessages(messages: any[], keep: number): any[] {
-  if (messages.length <= keep) return messages;
-  let systemEnd = -1;
-  for (let i = 0; i < messages.length; i++) {
-    if (messages[i]?.role === "system") systemEnd = i;
+/** assistant 消息的纯文本；content 可能是字符串，也可能是 [{type:"text",text}] 块数组。 */
+function assistantText(m: any): string {
+  const content = m?.content;
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    return content.map((c: any) => {
+      if (typeof c === "string") return c;
+      if (c?.type === "text") return String(c.text ?? "");
+      return "";
+    }).join("");
   }
-  const head = systemEnd >= 0 ? messages.slice(0, systemEnd + 1) : [];
-  const tailKeep = Math.max(1, keep - head.length);
-  return [...head, ...messages.slice(-tailKeep)];
+  return "";
+}
+
+/** provider 报错或没有正文的 assistant 轮不能回放，否则下一拍必然 400，且会永久卡住。 */
+function unusableAssistant(m: any): boolean {
+  if (m?.role !== "assistant") return false;
+  if (m.stopReason === "error") return true;
+  const content = m.content;
+  if (content === undefined || content === null) return true;
+  if (typeof content === "string") return content.trim() === "";
+  if (Array.isArray(content)) {
+    if (content.length === 0) return true;
+    return content.every((c: any) =>
+      (typeof c === "string" && c.trim() === "") ||
+      (c?.type === "text" && String(c.text ?? "").trim() === ""),
+    );
+  }
+  return false;
+}
+
+/**
+ * 裁剪对话：保留 system，丢掉失败的 assistant 轮，取最近 keep 条，再从第一条 user 开始。
+ * 如果尾部以 assistant 开头，它就是没有对应提问的「孤儿回答」，必须一并丢掉。
+ */
+function trimMessages(messages: any[], keep: number): any[] {
+  const systems = messages.filter((m) => m?.role === "system");
+  const usable = messages.filter((m) => m?.role !== "system" && !unusableAssistant(m));
+  const budget = Math.max(0, keep - systems.length);
+  const tail = budget > 0 ? usable.slice(-budget) : [];
+  let start = 0;
+  while (start < tail.length && tail[start]?.role !== "user") start++;
+  return [...systems, ...tail.slice(start)];
 }
 
 function ensureAgent(session: BattleSession, opts: BattleOptions): Agent | null {
@@ -149,7 +189,7 @@ function realRuntime(
       apiKey: key,
       providerId: config.llmProviderId,
       contextWindow: config.llmContextWindow,
-      maxTokens: config.llmMaxTokens,
+      maxTokens: Math.min(config.llmMaxTokens, BATTLE_MAX_TOKENS),
     });
   }
   const models = builtinModels();
@@ -162,9 +202,25 @@ function realRuntime(
   return { model, streamFn: models.streamSimple.bind(models), getApiKey: keyFor, modelId: model.id };
 }
 
+/** 成功返回 true；abort 后 agent 在 ms 内仍未停下则返回 false。 */
+async function waitIdleWithin(agent: Agent, ms: number): Promise<boolean> {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const late = new Promise<boolean>((resolve) => {
+    timer = setTimeout(() => resolve(false), ms);
+  });
+  try {
+    return await Promise.race([
+      agent.waitForIdle().then(() => true, () => true),
+      late,
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 async function promptWithTimeout(
   agent: Agent, message: string, timeoutMs: number,
-): Promise<{ kind: "done" } | { kind: "timeout" }> {
+): Promise<{ kind: "done" } | { kind: "timeout"; stuck: boolean }> {
   let aborted = false;
   let timer: ReturnType<typeof setTimeout> | null = null;
   const timeout = new Promise<{ kind: "timeout" }>((resolve) => {
@@ -183,31 +239,30 @@ async function promptWithTimeout(
     });
   try {
     const result = await Promise.race([done, timeout]);
-    if (result.kind === "timeout") await agent.waitForIdle().catch(() => undefined);
+    if (result.kind === "timeout") {
+      // 有的 provider 不响应 abort；等不到 agent 空闲就判定 stuck，绝不无限等待。
+      const idle = await waitIdleWithin(agent, ABORT_SETTLE_MS);
+      return { kind: "timeout", stuck: !idle };
+    }
     return result;
   } finally {
     if (timer) clearTimeout(timer);
   }
 }
 
-function lastAssistantText(agent: Agent): string {
+function lastAssistantMessage(agent: Agent): any | null {
   const messages: any[] = (agent.state.messages ?? []) as any[];
   for (let i = messages.length - 1; i >= 0; i--) {
-    const m = messages[i];
-    if (m?.role !== "assistant") continue;
-    const content = m.content;
-    if (typeof content === "string") return content;
-    if (Array.isArray(content)) {
-      return content.map((c: any) => {
-        if (typeof c === "string") return c;
-        if (c?.type === "text") return String(c.text ?? "");
-        return "";
-      }).join("");
-    }
+    if (messages[i]?.role === "assistant") return messages[i];
   }
-  return "";
+  return null;
 }
 
+function lastAssistantText(agent: Agent): string {
+  return assistantText(lastAssistantMessage(agent));
+}
+
+// stub 仅用于测试：挑第一个合法计策以覆盖客户端排队逻辑。
 function stubPlan(snapshot: BattleSnapshotV2): BattlePlan {
   const orders: Record<string, string> = {};
   for (const u of snapshot.controlled.units) {
@@ -241,15 +296,16 @@ function buildUserMessage(session: BattleSession, snapshot: BattleSnapshotV2): s
 }
 
 function recordTick(
-  trace: DecisionTrace | null, session: BattleSession, plan: BattlePlan,
-  rejected: BattleValidationRejected[], latency: number,
+  trace: DecisionTrace | null, session: BattleSession, rawText: string,
+  rejected: BattleValidationRejected[], latency: number, ok: boolean,
 ): void {
   if (!trace) return;
-  traceStore.add(trace, "assistant", { text: JSON.stringify(plan), turn: session.tick });
+  // 记录模型原文而不是解析后的计划：解析失败 / 截断时才看得出模型到底回了什么。
+  traceStore.add(trace, "assistant", { text: rawText, turn: session.tick });
   traceStore.add(trace, "turn", {
     turn: session.tick,
     text: "tick=" + session.tick + " latency=" + latency + "ms rejected=" + rejected.length,
-    ok: true,
+    ok,
   });
 }
 
@@ -260,39 +316,68 @@ export async function tickBattle(
   if (!session.beginTick()) throw new ServiceError(409, "tick_in_progress", "上一拍尚未结束");
 
   const t0 = Date.now();
+  const tokensBefore = session.tokens;
   session.tick += 1;
   session.lastPlanResult = snapshot.last_plan ?? null;
+  const usage = () => ({ tokens: Math.max(0, session.tokens - tokensBefore) });
 
   try {
     if (opts.mode !== "pi") {
       const plan = stubPlan(snapshot);
       session.lastPlan = plan;
-      recordTick(session.trace, session, plan, [], Date.now() - t0);
+      recordTick(session.trace, session, JSON.stringify(plan), [], Date.now() - t0, true);
       return {
-        tick: session.tick, plan, rejected: [], latency_ms: Date.now() - t0,
+        tick: session.tick, plan, rejected: [], latency_ms: Date.now() - t0, usage: usage(),
       };
     }
 
     const agent = ensureAgent(session, opts);
     if (!agent) throw new ServiceError(500, "agent_missing", "Agent 未初始化");
     const userMessage = buildUserMessage(session, snapshot);
-    if (session.trace) traceStore.add(session.trace, "user", { text: userMessage, turn: session.tick });
+    if (session.trace) {
+      session.trace.user_message = userMessage;
+      traceStore.add(session.trace, "user", { text: userMessage, turn: session.tick });
+    }
 
     const outcome = await promptWithTimeout(agent, userMessage, TICK_TIMEOUT_MS);
     if (outcome.kind === "timeout") {
       const plan = emptyPlan();
       session.lastPlan = plan;
-      if (session.trace) traceStore.add(session.trace, "error", { text: "tick timeout", ok: false, turn: session.tick });
-      recordTick(session.trace, session, plan, [], Date.now() - t0);
+      // provider 不响应 abort：这一拍的 agent 已经不可再用，结束会话让下一拍回 410，
+      // 客户端收到 410 会重新 /open 一场，不会继续对着卡死的会话发请求。
+      if (outcome.stuck) session.finish("stuck");
+      if (session.trace) {
+        traceStore.add(session.trace, "error", {
+          text: outcome.stuck ? "tick timeout (agent stuck, session closed)" : "tick timeout",
+          ok: false, turn: session.tick,
+        });
+      }
+      recordTick(session.trace, session, "", [], Date.now() - t0, false);
       return {
-        tick: session.tick, plan, rejected: [], latency_ms: Date.now() - t0, timeout: true,
+        tick: session.tick, plan, rejected: [], latency_ms: Date.now() - t0, timeout: true, usage: usage(),
       };
     }
 
+    const last = lastAssistantMessage(agent);
+    const providerError = last && (last.stopReason === "error" || last.errorMessage)
+      ? String(last.errorMessage ?? "模型返回 stopReason=error")
+      : "";
+    if (providerError) {
+      // pi 把流错误变成一条 stopReason=error 的 assistant 消息并让 prompt() 正常 resolve，
+      // 这里必须显式失败，否则会把「模型报错」当成「本拍不改命令」的成功。
+      if (session.trace) {
+        traceStore.add(session.trace, "error", {
+          text: "llm_error: " + providerError, ok: false, turn: session.tick,
+        });
+      }
+      throw new ServiceError(502, "llm_error", providerError);
+    }
+
+    const rawText = lastAssistantText(agent);
     let plan = emptyPlan();
     let rejected: BattleValidationRejected[] = [];
     try {
-      const raw = extractJson(lastAssistantText(agent));
+      const raw = extractJson(rawText);
       const checked = validateBattlePlan(raw, snapshot);
       plan = checked.plan;
       rejected = checked.rejected;
@@ -305,12 +390,13 @@ export async function tickBattle(
       }
     }
 
-    if (plan.memory && plan.memory.trim() !== "") session.memory = plan.memory.trim().slice(0, 120);
-    if (plan.reasoning) plan.reasoning = plan.reasoning.slice(0, 200);
+    // validateBattlePlan 已按码点截断 memory(120) / reasoning(200)，这里不再切，
+    // 二次 slice 会把 emoji 的代理对切成半个。
+    if (plan.memory && plan.memory.trim() !== "") session.memory = plan.memory.trim();
     session.lastPlan = plan;
-    recordTick(session.trace, session, plan, rejected, Date.now() - t0);
+    recordTick(session.trace, session, rawText, rejected, Date.now() - t0, true);
     return {
-      tick: session.tick, plan, rejected, latency_ms: Date.now() - t0,
+      tick: session.tick, plan, rejected, latency_ms: Date.now() - t0, usage: usage(),
     };
   } finally {
     session.endTick();
