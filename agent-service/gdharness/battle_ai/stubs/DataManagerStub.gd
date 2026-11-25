@@ -29,7 +29,8 @@ func set_env(k, v): env[k] = v
 
 func unset_env(k): env.erase(k)
 
-func get_env_int(k, d=0): return int(env.get(k, d))
+# 默认值与真实 DataManager.get_env_int(key, defVal = -1) 对齐。
+func get_env_int(k, d=-1): return int(env.get(k, d))
 
 func get_env_str(k, d=""): return str(env.get(k, d))
 
