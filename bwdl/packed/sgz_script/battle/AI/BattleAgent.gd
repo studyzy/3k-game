@@ -1,290 +1,425 @@
-# ==============================================================================
-# 新增：AI Agent 接入（白兵战）
-# 文件：packed/sgz_script/battle/AI/BattleAgent.gd
-# 说明：白兵战「服务端驱动」对接层。
-#       战斗开始时 POST /ai/battle 开会话；每个战斗回合用长轮询取指令
-#       （set_order / use_tactic / end_turn），执行后回传最新态势；
-#       end_turn 到达即交还引擎结算，并在引擎推进到下一回合时 POST /resume。
-#       任一失败 → 回退本地规则（不改原有 AI 行为）。
-# ==============================================================================
+# 白兵战异步 AI：每 3 秒一拍，快照进、计划出。
+# 请求周期完全不进 FlowManager；只把「用计」排队到安全点执行。
 extends Resource
 
-const POLL_TIMEOUT_SEC: int = 20
-# 与服务端 idle_timeout_ms 对齐（每个战斗回合的空闲上限）
-const IDLE_TIMEOUT_MS: int = 30000
+const TICK_INTERVAL_MS := 3000
+const PAUSED_TICK_INTERVAL_MS := 10000
+const MAX_ERRORS := 3
+const TACTIC_TTL_MS := 8000
+const REQUEST_TIMEOUT_SEC := 25
+const CURRENT_STEP_KEY := "白兵战-当前步骤"
 
 var _projection = null
 var _tactics = null
 var _http = null
 
-var _session_id: String = ""
-var _actor_id: int = -1
-var _pending_results: Array = []   # [{seq, ok, outcome}]
-var _busy: bool = false
-var _local: bool = false
-var _turn_open: bool = false
-var _tips_shown: bool = false
+var _session_id := ""
+var _actor_id := -1
+var _tick := 0
+var _in_flight := false
+var _opening := false
+var _local := false
+var _errors := 0
+var _next_tick_at := 0
+var _started_ms := 0
+var _last_plan = null
+var _last_plan_at := 0
+var _memory := ""
+var _tactic_queue = null
+var _tactic_busy := false
+var _tactic_sent_at := 0
+var _request_kind := ""
+var _request_started_at := 0
 
 func _init() -> void:
+	# Global.load_script 命中缓存会再次调用 _init()；已有会话时保持原状。
+	if _actor_id >= 0:
+		return
 	_reset()
 	return
 
 func _reset() -> void:
 	_session_id = ""
 	_actor_id = -1
-	_pending_results.clear()
-	_busy = false
+	_tick = 0
+	_in_flight = false
+	_opening = false
 	_local = false
-	_turn_open = false
-	_tips_shown = false
+	_errors = 0
+	_next_tick_at = 0
+	_started_ms = 0
+	_last_plan = null
+	_last_plan_at = 0
+	_memory = ""
+	_tactic_queue = null
+	_tactic_busy = false
+	_tactic_sent_at = 0
+	_request_kind = ""
+	_request_started_at = 0
 	return
 
 func _ensure() -> void:
 	if _projection == null:
 		_projection = Global.load_script(DataManager.mod_path + "sgz_script/battle/AI/BattleProjection.gd")
-		if _projection == null:
-			_projection = load("res://BattleProjection.gd").new()
 	if _tactics == null:
 		_tactics = Global.load_script(DataManager.mod_path + "sgz_script/battle/AI/TacticProjection.gd")
 	if _http == null:
-		_http = Global.load_script(DataManager.mod_path + "sgz_script/war/AI/AIHttpClient.gd")
-		if _http == null:
-			_http = load("res://AIHttpClient.gd").new()
+		_http = Global.load_script(DataManager.mod_path + "sgz_script/battle/AI/BattleHttpClient.gd")
 	return
 
 func _base() -> String:
-	# 修改：AI Agent 接入——服务地址可配置（DataManager.ai_agent_base_url），空则按平台回落
 	return DataManager.resolve_ai_agent_url("/ai/battle")
+
+func attach(bf) -> void:
+	if _actor_id >= 0 or bf == null:
+		return
+	for wa in [bf.get_attacker(), bf.get_defender()]:
+		if wa == null or wa.disabled:
+			continue
+		if wa.get_controlNo() < 0:
+			_actor_id = wa.actorId
+			_started_ms = OS.get_ticks_msec()
+			DataManager.ai_debug_log("B_ATTACH actor={0}".format([_actor_id]), true)
+			return
+	_local = true
+	return
+
+func get_actor_id() -> int:
+	return _actor_id
+
+func get_session_id() -> String:
+	return _session_id
 
 func is_local() -> bool:
 	return _local
-func get_session_id() -> String:
-	return _session_id
-func has_pending_results() -> bool:
-	return not _pending_results.empty()
-func is_enabled() -> bool:
-	return DataManager.ai_agent_mode
+
+func is_managed(actorId: int) -> bool:
+	return _actor_id >= 0 and actorId == _actor_id
+
 func is_busy() -> bool:
-	return _busy
+	return _in_flight or _opening
 
-# ---------------- 开场：开战斗会话 ----------------
-func open(actorId: int) -> bool:
-	_ensure()
-	_reset()
-	_actor_id = actorId
+func tick() -> void:
 	var bf = DataManager.get_current_battle_fight()
-	var payload = _projection.build(bf, actorId)
-	if payload.empty():
-		_local = true
-		return false
-	_busy = true
-	_show_tips()
-	var ok = _http.post(_base(), to_json(payload), self, "_on_opened", POLL_TIMEOUT_SEC)
-	if not ok:
-		_busy = false
-		_local = true
-		DataManager.game_trace("[BattleAI] open start failed")
-	return ok
+	if bf == null or not DataManager.battle_run:
+		end_battle()
+		return
+	if _actor_id < 0:
+		attach(bf)
+	if _local or _actor_id < 0:
+		return
+	_ensure()
+	var now = OS.get_ticks_msec()
+	# 看门狗：HTTPRequest 卡死时也要把战场让回本地规则，不能整场停在等待。
+	if (_in_flight or _opening) and now - _request_started_at > (REQUEST_TIMEOUT_SEC + 5) * 1000:
+		_http.cancel()
+		_in_flight = false
+		_opening = false
+		_request_kind = ""
+		_fail("http_watchdog")
+	_try_execute_tactic(bf)
+	if _in_flight or _opening:
+		return
+	if now < _next_tick_at:
+		return
+	if _session_id == "":
+		_open(bf)
+		return
+	_send_tick(bf)
+	return
 
-func _on_opened(result: int, code: int, body: PoolByteArray) -> void:
-	_busy = false
+func _enemy_id(bf) -> int:
+	var wa = DataManager.get_war_actor(_actor_id)
+	if wa == null:
+		return -1
+	var enemy = wa.get_battle_enemy_war_actor()
+	return enemy.actorId if enemy != null else -1
+
+func _open(bf) -> void:
+	if _http.is_pending():
+		# post() 对「忙」和「启动失败」都返回 false：忙不是失败，清标记、下帧再试。
+		_opening = false
+		_in_flight = false
+		_request_kind = ""
+		return
+	var payload = {
+		"battle_key": "b{0}-b{1}".format([bf.get_attacker_id(), bf.get_defender_id()]),
+		"controlled_actor_id": _actor_id,
+		"enemy_actor_id": _enemy_id(bf),
+		"side": "attacker" if _actor_id == bf.get_attacker_id() else "defender",
+		"diffculities": DataManager.diffculities,
+	}
+	_opening = true
+	_request_kind = "open"
+	_request_started_at = OS.get_ticks_msec()
+	var ok = _http.post(_base(), to_json(payload), self, "_on_open", REQUEST_TIMEOUT_SEC)
+	if not ok:
+		_opening = false
+		_request_kind = ""
+		_fail("open_post")
+	return
+
+func _on_open(result: int, code: int, body: PoolByteArray) -> void:
+	if _request_kind != "open":
+		return
+	_opening = false
+	_request_kind = ""
 	if result != 0 or code != 200:
-		_fallback("open_http_{0}".format([code]))
+		_fail("open_http_{0}".format([code]))
 		return
 	var reply = parse_json(body.get_string_from_utf8())
 	if typeof(reply) != TYPE_DICTIONARY or not reply.has("battle_session_id"):
-		_fallback("battle_bad_session")
+		_fail("open_bad_json")
 		return
 	_session_id = str(reply["battle_session_id"])
+	_errors = 0
+	_next_tick_at = OS.get_ticks_msec()
+	DataManager.ai_debug_log("B_OPEN sid=" + _session_id, true)
 	DataManager.game_trace("[BattleAI] session " + _session_id)
-	_turn_open = true
-	_reset_tips()
 	return
 
-# ---------------- 本回合：长轮询取指令 ----------------
-func poll() -> bool:
-	_ensure()
-	if _local or _busy or _session_id == "":
-		return false
-	_busy = true
-	_show_tips()
-	var url = "{0}/{1}/pending?wait_ms={2}".format([_base(), _session_id, POLL_TIMEOUT_SEC * 1000])
-	var ok = _http.get_url(url, self, "_on_polled", POLL_TIMEOUT_SEC + 5)
+func _send_tick(bf) -> void:
+	if _http.is_pending():
+		_in_flight = false
+		_opening = false
+		_request_kind = ""
+		return
+	_tick += 1
+	if _last_plan != null:
+		_last_plan["age_ms"] = OS.get_ticks_msec() - _last_plan_at
+	var snapshot = _projection.build(bf, _actor_id, _tick, _last_plan, OS.get_ticks_msec() - _started_ms)
+	if snapshot.empty():
+		end_battle()
+		return
+	_in_flight = true
+	_request_kind = "tick"
+	_request_started_at = OS.get_ticks_msec()
+	var url = "{0}/{1}/tick".format([_base(), _session_id])
+	var ok = _http.post(url, to_json(snapshot), self, "_on_tick", REQUEST_TIMEOUT_SEC)
 	if not ok:
-		_busy = false
-		_fallback("battle_poll_start_failed")
-	return ok
+		_in_flight = false
+		_request_kind = ""
+		_fail("tick_post")
+	return
 
-func _on_polled(result: int, code: int, body: PoolByteArray) -> void:
-	_busy = false
-	if result != 0 or code != 200:
-		_fallback("battle_poll_http_{0}".format([code]))
+func _on_tick(result: int, code: int, body: PoolByteArray) -> void:
+	if _request_kind != "tick":
+		return
+	_in_flight = false
+	_request_kind = ""
+	if result != 0 or code == 0:
+		_fail("tick_transport")
+		return
+	if code == 409:
+		_next_tick_at = OS.get_ticks_msec() + _interval()
+		return
+	if code == 410:
+		_session_id = ""
+		_errors += 1
+		_next_tick_at = OS.get_ticks_msec()
+		if _errors >= MAX_ERRORS:
+			_fallback("session_ended")
+		return
+	if code != 200:
+		_fail("tick_http_{0}".format([code]))
 		return
 	var reply = parse_json(body.get_string_from_utf8())
-	if typeof(reply) != TYPE_DICTIONARY:
-		_fallback("battle_bad_json")
+	if typeof(reply) != TYPE_DICTIONARY or typeof(reply.get("plan")) != TYPE_DICTIONARY:
+		_errors = 0
+		_next_tick_at = OS.get_ticks_msec() + _interval()
 		return
-	match str(reply.get("type", "")):
-		"order":
-			var ok = _apply_order(reply)
-			_queue_result(int(reply.get("seq", 0)), ok, "兵种{0}命令→{1}".format([reply.get("unit", ""), reply.get("order", "")]))
-		"tactic":
-			var ok2 = _apply_tactic(reply)
-			_queue_result(int(reply.get("seq", 0)), ok2, "计策 {0}".format([reply.get("tactic", "")]))
-		"ask":
-			# 只读查询（estimate_tactic）：引擎现算后回填，不推进战局、不回传 /result
-			_handle_asks(reply.get("asks", []))
-			_flow("battle_ai_poll_again")
-		"end_turn":
-			_reset_tips()
-			_turn_open = false
-			_queue_result(int(reply.get("seq", 0)), true, "本回合指令下达完毕")
-			_flow("battle_ai_turn_ready")
-		"end_battle":
-			_reset_tips()
-			_local = true
-			DataManager.game_trace("[BattleAI] battle ended")
-		"retry":
-			_flow("battle_ai_poll_again")
-		"idle_timeout":
-			_fallback("battle_idle_timeout")
-		_:
-			_fallback("battle_unknown_reply")
+	if bool(reply.get("timeout", false)):
+		_errors += 1
+	else:
+		_errors = 0
+	_tick = int(reply.get("tick", _tick))
+	_apply_plan(reply["plan"], reply.get("rejected", []), _tick)
+	_next_tick_at = OS.get_ticks_msec() + _interval()
+	if _errors >= MAX_ERRORS:
+		_fallback("tick_timeout")
 	return
 
-func _apply_order(reply: Dictionary) -> bool:
+func _apply_plan(plan: Dictionary, rejected, plan_tick: int) -> void:
 	var bf = DataManager.get_current_battle_fight()
 	if bf == null:
-		return false
-	var unit = str(reply.get("unit", ""))
-	var order = str(reply.get("order", ""))
-	if not order in ["前进", "待机", "后退"]:
-		return false
-	var setting = {}
-	setting[unit] = order
-	bf.set_unit_state(_actor_id, setting)
-	return true
+		return
+	var orders = plan.get("orders", {})
+	if typeof(orders) != TYPE_DICTIONARY:
+		orders = {}
+	var diff = {}
+	var applied = []
+	var local_rejected = []
+	for unit in orders.keys():
+		var order = str(orders[unit])
+		if not str(unit) in ["将", "骑", "象", "弓", "步"] or not order in ["前进", "待机", "后退"]:
+			local_rejected.append({"unit": str(unit), "reason": "非法兵种或命令"})
+			continue
+		if DataManager.battle_unit_type_hp(_actor_id, str(unit)) <= 0:
+			local_rejected.append({"unit": str(unit), "reason": "该兵种已灭"})
+			continue
+		if bf.get_units_state(_actor_id, str(unit)) != order:
+			diff[unit] = order
+			applied.append(str(unit))
+	if typeof(rejected) == TYPE_ARRAY:
+		for r in rejected:
+			if typeof(r) == TYPE_DICTIONARY:
+				local_rejected.append({
+					"unit": str(r.get("value", r.get("unit", ""))),
+					"reason": str(r.get("reason", "")),
+				})
+	if not diff.empty():
+		bf.set_unit_state(_actor_id, diff)
+	_last_plan = {
+		"tick": plan_tick,
+		"orders": orders,
+		"orders_applied": applied,
+		"orders_rejected": local_rejected,
+		"tactic": null,
+		"tactic_status": "none",
+		"reason": "",
+		"age_ms": 0,
+	}
+	var tactic = ""
+	if plan.get("tactic") != null:
+		tactic = str(plan.get("tactic", "")).strip_edges()
+	if tactic != "":
+		_queue_tactic(tactic, plan_tick)
+	var mem = plan.get("memory", "")
+	if typeof(mem) == TYPE_STRING and str(mem).strip_edges() != "":
+		_memory = str(mem).strip_edges().substr(0, 120)
+	_last_plan_at = OS.get_ticks_msec()
+	DataManager.ai_debug_log("B_PLAN tick={0} orders={1} tactic={2}".format([
+		plan_tick, to_json(orders), tactic,
+	]), true)
+	return
 
-func _apply_tactic(reply: Dictionary) -> bool:
-	var tactic = str(reply.get("tactic", ""))
-	if not StaticManager.TACTICS.has(tactic):
-		return false
+func _queue_tactic(tactic: String, plan_tick: int) -> void:
+	_last_plan["tactic"] = tactic
+	if _tactic_queue != null:
+		_last_plan["tactic_status"] = "pending"
+		_last_plan["reason"] = "上一计策还在队列中"
+		return
 	var wa = DataManager.get_war_actor(_actor_id)
 	if wa == null:
-		return false
+		_reject_tactic(tactic, "取不到武将")
+		return
+	if not StaticManager.TACTICS.has(tactic):
+		_reject_tactic(tactic, "不是白兵战战术")
+		return
 	var iTactic = Global.load_script(DataManager.mod_path + "sgz_script/battle/ITactic.gd")
 	var cost = iTactic.get_tactic_cost(wa, tactic)
-	if cost > wa.battle_tactic_point:
-		return false
-	# 走既有战术流程。before_AI_tactic 从「当前武将」取施计者，
-	# 不设会让它读到 -1 → get_war_actor(-1) 为 null → 回调断在 set_view_model，整场卡死。
+	if cost > int(wa.battle_tactic_point):
+		_reject_tactic(tactic, "战术值不足")
+		return
+	if int(wa.get_buff(tactic)["回合数"]) > 0:
+		_reject_tactic(tactic, "同名战术已生效")
+		return
+	_tactic_queue = {
+		"tactic": tactic,
+		"expires_at": OS.get_ticks_msec() + TACTIC_TTL_MS,
+		"plan_tick": plan_tick,
+	}
+	_last_plan["tactic_status"] = "pending"
+	return
+
+func _reject_tactic(tactic: String, reason: String) -> void:
+	_last_plan["tactic"] = tactic
+	_last_plan["tactic_status"] = "rejected"
+	_last_plan["reason"] = reason
+	return
+
+func _try_execute_tactic(bf) -> void:
+	if _tactic_queue == null:
+		return
+	if _tactic_busy:
+		var now = OS.get_ticks_msec()
+		var elapsed = now - _tactic_sent_at
+		if elapsed > 10000:
+			_tactic_busy = false
+		elif elapsed > 500 \
+				and not FlowManager.has_task() \
+				and int(DataManager.get_env_int(CURRENT_STEP_KEY, 0)) in [2, 4, 5, 6]:
+			# 战术流程已走完：及早解锁，否则下一计要白等满 10 秒。
+			_tactic_busy = false
+		return
+	if OS.get_ticks_msec() > int(_tactic_queue["expires_at"]):
+		_last_plan["tactic_status"] = "rejected"
+		_last_plan["reason"] = "用计排队超时"
+		_tactic_queue = null
+		return
+	if FlowManager.has_task():
+		return
+	if not int(DataManager.get_env_int(CURRENT_STEP_KEY, 0)) in [4, 5, 6, 7]:
+		return
+	var scene = SceneManager.current_scene()
+	if scene != null:
+		if scene.battle_state.visible:
+			return
+		if scene.actor_dialog != null and scene.actor_dialog.visible:
+			return
+	if LoadControl.get_view_model() >= 0:
+		return
+	var tactic = str(_tactic_queue["tactic"])
+	var wa = DataManager.get_war_actor(_actor_id)
+	if wa == null:
+		_last_plan["tactic_status"] = "rejected"
+		_last_plan["reason"] = "取不到武将"
+		_tactic_queue = null
+		return
+	if int(wa.get_buff(tactic)["回合数"]) > 0:
+		_last_plan["tactic_status"] = "rejected"
+		_last_plan["reason"] = "同名战术已生效"
+		_tactic_queue = null
+		return
 	DataManager.set_env("当前武将", _actor_id)
 	DataManager.set_env("值", tactic)
+	_tactic_busy = true
+	_tactic_sent_at = OS.get_ticks_msec()
+	_tactic_queue = null
+	_last_plan["tactic_status"] = "applied"
+	_last_plan["reason"] = ""
 	FlowManager.add_flow("before_AI_tactic")
-	return true
-
-# 战术预估：把每条查询交给 TacticProjection 现算，再 POST /estimate
-func _handle_asks(asks) -> void:
-	if typeof(asks) != TYPE_ARRAY or asks.empty():
-		return
-	if _tactics == null:
-		return
-	var answers = []
-	for a in asks:
-		if typeof(a) != TYPE_DICTIONARY:
-			continue
-		if str(a.get("kind", "")) != "estimate_tactic":
-			continue
-		var estimate = _tactics.estimate(_actor_id, str(a.get("tactic", "")))
-		answers.append({"id": int(a.get("id", 0)), "data": estimate})
-	if answers.empty():
-		return
-	var url = "{0}/{1}/estimate".format([_base(), _session_id])
-	# 不带回调：失败时下一次轮询继续，模型会重新查
-	_http.post(url, to_json({"answers": answers}), self, "_on_estimates_posted", POLL_TIMEOUT_SEC)
+	DataManager.ai_debug_log("B_TACTIC " + tactic, true)
 	return
 
-func _on_estimates_posted(result: int, code: int, _body: PoolByteArray) -> void:
-	if result != 0 or code != 200:
-		DataManager.game_trace("[BattleAI] estimate post failed {0}".format([code]))
-	_flow("battle_ai_poll_again")
+func _interval() -> int:
+	var scene = SceneManager.current_scene()
+	if scene != null:
+		if scene.battle_state.visible:
+			return PAUSED_TICK_INTERVAL_MS
+		if scene.actor_dialog != null and scene.actor_dialog.visible:
+			return PAUSED_TICK_INTERVAL_MS
+	if LoadControl.get_view_model() >= 0:
+		return PAUSED_TICK_INTERVAL_MS
+	return TICK_INTERVAL_MS
+
+func _fail(reason: String) -> void:
+	_errors += 1
+	_next_tick_at = OS.get_ticks_msec() + _interval()
+	DataManager.ai_debug_log("B_TICK FAIL {0} errors={1}".format([reason, _errors]), true)
+	if _errors >= MAX_ERRORS:
+		_fallback(reason)
 	return
 
-func _queue_result(seq: int, ok: bool, outcome: String) -> void:
-	if seq <= 0:
-		return
-	_pending_results.append({"seq": seq, "ok": ok, "outcome": outcome})
-	return
-
-# ---------------- 回传结果 ----------------
-func flush() -> bool:
-	_ensure()
-	if _local or _busy or _session_id == "" or _pending_results.empty():
-		return false
-	var item = _pending_results.pop_front()
-	var bf = DataManager.get_current_battle_fight()
-	var payload = _projection.build_result(bf, _actor_id, bool(item["ok"]), str(item["outcome"]))
-	payload["seq"] = int(item["seq"])
-	_busy = true
-	var url = "{0}/{1}/result".format([_base(), _session_id])
-	var ok = _http.post(url, to_json(payload), self, "_on_flushed", POLL_TIMEOUT_SEC)
-	if not ok:
-		_busy = false
-		_fallback("battle_result_post_failed")
-	return ok
-
-func _on_flushed(result: int, code: int, _body: PoolByteArray) -> void:
-	_busy = false
-	if result != 0 or code != 200:
-		_fallback("battle_result_http_{0}".format([code]))
-		return
-	_flow("battle_ai_after_flush")
-	return
-
-# ---------------- 引擎推进到下一战斗回合 ----------------
-func resume_turn() -> void:
-	if _local or _session_id == "":
-		return
-	var url = "{0}/{1}/resume".format([_base(), _session_id])
-	_http.post(url, "{}", self, "_on_resumed", POLL_TIMEOUT_SEC)
-	return
-
-func _on_resumed(result: int, code: int, _body: PoolByteArray) -> void:
-	if result != 0 or code != 200:
-		DataManager.game_trace("[BattleAI] resume failed {0}".format([code]))
-		return
-	_turn_open = true
-	return
-
-# ---------------- 工具 ----------------
 func _fallback(reason: String) -> void:
 	_local = true
-	_busy = false
-	_pending_results.clear()
-	_reset_tips()
+	_in_flight = false
+	_opening = false
+	_tactic_queue = null
+	_tactic_busy = false
+	DataManager.ai_debug_log("B_FALLBACK reason=" + reason, true)
 	DataManager.game_trace("[BattleAI] fallback to local: " + reason)
-	_flow("battle_ai_fallback")
 	return
 
-func _flow(name: String) -> void:
-	FlowManager.add_flow(name)
-	return
-
-func _show_tips() -> void:
-	if _tips_shown:
-		return
-	_tips_shown = true
-	SceneManager.show_special_tips("敌方思考中……")
-	return
-
-func _reset_tips() -> void:
-	if not _tips_shown:
-		return
-	_tips_shown = false
-	SceneManager.reset_tips()
+func _on_ended(_result: int, _code: int, _body: PoolByteArray) -> void:
 	return
 
 func end_battle() -> void:
-	_reset_tips()
+	if _http != null:
+		_local = true
+		_http.cancel()
+	if _session_id != "" and _http != null:
+		var url = "{0}/{1}/end".format([_base(), _session_id])
+		_http.post(url, "{}", self, "_on_ended", REQUEST_TIMEOUT_SEC)
 	_reset()
 	return
