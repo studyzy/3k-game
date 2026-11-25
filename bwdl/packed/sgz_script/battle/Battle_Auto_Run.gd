@@ -18,7 +18,12 @@ func _init() -> void:
 	player_control = Global.load_script(DataManager.mod_path+"sgz_script/battle/player_control.gd")
 	ai_control = Global.load_script(DataManager.mod_path+"sgz_script/battle/AI/AI_Control.gd")
 	# 修改：AI Agent 接入（白兵战）——仅「大模型」难度启用；其余难度零网络请求，走原有规则 AI
-	# Global.load_script 命中缓存会重复执行 _init()，必须先清掉上一场残留的实例。
+	# Global.load_script 命中缓存会重放成员初始化并重跑 _init()：先把上一场的会话收掉
+	# （单挑返回会重进战斗场景，不在这里收就会留下僵尸会话），再重新绑定。
+	if Global.has_meta("白兵战.Agent"):
+		var prev_agent = Global.get_meta("白兵战.Agent")
+		if prev_agent != null and is_instance_valid(prev_agent):
+			prev_agent.end_battle()
 	battle_agent = null
 	if DataManager.ai_agent_mode:
 		battle_agent = Global.load_script(DataManager.mod_path+"sgz_script/battle/AI/BattleAgent.gd")

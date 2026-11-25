@@ -61,6 +61,11 @@ func effect_40006_confirmed() -> void:
 
 	bf.battle_over()
 	wf.battle_over()
+	# 本效果绕过了 Battle_Auto_Run.battle_over：手动收掉白兵战 Agent 会话
+	if Global.has_meta("白兵战.Agent"):
+		var battle_agent = Global.get_meta("白兵战.Agent")
+		if battle_agent != null and is_instance_valid(battle_agent):
+			battle_agent.end_battle()
 	SceneManager.hide_all_tool()
 
 	# 强制回到大战场

@@ -19,6 +19,7 @@ var _printed_paused := false
 var _last_plan_json := ""
 var _local_at := -1
 var _started_ms := 0
+var _tick_calls := 0
 
 func _ready():
 	_started_ms = OS.get_ticks_msec()
@@ -119,6 +120,7 @@ func _process(_delta):
 	if _agent == null:
 		return
 	_agent.tick()
+	_tick_calls += 1
 	if not _printed_open and _agent.get_session_id() != "":
 		_printed_open = true
 		print("BATTLE_OPEN=True")
@@ -135,6 +137,7 @@ func _process(_delta):
 		return
 	if _scenario == "no_units":
 		if OS.get_ticks_msec() - _started_ms >= 3000:
+			print("BATTLE_TICK_CALLS=", _tick_calls)
 			print("BATTLE_NO_OPEN=", _agent.get_session_id() == "")
 			_finish()
 		return

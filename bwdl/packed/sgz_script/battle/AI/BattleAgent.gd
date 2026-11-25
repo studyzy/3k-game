@@ -12,6 +12,8 @@ const CURRENT_STEP_KEY := "白兵战-当前步骤"
 # 所以 before_AI_tactic 只在执行瞬间才从这两个键取值。
 const TACTIC_ACTOR_KEY := "AI战术武将"
 const TACTIC_NAME_KEY := "AI战术名称"
+# 放在 Global 的 meta 上：绕过 battle_over 的结束路径（如斧手强制退出单挑）据此收会话。
+const AGENT_META := "白兵战.Agent"
 
 var _projection = null
 var _http = null
@@ -46,6 +48,7 @@ var _request_started_at := 0
 # 所以这里保不住会话；tick() 发现 _actor_id < 0 会自动 attach 当前战斗并重新开会话。
 func _init() -> void:
 	_reset()
+	Global.set_meta(AGENT_META, self)
 	return
 
 func _reset() -> void:

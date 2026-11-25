@@ -348,6 +348,8 @@ test("Godot 白兵战 v2 快照 / tick / 计策排队", { timeout: 180000 }, asy
       const h = startHarness(baseUrl, "no_units");
       try {
         assert.equal((await h.waitFor("BATTLE_NO_OPEN", 20000)).trim(), "True", "布阵前不应开会话：\n" + h.output().slice(-1500));
+        const ticks = await h.waitFor("BATTLE_TICK_CALLS", 5000);
+        assert.ok(Number(ticks) > 10, "tick 应真的被调用了：" + h.output().slice(-800));
         assert.ok(!h.output().includes("BATTLE_OPEN"), "布阵前不应打印 BATTLE_OPEN");
         await h.exit(5000);
         assertNoScriptError(h);
