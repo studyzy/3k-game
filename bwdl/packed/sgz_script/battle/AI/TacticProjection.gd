@@ -240,3 +240,32 @@ func _my_units(bf, wa) -> Array:
 	if bf == null or wa == null:
 		return []
 	return bf.battle_units(wa.actorId)
+
+# 一行摘要：给快照用，避免把完整 impacts 塞进每拍请求。
+func summary(est: Dictionary) -> String:
+	var tactic = str(est.get("tactic", ""))
+	var cost = int(est.get("cost", 0))
+	var rate = int(est.get("rate", 100))
+	match tactic:
+		"咒缚":
+			var turns = 3
+			for row in est.get("impacts", []):
+				if typeof(row) == TYPE_DICTIONARY and row.get("kind") == "buff":
+					turns = int(row.get("turns", 3))
+			return "命中率 {0}%；敌主将定止 {1} 回合".format([rate, turns])
+		"挑衅":
+			return "接受率 {0}%；拒绝则敌士气 -4、胆 -10".format([rate])
+		"强弩":
+			var n = 0
+			for row in est.get("impacts", []):
+				if typeof(row) != TYPE_DICTIONARY or row.get("kind") != "buff":
+					continue
+				for u in row.get("units", []):
+					if typeof(u) == TYPE_DICTIONARY and u.get("benefits", false):
+						n += 1
+			return "射程 +2、射箭必发；{0} 个弓兵受益".format([n])
+		"士气向上":
+			return "全体攻击 +5~9、士兵防御 ×1.2"
+		"火矢":
+			return "射箭攻击 +9~15、无视 1/3 防御"
+	return "消耗 {0}，命中率 {1}%".format([cost, rate])

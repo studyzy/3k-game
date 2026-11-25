@@ -1,22 +1,21 @@
-# ==============================================================================
-# 新增：AI Agent 接入（白兵战）
-# 文件：packed/sgz_script/battle/AI/BattleProjection.gd
-# 说明：把白兵战态势投影成 /ai/battle 请求体，并把执行结果投影成回传体。
-#       兵种/命令/计策模型来自 clBattleFight.gd 与 Static_Manager.TACTICS。
-# ==============================================================================
+# 白兵战态势投影 v2：一场战斗每拍一份快照。
+# 只读：不改战局、不触发技能、不消耗战术值。
 extends Resource
 
-# 与 War_AI_behavior_llm.gd 一致：白兵战命令取值
-const ORDERS = ["前进", "待机", "后退"]
+const UNIT_TYPES = ["将", "骑", "象", "弓", "步"]
 
-var _seq: int = 0
+var _tactics = null
 
 func _init() -> void:
-	_seq = 0
+	_tactics = null
 	return
 
-# 生成本场战斗的开场请求。actorId 为我方（受控）武将。
-func build(bf, actorId: int) -> Dictionary:
+func _ensure_tactics():
+	if _tactics == null:
+		_tactics = Global.load_script(DataManager.mod_path + "sgz_script/battle/AI/TacticProjection.gd")
+	return _tactics
+
+func build(bf, actorId: int, tick: int, lastPlan, elapsedMs: int) -> Dictionary:
 	if bf == null:
 		return {}
 	var wa = DataManager.get_war_actor(actorId)
@@ -25,71 +24,124 @@ func build(bf, actorId: int) -> Dictionary:
 	var enemy = wa.get_battle_enemy_war_actor()
 	if enemy == null:
 		return {}
-	var side = "attacker" if actorId == bf.get_attacker_id() else "defender"
-	return {
-		"battle_version": 1,
-		"visibility": "omniscient",
-		"battle_key": "b{0}-t{1}".format([bf.get_attacker_id(), bf.get_defender_id()]),
+	var enemyId = enemy.actorId
+	var payload = {
+		"battle_version": 2,
+		"battle_key": "b{0}-b{1}".format([bf.get_attacker_id(), bf.get_defender_id()]),
+		"tick": int(tick),
+		"elapsed_ms": int(elapsedMs),
 		"diffculities": DataManager.diffculities,
+		"side": "attacker" if actorId == bf.get_attacker_id() else "defender",
 		"controlled_actor_id": actorId,
-		"enemy_actor_id": enemy.actorId,
-		"side": side,
+		"enemy_actor_id": enemyId,
 		"turn": int(bf.turns()),
-		"controlled": _side_state(bf, actorId),
-		"enemy": _side_state(bf, enemy.actorId),
+		"terrain": _terrain(bf),
+		"controlled": _side_state(bf, actorId, enemyId),
+		"enemy": _side_state(bf, enemyId, actorId),
 		"legal_tactics": _legal_tactics(wa),
 	}
+	if lastPlan != null:
+		payload["last_plan"] = lastPlan
+	return payload
 
-# 执行某个指令后的最新态势（回传给服务端喂回 LLM）
-func build_result(bf, actorId: int, ok: bool, outcome: String) -> Dictionary:
-	var fresh = build(bf, actorId)
-	if fresh.empty():
-		return {"ok": ok, "outcome": outcome, "turn": 0,
-			"controlled": {"soldiers": 0, "tactic_point": 0, "units": []},
-			"enemy": {"soldiers": 0, "tactic_point": 0, "units": []},
-			"legal_tactics": []}
+func _terrain(bf) -> Dictionary:
 	return {
-		"ok": ok,
-		"outcome": outcome,
-		"turn": fresh["turn"],
-		"controlled": fresh["controlled"],
-		"enemy": fresh["enemy"],
-		"legal_tactics": fresh["legal_tactics"],
+		"name": str(bf.get_terrian()),
+		"is_city": bool(bf.is_terrian_city()),
 	}
 
-func _side_state(bf, actorId: int) -> Dictionary:
+func _side_state(bf, actorId: int, otherId: int) -> Dictionary:
 	var wa = DataManager.get_war_actor(actorId)
-	var actor = null
-	if wa != null:
-		actor = wa.actor()
-	var states = bf.get_units_states(actorId)
-	var unit_types = bf.get_defender_unit_types()
+	var actor = wa.actor() if wa != null else null
+	var otherMain = _main_unit(bf, otherId)
+	var otherPos = otherMain.unit_position if otherMain != null else Vector2(-10, -10)
+	var unitTypes = bf.get_defender_unit_types()
 	if actorId == bf.get_attacker_id():
-		unit_types = bf.get_attacker_unit_types()
+		unitTypes = bf.get_attacker_unit_types()
+	var states = bf.get_units_states(actorId)
 	var units = []
-	for ut in unit_types:
-		units.append({
-			"type": str(ut),
-			"hp": int(DataManager.battle_unit_type_hp(actorId, ut)),
-			"order": str(states[ut]) if states.has(ut) else "前进",
-		})
+	for ut in unitTypes:
+		units.append(_unit_info(bf, actorId, str(ut), otherPos, states))
 	return {
 		"name": actor.get_name() if actor != null else "",
-		"hp": actor.get_hp() if actor != null else 0,
+		"hp": int(actor.get_hp()) if actor != null else 0,
 		"soldiers": int(bf.get_battle_sodiers(actorId)),
-		"tactic_point": wa.battle_tactic_point if wa != null else 0,
+		"tactic_point": int(wa.battle_tactic_point) if wa != null else 0,
+		"buffs": _buffs(wa),
 		"units": units,
 	}
 
-# 可用计策：从 Static_Manager.TACTICS 中筛出战术值足够且本场可用的
+func _main_unit(bf, actorId: int):
+	for bu in DataManager.battle_units:
+		if bu == null or bu.disabled:
+			continue
+		if bu.leaderId != actorId:
+			continue
+		if bu.get_unit_type() == "将":
+			return bu
+	return null
+
+func _unit_info(bf, actorId: int, ut: String, otherPos: Vector2, states: Dictionary) -> Dictionary:
+	var count = 0
+	var best = null
+	var bestDist = 999999
+	for bu in DataManager.battle_units:
+		if bu == null or bu.disabled:
+			continue
+		if bu.leaderId != actorId or bu.get_unit_type() != ut:
+			continue
+		count += 1
+		var d = Global.get_distance(bu.unit_position, otherPos)
+		if d < bestDist:
+			bestDist = d
+			best = bu
+	var pos = best.unit_position if best != null else Vector2(-10, -10)
+	var shootRange = int(best.get_shoot_distance()) if best != null else 0
+	var attackRange = int(best.get_attack_distance()) if best != null else 1
+	var dist = Global.get_distance(pos, otherPos) if best != null else 999
+	return {
+		"type": ut,
+		"hp": int(DataManager.battle_unit_type_hp(actorId, ut)),
+		"count": count,
+		"order": str(states[ut]) if states.has(ut) else "前进",
+		"x": int(pos.x),
+		"y": int(pos.y),
+		"shoot_range": shootRange,
+		"attack_range": attackRange,
+		"dist_to_other_main": dist,
+		"other_main_in_shoot_range": bool(best != null and shootRange > 0 and dist <= shootRange),
+	}
+
+func _buffs(wa) -> Array:
+	var ret = []
+	if wa == null:
+		return ret
+	for name in wa.dic_buffs.keys():
+		var b = wa.dic_buffs[name]
+		var turns = int(b.get("回合数", 0))
+		if turns <= 0:
+			continue
+		var info = StaticManager.get_buff(str(name))
+		if info == null or info.get_scene() != "小战场":
+			continue
+		ret.append({"name": str(name), "turns": turns})
+	return ret
+
 func _legal_tactics(wa) -> Array:
 	var ret = []
 	if wa == null:
 		return ret
-	var iTactic = Global.load_script(DataManager.mod_path + "sgz_script/battle/ITactic.gd")
+	var tp = _ensure_tactics()
+	if tp == null:
+		return ret
 	for name in StaticManager.TACTICS.keys():
-		var cost = iTactic.get_tactic_cost(wa, name)
-		if cost > wa.battle_tactic_point:
+		var est = tp.estimate(wa.actorId, str(name))
+		if typeof(est) != TYPE_DICTIONARY or not est.get("available", false):
 			continue
-		ret.append({"name": str(name), "cost": int(cost)})
+		ret.append({
+			"name": str(name),
+			"cost": int(est.get("cost", 0)),
+			"rate": int(est.get("rate", 100)),
+			"summary": str(tp.summary(est)),
+		})
 	return ret
