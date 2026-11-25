@@ -27,6 +27,48 @@ after(async () => {
   await fs.rm(tmpDir, { recursive: true, force: true });
 });
 
+function battleSnapshot(overrides: Record<string, unknown> = {}) {
+  return {
+    battle_version: 2, battle_key: "b12-b31", tick: 1, elapsed_ms: 1200,
+    diffculities: 4, side: "attacker", controlled_actor_id: 12, enemy_actor_id: 31,
+    turn: 1, terrain: { name: "plain", is_city: false },
+    controlled: {
+      name: "张辽", hp: 90, soldiers: 1200, tactic_point: 10, buffs: [],
+      units: [
+        { type: "将", hp: 400, count: 1, order: "待机", x: 6, y: 5, shoot_range: 0, attack_range: 1, dist_to_other_main: 6, other_main_in_shoot_range: false },
+      ],
+    },
+    enemy: {
+      name: "高顺", hp: 88, soldiers: 900, tactic_point: 8, buffs: [],
+      units: [
+        { type: "将", hp: 350, count: 1, order: "待机", x: 12, y: 5, shoot_range: 0, attack_range: 1, dist_to_other_main: 6, other_main_in_shoot_range: false },
+      ],
+    },
+    legal_tactics: [],
+    last_plan: null,
+    ...overrides,
+  };
+}
+
+async function openBattle(overrides: Record<string, unknown> = {}): Promise<string> {
+  const res = await fetch(base + "/ai/battle", {
+    method: "POST", headers: { "content-type": "text/plain" },
+    body: JSON.stringify({
+      battle_key: "b12-b31", controlled_actor_id: 12, enemy_actor_id: 31,
+      side: "attacker", diffculities: 4, ...overrides,
+    }),
+  });
+  assert.equal(res.status, 200);
+  return (await res.json() as any).battle_session_id;
+}
+
+async function battlePost(id: string, suffix: "tick" | "end", body?: unknown) {
+  return fetch(base + "/ai/battle/" + id + "/" + suffix, {
+    method: "POST", headers: { "content-type": "text/plain" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+}
+
 async function post(body: unknown, headers: Record<string, string> = {}) {
   return fetch(`${base}/ai/turn`, {
     method: "POST",
@@ -230,4 +272,55 @@ test("白兵战 tick 路由：开场 → tick → end，非法快照 422，结�
     method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify(snap),
   });
   assert.equal(after.status, 410);
+});
+
+test("白兵战 tick：battle_key / 旧 tick / actor 不匹配 422，未知与非法 id 410", async () => {
+  const id = await openBattle();
+  const first = await battlePost(id, "tick", battleSnapshot());
+  assert.equal(first.status, 200);
+
+  const stale = await battlePost(id, "tick", battleSnapshot());
+  assert.equal(stale.status, 422);
+  const staleBody: any = await stale.json();
+  assert.equal(staleBody.error, "invalid_snapshot");
+  assert.equal(staleBody.detail, "stale tick");
+  assert.equal(staleBody.message, undefined);
+
+  const keyed = await battlePost(id, "tick", battleSnapshot({ tick: 2, battle_key: "other" }));
+  assert.equal(keyed.status, 422);
+  const keyedBody: any = await keyed.json();
+  assert.equal(keyedBody.error, "invalid_snapshot");
+  assert.equal(keyedBody.detail, "battle_key mismatch");
+  assert.equal(keyedBody.message, undefined);
+
+  const actor = await battlePost(id, "tick", battleSnapshot({ tick: 2, controlled_actor_id: 99 }));
+  assert.equal(actor.status, 422);
+  assert.equal((await actor.json() as any).detail, "actor ids do not match session");
+
+  // 未知会话
+  const missing = await battlePost("nope", "tick", battleSnapshot());
+  assert.equal(missing.status, 410);
+  assert.equal((await missing.json() as any).error, "session_ended");
+
+  // 非法 percent-encoding 不能 500
+  const malformed = await battlePost("%E0%A4%A", "tick", battleSnapshot());
+  assert.equal(malformed.status, 410);
+  assert.equal((await malformed.json() as any).error, "session_ended");
+
+  // /end 幂等：未知 id 和坏 id 都 200
+  assert.equal((await battlePost("nope", "end")).status, 200);
+  const badEnd = await battlePost("%E0%A4%A", "end");
+  assert.equal(badEnd.status, 200);
+  assert.deepEqual(await badEnd.json(), { ok: true });
+});
+
+test("白兵战路由边界：GET /ai/battle 405，GET tick 405，pending 404", async () => {
+  const open = await fetch(base + "/ai/battle");
+  assert.equal(open.status, 405);
+
+  const getTick = await fetch(base + "/ai/battle/whatever/tick");
+  assert.equal(getTick.status, 405);
+
+  const pending = await fetch(base + "/ai/battle/whatever/pending");
+  assert.equal(pending.status, 404);
 });

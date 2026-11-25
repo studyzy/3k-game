@@ -66,6 +66,15 @@ async function readBody(req: http.IncomingMessage, limit = MAX_BODY): Promise<st
   return Buffer.concat(chunks).toString("utf8");
 }
 
+/** 路径里的 id 可能含非法 percent-encoding：解不开返回 null，调用方按「会话不存在」处理，不要 500。 */
+function decodeId(raw: string): string | null {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return null;
+  }
+}
+
 async function parseJsonBody(req: http.IncomingMessage): Promise<unknown> {
   const raw = await readBody(req);
   try {
@@ -255,20 +264,32 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
 
       if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/tick")) {
         if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
-        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/tick".length));
+        const id = decodeId(url.pathname.slice("/ai/battle/".length, -"/tick".length));
+        if (id === null) { json(res, 410, { error: "session_ended" }); return; }
         const session = battleStore.get(id);
-        if (!session) { json(res, 404, { error: "session_not_found" }); return; }
+        // 缺失 / TTL 过期 / 已结束都回 410：客户端据此重新 /open，而不是当成临时错误重试。
+        if (!session || session.finished) { json(res, 410, { error: "session_ended" }); return; }
         const body = await parseJsonBody(req);
         let snapshot: ReturnType<typeof validateBattleSnapshot>;
         try {
           snapshot = validateBattleSnapshot(body);
         } catch (err) {
-          json(res, 422, { error: "invalid_snapshot", message: err instanceof Error ? err.message : String(err) });
+          // body 不是 JSON 对象属于请求格式错误，交给外层按 400 bad_json 返回（与 /ai/turn 一致）。
+          if (err instanceof ValidationError && err.code === "bad_json") throw err;
+          json(res, 422, { error: "invalid_snapshot", detail: err instanceof Error ? err.message : String(err) });
+          return;
+        }
+        if (snapshot.battle_key !== session.init.battleKey) {
+          json(res, 422, { error: "invalid_snapshot", detail: "battle_key mismatch" });
+          return;
+        }
+        if (snapshot.tick <= session.tick) {
+          json(res, 422, { error: "invalid_snapshot", detail: "stale tick" });
           return;
         }
         if (snapshot.controlled_actor_id !== session.init.controlledActorId ||
             snapshot.enemy_actor_id !== session.init.enemyActorId) {
-          json(res, 422, { error: "invalid_snapshot", message: "actor ids do not match session" });
+          json(res, 422, { error: "invalid_snapshot", detail: "actor ids do not match session" });
           return;
         }
         const result = await tickBattle(session, snapshot, { mode: config.mode, config });
@@ -278,9 +299,10 @@ export function createServer(config = parseConfig(process.argv.slice(2), process
 
       if (url.pathname.startsWith("/ai/battle/") && url.pathname.endsWith("/end")) {
         if (req.method !== "POST") { json(res, 405, { error: "method_not_allowed" }); return; }
-        const id = decodeURIComponent(url.pathname.slice("/ai/battle/".length, -"/end".length));
-        const session = battleStore.get(id);
+        const id = decodeId(url.pathname.slice("/ai/battle/".length, -"/end".length));
+        const session = id === null ? undefined : battleStore.get(id);
         if (session) endBattle(session);
+        // 幂等：未知会话、坏 id 都回 200。
         json(res, 200, { ok: true });
         return;
       }

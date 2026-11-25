@@ -159,6 +159,18 @@ export function validateAction(
 // ---------------------------------------------------------------------------
 const BATTLE_UNIT_TYPES = ["将", "骑", "象", "弓", "步"];
 const BATTLE_ORDERS = ["前进", "待机", "后退"];
+const BATTLE_TACTIC_STATUS = ["applied", "pending", "rejected", "none"];
+
+// 上限：/tick 的 body 最大 1MiB，若不截断，超长字符串会原样进提示词（成本/延迟爆炸）。
+const MAX_BATTLE_KEY = 80;
+const MAX_SIDE_NAME = 80;
+const MAX_BUFF_NAME = 40;
+const MAX_UNITS = 8;
+const MAX_LEGAL_TACTICS = 8;
+const MAX_TACTIC_NAME = 20;
+const MAX_TACTIC_SUMMARY = 200;
+const MAX_REJECTED_ORDERS = 10;
+const MAX_REJECT_TEXT = 200;
 
 export function validateBattleOpenRequest(
   body: unknown,
@@ -166,6 +178,9 @@ export function validateBattleOpenRequest(
   if (!isObject(body)) throw new ValidationError("bad_json", "body must be a JSON object");
   if (typeof body.battle_key !== "string" || body.battle_key.length === 0) {
     throw new ValidationError("bad_schema", "battle_key required");
+  }
+  if (body.battle_key.length > MAX_BATTLE_KEY) {
+    throw new ValidationError("bad_schema", "battle_key too long");
   }
   if (typeof body.controlled_actor_id !== "number") {
     throw new ValidationError("bad_schema", "controlled_actor_id required");
@@ -203,6 +218,7 @@ function checkBattleUnitV2(u: unknown, label: string): void {
 function checkBattleSideV2(side: unknown, label: string): void {
   if (!isObject(side)) throw new ValidationError("bad_schema", label + " must be an object");
   if (typeof side.name !== "string") throw new ValidationError("bad_schema", label + ".name required");
+  if (side.name.length > MAX_SIDE_NAME) throw new ValidationError("bad_schema", label + ".name too long");
   for (const k of ["hp", "soldiers", "tactic_point"]) {
     if (typeof side[k] !== "number") throw new ValidationError("bad_schema", label + "." + k + " must be a number");
   }
@@ -211,9 +227,58 @@ function checkBattleSideV2(side: unknown, label: string): void {
     if (!isObject(b) || typeof b.name !== "string" || typeof b.turns !== "number") {
       throw new ValidationError("bad_schema", label + ".buffs entries need name and turns");
     }
+    if (b.name.length > MAX_BUFF_NAME) throw new ValidationError("bad_schema", label + ".buffs[].name too long");
   }
   if (!Array.isArray(side.units)) throw new ValidationError("bad_schema", label + ".units must be an array");
+  if (side.units.length > MAX_UNITS) throw new ValidationError("bad_schema", label + ".units too many entries");
   for (const u of side.units as unknown[]) checkBattleUnitV2(u, label + ".units[]");
+}
+
+/** 上一拍计划：Godot 原样回喂，字段全都要校验，避免超长/畸形值进提示词。 */
+function checkBattleLastPlan(lp: unknown): void {
+  if (!isObject(lp)) throw new ValidationError("bad_schema", "last_plan must be an object");
+  if (typeof lp.tick !== "number") throw new ValidationError("bad_schema", "last_plan.tick must be a number");
+  if (lp.orders !== undefined) {
+    if (!isObject(lp.orders)) throw new ValidationError("bad_schema", "last_plan.orders must be an object");
+    for (const [unit, order] of Object.entries(lp.orders)) {
+      if (!BATTLE_UNIT_TYPES.includes(unit)) {
+        throw new ValidationError("bad_schema", "last_plan.orders has unknown unit: " + unit);
+      }
+      if (!BATTLE_ORDERS.includes(order as string)) {
+        throw new ValidationError("bad_schema", "last_plan.orders[" + unit + "] invalid");
+      }
+    }
+  }
+  if (!Array.isArray(lp.orders_applied)) {
+    throw new ValidationError("bad_schema", "last_plan.orders_applied must be an array");
+  }
+  for (const u of lp.orders_applied as unknown[]) {
+    if (typeof u !== "string") throw new ValidationError("bad_schema", "last_plan.orders_applied entries must be strings");
+  }
+  if (!Array.isArray(lp.orders_rejected)) {
+    throw new ValidationError("bad_schema", "last_plan.orders_rejected must be an array");
+  }
+  if (lp.orders_rejected.length > MAX_REJECTED_ORDERS) {
+    throw new ValidationError("bad_schema", "last_plan.orders_rejected too many entries");
+  }
+  for (const r of lp.orders_rejected as unknown[]) {
+    if (!isObject(r) || typeof r.unit !== "string" || typeof r.reason !== "string") {
+      throw new ValidationError("bad_schema", "last_plan.orders_rejected entries need unit and reason");
+    }
+    if (r.unit.length > MAX_REJECT_TEXT || r.reason.length > MAX_REJECT_TEXT) {
+      throw new ValidationError("bad_schema", "last_plan.orders_rejected text too long");
+    }
+  }
+  if (lp.tactic !== null && (typeof lp.tactic !== "string" || lp.tactic.length > 40)) {
+    throw new ValidationError("bad_schema", "last_plan.tactic must be null or a short string");
+  }
+  if (typeof lp.tactic_status !== "string" || !BATTLE_TACTIC_STATUS.includes(lp.tactic_status)) {
+    throw new ValidationError("bad_schema", "last_plan.tactic_status invalid");
+  }
+  if (typeof lp.reason !== "string" || lp.reason.length > MAX_REJECT_TEXT) {
+    throw new ValidationError("bad_schema", "last_plan.reason must be a short string");
+  }
+  if (typeof lp.age_ms !== "number") throw new ValidationError("bad_schema", "last_plan.age_ms must be a number");
 }
 
 export function validateBattleSnapshot(
@@ -223,6 +288,9 @@ export function validateBattleSnapshot(
   if (body.battle_version !== 2) throw new ValidationError("bad_schema", "battle_version must be 2");
   if (typeof body.battle_key !== "string" || body.battle_key.length === 0) {
     throw new ValidationError("bad_schema", "battle_key required");
+  }
+  if (body.battle_key.length > MAX_BATTLE_KEY) {
+    throw new ValidationError("bad_schema", "battle_key too long");
   }
   if (typeof body.tick !== "number" || body.tick <= 0) {
     throw new ValidationError("bad_schema", "tick must be a positive number");
@@ -247,14 +315,19 @@ export function validateBattleSnapshot(
   if (!Array.isArray(body.legal_tactics)) {
     throw new ValidationError("bad_schema", "legal_tactics must be an array");
   }
+  if (body.legal_tactics.length > MAX_LEGAL_TACTICS) {
+    throw new ValidationError("bad_schema", "legal_tactics too many entries");
+  }
   for (const t of body.legal_tactics as unknown[]) {
     if (!isObject(t) || typeof t.name !== "string" || typeof t.cost !== "number" ||
         typeof t.rate !== "number" || typeof t.summary !== "string") {
       throw new ValidationError("bad_schema", "legal_tactics entries need name/cost/rate/summary");
     }
+    if (t.name.length > MAX_TACTIC_NAME) throw new ValidationError("bad_schema", "legal_tactics[].name too long");
+    if (t.summary.length > MAX_TACTIC_SUMMARY) throw new ValidationError("bad_schema", "legal_tactics[].summary too long");
   }
   if (body.last_plan !== undefined && body.last_plan !== null) {
-    if (!isObject(body.last_plan)) throw new ValidationError("bad_schema", "last_plan must be an object");
+    checkBattleLastPlan(body.last_plan);
   }
   return body as never;
 }

@@ -91,6 +91,7 @@ export function startBattle(req: BattleOpenRequest, opts: BattleOptions): Battle
     side: req.side,
     diffculities: req.diffculities,
   });
+  if (!session) throw new ServiceError(429, "too_many_sessions", "并发战斗会话过多");
   const tr = traceStore.create({
     mode: opts.mode,
     model: traceModel(opts),

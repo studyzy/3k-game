@@ -204,7 +204,7 @@ const KINDS = {
   system: "系统提示", user: "用户输入", turn: "轮次", assistant: "模型输出",
   tool_call: "工具调用", tool_result: "工具返回", tools: "工具定义", final: "最终计划", error: "错误", mock: "Mock",
 };
-const STATUS = { ok: "成功", error: "错误", running: "运行中", fallback: "回退" };
+const STATUS = { ok: "成功", error: "错误", running: "运行中", fallback: "回退", expired: "已过期" };
 const EMPTY_DETAIL = '<div class="empty">← 选择左侧一条轨迹查看完整对话</div>';
 
 function esc(s) {

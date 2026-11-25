@@ -70,12 +70,23 @@ export class BattleSession {
   }
 }
 
+export const MAX_SESSIONS = 32;
+
 export class BattleStore {
   private items = new Map<string, BattleSession>();
   private seq = 0;
 
-  create(init: BattleSessionInit, idleTimeoutMs = 30 * 60 * 1000): BattleSession {
+  /** 会话数有上限：满了先淘汰最早结束的会话；没有可淘汰的就拒绝（返回 null）。 */
+  create(init: BattleSessionInit, idleTimeoutMs = 30 * 60 * 1000): BattleSession | null {
     this.prune();
+    if (this.items.size >= MAX_SESSIONS) {
+      for (const [id, s] of this.items) {
+        if (!s.ended) continue;
+        this.items.delete(id);
+        break;
+      }
+    }
+    if (this.items.size >= MAX_SESSIONS) return null;
     this.seq += 1;
     const id = "b-" + Date.now().toString(36) + "-" + this.seq.toString(36);
     const s = new BattleSession(id, init, idleTimeoutMs);

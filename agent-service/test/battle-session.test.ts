@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { BattleSession, BattleStore } from "../src/battle-session.ts";
+import { BattleSession, BattleStore, MAX_SESSIONS } from "../src/battle-session.ts";
 
 const init = {
   battleKey: "b12-b31",
@@ -12,7 +12,7 @@ const init = {
 
 test("create/get/delete/clear", () => {
   const store = new BattleStore();
-  const s = store.create(init);
+  const s = store.create(init)!;
   assert.ok(s.id.length > 0);
   assert.equal(store.get(s.id), s);
   assert.equal(store.size(), 1);
@@ -31,7 +31,7 @@ test("beginTick 是互斥的，endTick 释放", () => {
 
 test("idleRemaining 与 prune 按空闲时间清理", () => {
   const store = new BattleStore();
-  const s = store.create(init, 10);
+  const s = store.create(init, 10)!;
   s.lastActivityAt = Date.now() - 100;
   assert.equal(store.get(s.id), undefined);
 });
@@ -52,7 +52,7 @@ test("finish 后 beginTick 返回 false", () => {
 
 test("size() 会先 prune 过期会话", () => {
   const store = new BattleStore();
-  const s = store.create(init, 10);
+  const s = store.create(init, 10)!;
   s.lastActivityAt = Date.now() - 100;
   assert.equal(store.size(), 0);
 });
@@ -68,15 +68,32 @@ test("clear 后 size 为 0", () => {
 
 test("活跃会话 touch 后可继续 get 到", () => {
   const store = new BattleStore();
-  const s = store.create(init, 10);
+  const s = store.create(init, 10)!;
   s.touch();
   assert.equal(store.get(s.id), s);
 });
 
+test("MAX_SESSIONS：先淘汰已结束会话，无可淘汰时 create 返回 null", () => {
+  const store = new BattleStore();
+  const sessions = Array.from({ length: MAX_SESSIONS }, () => store.create(init)!);
+  assert.equal(store.size(), MAX_SESSIONS);
+
+  // 全活跃 → 拒绝
+  assert.equal(store.create(init), null);
+  assert.equal(store.size(), MAX_SESSIONS);
+
+  // 有已结束会话 → 先淘汰它，再接纳新会话
+  sessions[0].finish("ended");
+  const extra = store.create(init);
+  assert.ok(extra);
+  assert.equal(store.get(sessions[0].id), undefined);
+  assert.equal(store.size(), MAX_SESSIONS);
+});
+
 test("两个会话共存且 id 唯一", () => {
   const store = new BattleStore();
-  const a = store.create(init);
-  const b = store.create(init);
+  const a = store.create(init)!;
+  const b = store.create(init)!;
   assert.notEqual(a.id, b.id);
   assert.equal(store.size(), 2);
 });
