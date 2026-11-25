@@ -10,7 +10,6 @@ const REQUEST_TIMEOUT_SEC := 25
 const CURRENT_STEP_KEY := "白兵战-当前步骤"
 
 var _projection = null
-var _tactics = null
 var _http = null
 
 var _session_id := ""
@@ -61,8 +60,6 @@ func _reset() -> void:
 func _ensure() -> void:
 	if _projection == null:
 		_projection = Global.load_script(DataManager.mod_path + "sgz_script/battle/AI/BattleProjection.gd")
-	if _tactics == null:
-		_tactics = Global.load_script(DataManager.mod_path + "sgz_script/battle/AI/TacticProjection.gd")
 	if _http == null:
 		_http = Global.load_script(DataManager.mod_path + "sgz_script/battle/AI/BattleHttpClient.gd")
 	return
@@ -355,8 +352,8 @@ func _try_execute_tactic(bf) -> void:
 	if scene != null:
 		if scene.battle_state.visible:
 			return
-		if scene.actor_dialog != null and scene.actor_dialog.visible:
-			return
+	if SceneManager.actor_dialog != null and SceneManager.actor_dialog.visible:
+		return
 	if LoadControl.get_view_model() >= 0:
 		return
 	var tactic = str(_tactic_queue["tactic"])
@@ -387,8 +384,8 @@ func _interval() -> int:
 	if scene != null:
 		if scene.battle_state.visible:
 			return PAUSED_TICK_INTERVAL_MS
-		if scene.actor_dialog != null and scene.actor_dialog.visible:
-			return PAUSED_TICK_INTERVAL_MS
+	if SceneManager.actor_dialog != null and SceneManager.actor_dialog.visible:
+		return PAUSED_TICK_INTERVAL_MS
 	if LoadControl.get_view_model() >= 0:
 		return PAUSED_TICK_INTERVAL_MS
 	return TICK_INTERVAL_MS
@@ -415,6 +412,10 @@ func _on_ended(_result: int, _code: int, _body: PoolByteArray) -> void:
 	return
 
 func end_battle() -> void:
+	# 重复调用（tick 里 bf 为空会再次进来）不得取消首个 /end 请求。
+	if _session_id == "" and not _in_flight and not _opening:
+		_reset()
+		return
 	if _http != null:
 		_local = true
 		_http.cancel()
