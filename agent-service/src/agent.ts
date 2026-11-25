@@ -14,7 +14,7 @@ import { budgetFor, type ServiceConfig } from "./config.ts";
 import { buildTools, ACT_TOOL_NAMES, READ_TOOL_NAMES, type LiveState } from "./tools.ts";
 import { turnStore, sessionStore, type TurnSession } from "./session.ts";
 import { createCustomRuntime } from "./llm.ts";
-import { traceStore, type DecisionTrace } from "./trace.ts";
+import { traceStore, traceTools, type DecisionTrace } from "./trace.ts";
 
 export class ServiceError extends Error {
   public status: number;
@@ -211,6 +211,7 @@ export function startTurn(req: TurnRequest, opts: TurnOptions): { session: TurnS
     ai_agent_mode: req.ai_agent_mode,
     system_prompt: SYSTEM_PROMPT,
     user_message: "",
+    tools: [],
   });
   traceStore.add(tr, "system", { text: SYSTEM_PROMPT });
   (session as unknown as { trace: DecisionTrace }).trace = tr;
@@ -444,6 +445,8 @@ async function piTurn(
     units: req.units, terrain: req.terrain, economy: req.economy, legal_actions: req.legal_actions,
   };
   const { tools, state } = buildTools(live, session, budget);
+  // 工具定义也是请求上下文的一部分，随轨迹一起展示（mock 模式没有工具）。
+  tr.tools = traceTools(tools);
   const counters = { turns: 0, toolCalls: 0, tokens: 0, cacheRead: 0, cacheWrite: 0 };
   const t0 = Date.now();
 

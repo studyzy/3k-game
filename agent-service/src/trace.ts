@@ -16,6 +16,14 @@ export interface TraceEvent {
   ok?: boolean;
 }
 
+/** 请求上下文里的一个工具定义（即发给模型的 function schema）。 */
+export interface TraceTool {
+  name: string;
+  label?: string;
+  description: string;
+  parameters: unknown;
+}
+
 export interface DecisionTrace {
   id: string;
   started_at: string;
@@ -33,6 +41,7 @@ export interface DecisionTrace {
   budget_used?: { tokens: number; turns: number; tool_calls: number; cache_read?: number; cache_write?: number };
   system_prompt: string;
   user_message: string;
+  tools: TraceTool[];
   events: TraceEvent[];
   actions?: Array<{ seq: number; tool: string; actor: number; id: string; reasoning: string }>;
   intent?: string;
@@ -68,6 +77,16 @@ function summarize(t: DecisionTrace): TraceSummary {
   };
 }
 
+/** 把注册表里的工具定义抽成可展示/可序列化的快照。 */
+export function traceTools(tools: Array<{ name: string; label?: string; description: string; parameters: unknown }>): TraceTool[] {
+  return tools.map((t) => ({
+    name: t.name,
+    label: t.label,
+    description: t.description,
+    parameters: t.parameters,
+  }));
+}
+
 export class TraceStore {
   private items: DecisionTrace[] = [];
   private seq = 0;
@@ -77,7 +96,7 @@ export class TraceStore {
     this.limit = limit;
   }
 
-  create(init: Pick<DecisionTrace, "mode" | "model" | "turn_key" | "diffculities" | "controlled_vstate_id" | "legal_actions_count" | "ai_agent_mode" | "system_prompt" | "user_message">): DecisionTrace {
+  create(init: Pick<DecisionTrace, "mode" | "model" | "turn_key" | "diffculities" | "controlled_vstate_id" | "legal_actions_count" | "ai_agent_mode" | "system_prompt" | "user_message" | "tools">): DecisionTrace {
     this.seq += 1;
     const t: DecisionTrace = {
       id: `tr-${Date.now().toString(36)}-${this.seq.toString(36)}`,

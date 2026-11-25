@@ -156,6 +156,21 @@
     color: var(--dim); font-size: 11px; margin: 0 4px 3px 0; }
 
   .hint { color: var(--faint); font-size: 11px; margin: 0 0 8px; }
+
+  /* 工具定义 */
+  .tdef { border: 1px solid var(--line); border-left: 2px solid var(--call); border-radius: 6px;
+    background: #121821; margin-bottom: 6px; overflow: hidden; }
+  .tdef .dh { display: flex; align-items: baseline; gap: 8px; padding: 4px 9px; cursor: pointer; font-size: 11.5px; }
+  .tdef .dh:hover { background: var(--panel2); }
+  .tdef .dh .nm { color: var(--call); font-weight: 600; flex: none; }
+  .tdef .dh .lb { color: var(--fg); flex: none; }
+  .tdef .dh .ds { color: var(--faint); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .tdef .dh .rd { color: var(--faint); margin-left: auto; font-size: 10.5px; flex: none; }
+  .tdef .db { display: none; border-top: 1px solid var(--line); }
+  .tdef.open .db { display: block; }
+  .tdef .lbl { padding: 4px 9px 0; font-size: 10px; color: var(--faint); letter-spacing: .4px; }
+  .tdef pre { max-height: 320px; }
+  .tdef .txt { padding: 5px 10px 7px; font-size: 11.5px; color: #c3cddd; white-space: pre-wrap; word-break: break-word; }
 </style>
 </head>
 <body>
@@ -187,7 +202,7 @@ const state = {
 
 const KINDS = {
   system: "系统提示", user: "用户输入", turn: "轮次", assistant: "模型输出",
-  tool_call: "工具调用", tool_result: "工具返回", final: "最终计划", error: "错误", mock: "Mock",
+  tool_call: "工具调用", tool_result: "工具返回", tools: "工具定义", final: "最终计划", error: "错误", mock: "Mock",
 };
 const STATUS = { ok: "成功", error: "错误", running: "运行中", fallback: "回退" };
 const EMPTY_DETAIL = '<div class="empty">← 选择左侧一条轨迹查看完整对话</div>';
@@ -373,18 +388,60 @@ function renderPromptTab(t) {
       <pre>${esc(text) || "（空）"}</pre>
     </div>`;
   const userTxt = t.user_message ? pretty(t.user_message) : "";
+  const tools = t.tools || [];
   return `
     <div class="hint">纯文本渲染，防止战场数据注入 HTML。</div>
     ${blk("System Prompt", t.system_prompt, (t.system_prompt || "").length)}
     ${blk("User Message / 战场 JSON", userTxt || "（mock 模式无对话）", (t.user_message || "").length)}
+    ${renderTools(tools)}
     ${renderActions(t)}`;
+}
+
+/* ───────── 工具定义（请求上下文的一部分：name / description / parameters） ───────── */
+
+function renderTools(tools) {
+  const list = tools.map((x, i) => {
+    const key = "td" + i;
+    const open = state.expanded.has(key);
+    const req = x.parameters?.required;
+    const nParam = x.parameters?.properties ? Object.keys(x.parameters.properties).length : 0;
+    const reqTxt = Array.isArray(req) && req.length ? "必填 " + req.join(", ") : "无必填";
+    return `
+      <div class="tdef ${open ? "open" : ""}">
+        <div class="dh" data-key="${key}">
+          <span>${open ? "▾" : "▸"}</span>
+          <span class="nm mono">${esc(x.name)}</span>
+          ${x.label ? `<span class="lb">${esc(x.label)}</span>` : ""}
+          <span class="ds">${esc(compact(x.description, 140))}</span>
+          <span class="rd">${nParam} 参数 · ${esc(reqTxt)}</span>
+        </div>
+        <div class="db">
+          <div class="sec"><div class="lbl">说明</div><div class="txt">${esc(x.description) || "（空）"}</div></div>
+          <div class="sec"><div class="lbl">参数 schema</div><pre>${jsonBlock(x.parameters)}</pre></div>
+        </div>
+      </div>`;
+  }).join("");
+  return `
+    <div class="block">
+      <div class="bh" data-toggle="blk"><span class="caret">▾</span>Tools 定义<span class="sub">${tools.length} 个工具</span></div>
+      <div class="bb">${list || '<div class="hint" style="margin:0">（本轨迹没有工具定义，例如 mock 模式）</div>'}</div>
+    </div>`;
 }
 
 /* ───────── 时间线：按轮分组，工具调用与返回合并 ───────── */
 
-function groupEvents(events) {
+function groupEvents(events, tools) {
   const groups = [];
-  let cur = { label: "请求上下文", head: "system prompt / 战场输入", items: [] };
+  // 工具定义挂在轨迹顶层（t.tools）而不是事件里：请求上下文组的头部也一并列出工具名
+  const defs = (tools || []).map((x) => x.name).join(", ");
+  const ctxEvent = (tools || []).length
+    ? { type: "tools", tools, seq: (tools || []).length }
+    : null;
+  let cur = {
+    label: "请求上下文",
+    head: defs ? `system prompt / tools(${tools.length}) / 战场输入` : "system prompt / 战场输入",
+    items: ctxEvent ? [ctxEvent] : [],
+  };
   groups.push(cur);
   for (const e of events) {
     if (e.type === "turn") {
@@ -415,7 +472,7 @@ function groupEvents(events) {
 
 function renderTimelineTab(t) {
   state.toolIndex.clear();
-  const groups = groupEvents(t.events);
+  const groups = groupEvents(t.events, t.tools);
   const head = `
     <div class="tl-bar">
       <span>${groups.length} 组 / ${t.events.length} 事件</span>
@@ -458,13 +515,38 @@ function renderItem(e) {
         <div class="t">${esc(e.text || "（无文本）")}</div>
       </div>`;
   }
-  if (e.type === "tool_call" || e.type === "tool_result") return renderTool(e, key);
-  return `
+if (e.type === "tool_call" || e.type === "tool_result") return renderTool(e, key);
+    if (e.type === "tools") return renderToolDefs(e.tools);
+    return `
     <div class="ev ${esc(e.type)}">
       <div class="h"><span class="kind">${esc(KINDS[e.type] || e.type)}</span><span class="seq">#${e.seq}</span>
         ${e.tool ? `<span class="tool mono">${esc(e.tool)}</span>` : ""}<span class="at">+${e.at_ms}ms</span></div>
       ${e.text ? `<div class="t">${esc(e.text)}</div>` : ""}
       ${e.result !== undefined ? `<div class="t mono" style="font-size:11px;color:var(--dim)">${jsonBlock(e.result)}</div>` : ""}
+    </div>`;
+}
+
+/* 时间线里的一行「工具定义」：pills 概览，点开展开全文 */
+
+function renderToolDefs(tools) {
+  const key = "defs";
+  const open = state.expanded.has(key);
+  const pills = (tools || []).map((x) =>
+    `<span class="pill"><span class="mono" style="color:var(--call)">${esc(x.name)}</span> ${esc(x.label || "")}</span>`).join("");
+  const rows = (tools || []).map((x) => `
+    <div class="tdef open">
+      <div class="dh"><span class="nm mono">${esc(x.name)}</span>${x.label ? `<span class="lb">${esc(x.label)}</span>` : ""}</div>
+      <div class="db">
+        <div class="sec"><div class="lbl">说明</div><div class="txt">${esc(x.description) || "（空）"}</div></div>
+        <div class="sec"><div class="lbl">参数 schema</div><pre>${jsonBlock(x.parameters)}</pre></div>
+      </div>
+    </div>`).join("");
+  return `
+    <div class="ev">
+      <div class="h"><span class="kind">${esc(KINDS.tools)}</span><span class="seq">#${tools.length}</span>
+        <span class="tg" data-key="${key}">${open ? "收起" : "展开全文"}</span></div>
+      <div style="padding:2px 0">${pills}</div>
+      ${open ? rows : ""}
     </div>`;
 }
 

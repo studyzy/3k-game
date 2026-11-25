@@ -17,7 +17,7 @@ import { ServiceError } from "./agent.ts";
 import { buildBattleTools, BATTLE_TOOL_NAMES, BATTLE_READ_TOOL_NAMES, type BattleLive } from "./battle-tools.ts";
 import { battleStore, type BattleSession } from "./battle-session.ts";
 import { createCustomRuntime } from "./llm.ts";
-import { traceStore, type DecisionTrace } from "./trace.ts";
+import { traceStore, traceTools, type DecisionTrace } from "./trace.ts";
 
 // 白兵战系统提示词 = 从 GDScript 源码提炼的「秘籍」。
 // 依据：clBattleFight.gd（胜负/命令/计策 buff 回合数）、Battle_Unit.gd（伤害与射程）、
@@ -118,6 +118,7 @@ export function startBattle(req: BattleRequest, opts: BattleOptions): { session:
     ai_agent_mode: true,
     system_prompt: BATTLE_SYSTEM_PROMPT,
     user_message: "",
+    tools: [],
   });
   traceStore.add(tr, "system", { text: BATTLE_SYSTEM_PROMPT });
 
@@ -234,6 +235,8 @@ async function piBattle(
     : opts.runtime ?? realRuntime(opts.config, process.env as Record<string, string | undefined>);
 
   const { tools, state } = buildBattleTools(live, session, budget);
+  // 工具定义也是请求上下文的一部分，随轨迹一起展示（mock 模式没有工具）。
+  tr.tools = traceTools(tools);
   const counters = { turns: 0, toolCalls: 0, tokens: 0 };
   // 本段 loop 内出现过什么工具：acted = 下发过动作（set_order/use_tactic/end_turn），
   // inspected = 只侦察过。都不在 turn_start 重置——pi 的 turn 会切到「侦察后的下一轮」，

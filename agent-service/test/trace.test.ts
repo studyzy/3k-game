@@ -11,7 +11,7 @@ import { sampleRequest, testConfig } from "./fixture.ts";
 
 test("TraceStore 环形缓冲 / 事件序号 / 查询 / 清空", () => {
   const s = new TraceStore(3);
-  const t1 = s.create({ mode: "mock", model: "m", turn_key: "a", diffculities: 4, controlled_vstate_id: 2, legal_actions_count: 1, system_prompt: "S", user_message: "U" });
+  const t1 = s.create({ mode: "mock", model: "m", turn_key: "a", diffculities: 4, controlled_vstate_id: 2, legal_actions_count: 1, system_prompt: "S", user_message: "U", tools: [] });
   s.add(t1, "system", { text: "S" });
   s.add(t1, "final", { text: "done" });
   s.finish(t1, { status: "ok", elapsed_ms: 12, intent: "i" });
@@ -22,7 +22,7 @@ test("TraceStore 环形缓冲 / 事件序号 / 查询 / 清空", () => {
   assert.equal(s.list()[0].intent, "i");
   assert.equal(s.size(), 1);
 
-  for (let i = 0; i < 5; i++) s.create({ mode: "mock", model: "m", turn_key: "b" + i, diffculities: 4, controlled_vstate_id: 2, legal_actions_count: 1, system_prompt: "S", user_message: "U" });
+  for (let i = 0; i < 5; i++) s.create({ mode: "mock", model: "m", turn_key: "b" + i, diffculities: 4, controlled_vstate_id: 2, legal_actions_count: 1, system_prompt: "S", user_message: "U", tools: [] });
   assert.equal(s.size(), 3, "应按上限裁剪");
   assert.equal(s.list()[0].turn_key, "b4", "最新在前");
   s.clear();
@@ -60,6 +60,17 @@ test("stub 回合产生完整对话事件（system/user/turn/assistant/tool_call
   assert.ok(results.length >= 1);
   assert.ok(Array.isArray(t!.actions), "轨迹应记录本回合的动作序列");
   assert.ok(t!.intent !== undefined);
+  // 请求上下文里的工具定义也要可查：名称、说明、参数 schema 齐全
+  assert.equal(t!.tools.length, 10, "战争场景应有 10 个工具");
+  const names = t!.tools.map((x) => x.name);
+  for (const k of ["move", "attack", "stratagem", "retreat", "end", "list_legal_actions"]) {
+    assert.ok(names.includes(k), `缺少工具 ${k}`);
+  }
+  const move = t!.tools.find((x) => x.name === "move")!;
+  assert.equal(move.label, "移动");
+  assert.match(move.description, /路径/);
+  assert.deepEqual((move.parameters as any).required, ["actor", "path", "reasoning"]);
+  assert.doesNotThrow(() => JSON.stringify(t!.tools), "工具定义必须可序列化到 API");
 });
 
 test("错误回合也被记录（status=error + error 事件）", async () => {
@@ -95,6 +106,7 @@ test("调试面板 API：列表 / 详情 / 清空 / HTML", async () => {
     const detail = await fetch(`${base}/ai/traces/${list.traces[0].id}`).then((r) => r.json()) as any;
     assert.ok(detail.events.length > 0);
     assert.ok(detail.system_prompt.includes("战场指挥官"));
+    assert.ok(detail.tools.some((x: any) => x.name === "attack"), "详情应带工具定义");
 
     const missing = await fetch(`${base}/ai/traces/nope`);
     assert.equal(missing.status, 404);
