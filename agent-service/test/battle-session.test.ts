@@ -43,3 +43,40 @@ test("finish 幂等", () => {
   assert.equal(s.finished, true);
   assert.equal(s.endReason, "x");
 });
+test("finish 后 beginTick 返回 false", () => {
+  const s = new BattleSession("b", init, 1000);
+  s.finish("done");
+  assert.equal(s.beginTick(), false);
+  assert.equal(s.inFlight, false);
+});
+
+test("size() 会先 prune 过期会话", () => {
+  const store = new BattleStore();
+  const s = store.create(init, 10);
+  s.lastActivityAt = Date.now() - 100;
+  assert.equal(store.size(), 0);
+});
+
+test("clear 后 size 为 0", () => {
+  const store = new BattleStore();
+  store.create(init);
+  store.create(init);
+  assert.equal(store.size(), 2);
+  store.clear();
+  assert.equal(store.size(), 0);
+});
+
+test("活跃会话 touch 后可继续 get 到", () => {
+  const store = new BattleStore();
+  const s = store.create(init, 10);
+  s.touch();
+  assert.equal(store.get(s.id), s);
+});
+
+test("两个会话共存且 id 唯一", () => {
+  const store = new BattleStore();
+  const a = store.create(init);
+  const b = store.create(init);
+  assert.notEqual(a.id, b.id);
+  assert.equal(store.size(), 2);
+});

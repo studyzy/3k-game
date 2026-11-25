@@ -50,6 +50,7 @@ export class BattleSession {
 
   /** 同一会话同时只允许一拍。 */
   beginTick(): boolean {
+    if (this.ended) return false;
     if (this.inFlight) return false;
     this.inFlight = true;
     this.touch();
@@ -91,12 +92,16 @@ export class BattleStore {
 
   prune(): void {
     for (const [id, s] of this.items) {
+      if (s.inFlight) continue;
       if (s.idleRemaining() <= 0) this.items.delete(id);
     }
   }
 
   clear(): void { this.items.clear(); }
-  size(): number { return this.items.size; }
+  size(): number {
+    this.prune();
+    return this.items.size;
+  }
 }
 
 export const battleStore = new BattleStore();
