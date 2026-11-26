@@ -354,3 +354,31 @@ test("estimate_stratagem 不占动作预算（只读）", async () => {
   assert.ok((READ_TOOL_NAMES as readonly string[]).includes("estimate_stratagem"));
   assert.ok(!(ACT_TOOL_NAMES as readonly string[]).includes("estimate_stratagem"));
 });
+
+// 系统提示词的事实锚点：防止重构时把引擎规则改错。
+// 每条都对应一处曾被写错、或容易被误读的引擎行为，改动前先回查 bwdl/ 源码。
+test("SYSTEM_PROMPT 结构与易错规则锚点", async () => {
+  const { SYSTEM_PROMPT } = await import("../src/agent.ts");
+  // trace.test 依赖这句判定「这是战争提示词」
+  assert.match(SYSTEM_PROMPT, /战场指挥官/);
+  // 计策射程逐计不同，6 只是上限；模型看不到射程字段，必须查 legal_actions
+  assert.match(SYSTEM_PROMPT, /射程因计而异/);
+  assert.match(SYSTEM_PROMPT, /list_legal_actions\(actor\) 确认/);
+  // 城墙街区隔墙打不到（IWar_Attack 排除 + 城墙阻断路径），不能建议「远程隔墙消耗」
+  assert.doesNotMatch(SYSTEM_PROMPT, /远程隔墙消耗/);
+  // 守方站城格会被强制转弓、锁「守城门」阵（clBattleFight._get_special_units_transforms）
+  assert.match(SYSTEM_PROMPT, /强制当弓箭手/);
+  assert.match(SYSTEM_PROMPT, /守城门/);
+  // 城墙格之间不连通，不能建议沿城墙横移
+  assert.doesNotMatch(SYSTEM_PROMPT, /沿城墙横移消耗/);
+  assert.match(SYSTEM_PROMPT, /不要指望「沿城墙横移」/);
+  // 城门耐久等不可观测字段不得写进判定条件
+  assert.match(SYSTEM_PROMPT, /看不到城门耐久/);
+  assert.doesNotMatch(SYSTEM_PROMPT, /城门耐久跌破/);
+  // 攻方推进只按可观测状态触发
+  assert.match(SYSTEM_PROMPT, /开场兵力 × 60%/);
+  // reasoning 是工具必填参数，不能与「不要输出额外解释」混为一谈
+  assert.match(SYSTEM_PROMPT, /\【模式:斩首\|强攻\|磨盘\】/);
+  assert.match(SYSTEM_PROMPT, /除工具参数里的 reasoning 外/);
+});
+
