@@ -122,7 +122,15 @@ export class TurnSession {
    * 与 emitAction 共用长轮询通道（占用同样的往返），但不会进入 Godot 的动作执行流程。
    */
   askEstimate(actor: number, target: number, skill: string): Promise<Record<string, unknown>> {
-    const ask: RandomAsk = { id: ++this.askSeq, kind: "estimate_stratagem", actor, target, skill };
+    return this.ask({ id: ++this.askSeq, kind: "estimate_stratagem", actor, target, skill });
+  }
+
+  /** 只读查询：某个武将走到（多个）目标点的最少格数/机动力/最短路径。 */
+  askMove(actor: number, to: Array<[number, number]>): Promise<Record<string, unknown>> {
+    return this.ask({ id: ++this.askSeq, kind: "estimate_move", actor, to });
+  }
+
+  private ask(ask: RandomAsk): Promise<Record<string, unknown>> {
     this.askBatch.push(ask);
     return new Promise((resolve, reject) => {
       this.askInflight.set(ask.id, { resolve, reject });

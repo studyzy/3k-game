@@ -37,6 +37,8 @@ var _tips_shown: bool = false
 var _posting: bool = false
 # 最近一次移动的实际结果（走到哪/扣多少/为何停下），用于替换 outcome
 var _last_move_outcome: String = ""
+# 本次会话 AI 控制的 vstate id（投影时记录，用于区分敌我以选对机动力口径）
+var _controlled_wv_id: int = -1
 
 func _ensure_helpers() -> void:
 	if _projector == null:
@@ -102,6 +104,9 @@ func next_behavior_actor(wv) -> int:
 	return _current_actor if _current_actor >= 0 else wv.main_actorId
 
 func _open_session(wv) -> bool:
+	# 记录受控阵营：estimate_move 用它区分「我方看剩余机动力 / 敌方看下轮刷新值」
+	if wv != null:
+		_controlled_wv_id = int(wv.id)
 	var payload = _projector.build(wv)
 	if payload.empty():
 		_mark_local("empty_state")
@@ -256,12 +261,15 @@ func _answer_asks(asks, sid: String) -> bool:
 	for q in asks:
 		if typeof(q) != TYPE_DICTIONARY:
 			continue
-		if str(q.get("kind", "estimate_stratagem")) != "estimate_stratagem":
-			continue
-		# 只回传「中计概率 + 中计后的结果」这段文字，逐目标的原始明细模型读不懂也用不上
-		var summary = _estimate_summary(
-			int(q.get("actor", - 1)), int(q.get("target", - 1)), str(q.get("skill", ""))
-		)
+		var kind = str(q.get("kind", "estimate_stratagem"))
+		var summary = "预估失败"
+		if kind == "estimate_stratagem":
+			# 只回传「中计概率 + 中计后的结果」这段文字，逐目标的原始明细模型读不懂也用不上
+			summary = _estimate_summary(
+				int(q.get("actor", - 1)), int(q.get("target", - 1)), str(q.get("skill", ""))
+			)
+		elif kind == "estimate_move":
+			summary = _estimate_move_summary(int(q.get("actor", - 1)), q.get("to", []))
 		answers.append({"id": int(q.get("id", 0)), "data": {"ok": summary != "预估失败", "summary": summary}})
 	if answers.empty():
 		DataManager.ai_debug_log("ASK abort: no answers built", true)
@@ -278,6 +286,94 @@ func _estimate_summary(actorId: int, targetId: int, skill: String) -> String:
 	if text == "":
 		return "预估失败"
 	return text
+
+# 行军预估的文字结论（给模型看）：逐目标一行，写「够不够机动力、几格、耗多少机、路径怎么走」。
+# 用引擎 A*（权重就是每格的机动力消耗）算最短路线，按 War_Actor.can_move_to_position 判阻挡，
+# 与玩家点着走时能到的地方完全一致。to 里每个点单独算，不互相影响。
+# 该武将是否属于本次 AI 控制的阵营。
+# 会话投影的 controlled_id 就是 AI 方 War_Vstate 的 id；这里用同样的口径：
+# 与「最近一次投影的受控阵容」比较。_controlled_ids 由 _ensure_helpers 记录。
+func _is_self_side(wa: War_Actor) -> bool:
+	if wa == null or _controlled_wv_id < 0:
+		return false
+	return int(wa.wvId) == _controlled_wv_id
+
+func _estimate_move_summary(actorId: int, to) -> String:
+	var wa = DataManager.get_war_actor(actorId)
+	if wa == null or wa.disabled:
+		return "预估失败"
+	if typeof(to) != TYPE_ARRAY or to.empty():
+		return "预估失败"
+	var map = SceneManager.current_scene().war_map
+	map.aStar.update_map_for_actor(wa)
+	# 预算按「下一天刷新的机动力」算，不用当前剩余 action_point：
+	# 侦察敌将时它当天的机动力通常已经用光，拿剩余值算会把敌人误判成走不动。
+	# 机动力每天重置回上限（第一节），所以上限就是它下一轮能用的量；
+	# 查询的是我自己时才用剩余 action_point（当天还剩多少）。
+	# 我方 = 当前 AI 控制的那个 War_Vstate（_projector 持同一份投影口径）
+	var is_self = _is_self_side(wa)
+	var total_ap = int(wa.get_max_action_ap()) if not is_self else int(wa.action_point)
+	var ap_label = "下轮可动" if not is_self else "剩"
+	var name_text = wa.get_name()
+	var lines = []
+	for raw in to:
+		if typeof(raw) != TYPE_ARRAY or raw.size() < 2:
+			continue
+		var target = Vector2(int(raw[0]), int(raw[1]))
+		var head = name_text + " → [" + str(int(target.x)) + "," + str(int(target.y)) + "] "
+		if not map.is_valid_position(target):
+			lines.append(head + "地图外")
+			continue
+		if map.get_blockCN_by_position(target) == "不可进入":
+			lines.append(head + "不可站（地图外或不可进入格）")
+			continue
+		if not wa.can_move_to_position(target):
+			lines.append(head + "该格有武将占着")
+			continue
+		var route = map.aStar.get_path(wa.position, target)
+		if route.empty():
+			lines.append(head + "无路可达")
+			continue
+		# route 含起点：去掉起点后逐格累加机动力（只读估价，不改战场状态）
+		var steps = route.size() - 1
+		var ap = 0
+		for i in range(1, route.size()):
+			ap += _estimate_step_ap(wa, route[i])
+		var text = head + str(steps) + " 格，" + str(ap) + " 机（" + ap_label + " " + str(total_ap) + " 机"
+		if ap <= total_ap:
+			text += "，够）"
+		else:
+			text += "，不够）"
+		var shown = []
+		for i in range(1, route.size()):
+			shown.append("[" + str(int(route[i].x)) + "," + str(int(route[i].y)) + "]")
+		text += " 路径 " + PoolStringArray(shown).join("→")
+		lines.append(text)
+	if lines.empty():
+		return "预估失败"
+	return PoolStringArray(lines).join("\n")
+
+# 单格行军的机动力估价（只读）。
+# 不调 DataManager.get_move_cost：那个会写 env 并触发 20007，打乱当前状态。
+# 口径与它一致：地形表[地形][军种][兵力档]，装备「X军移动」取较低值，迟滞 +2、潜行 -1（最低 1）。
+func _estimate_step_ap(wa: War_Actor, pos: Vector2) -> int:
+	var troopsType = wa.actor().get_troops_type()
+	if troopsType == "仙":
+		return 0
+	var setting = StaticManager.get_move_ap_setting()
+	var terrain = SceneManager.current_scene().war_map.get_blockCN_by_position(pos)
+	if not setting.has(terrain):
+		terrain = "平原"
+	var b_index = 1 if wa.actor().get_soldiers() <= 500 else 0
+	var costAP = int(setting[terrain][troopsType][b_index])
+	for expectedType in ["平", "山", "水"]:
+		if troopsType != expectedType and wa.actor().get_equip_feature_max(expectedType + "军移动") > 0:
+			costAP = min(costAP, int(setting[terrain][expectedType][b_index]))
+	if wa.get_buff_label_turn(["迟滞"]) > 0:
+		costAP += 2
+	if wa.get_buff_label_turn(["潜行"]) > 0:
+		costAP = max(1, costAP - 1)
+	return costAP
 
 # 把用计预估结果回传服务端（不带动作），成功后等服务端回包再继续
 func _post_estimates(answers: Array, sid: String) -> bool:
@@ -388,6 +484,9 @@ func behavior(wvId: int) -> void:
 	if _local:
 		_delegate_to_local(wvId)
 		return
+	# 逐格移动走完后要用它回传结果；behavior 只有 wvId，这里取回 War_Vstate 对象
+	var wf_now = DataManager.get_current_war_fight()
+	_walk_wv = wf_now.get_war_vstate(wvId) if wf_now != null else null
 	if _ready.empty():
 		# 本轮没有可执行动作：HTTP 回调（_on_session_opened / _on_polled /
 		# _on_result_posted）到达时会自己 add_flow("AI_before_ready")，不需要在这里补。
@@ -421,6 +520,12 @@ func behavior(wvId: int) -> void:
 		_pending[_pending.size() - 1]["ok"] = false
 		_pending[_pending.size() - 1]["outcome"] = "执行失败：" + outcome
 		_fallback("exec_failed:" + str(act["tool"]))
+		return
+	# 逐格移动是异步的（每格停 STEP_DELAY_SEC）：此刻还没走完，_last_move_outcome 是空的。
+	# 这时回传会把 outcome 留成「移动到[]」，服务端就以为已经走完了。
+	# 所以逐格移动只记下 wv，等 _walk_finish() 走完再回传。
+	if not _walk_plan.empty():
+		_walk_pending_wv = _walk_wv
 		return
 	# 移动的 outcome 用实际结果（走到哪、扣多少、为何停下），而不是计划描述
 	if str(act["tool"]) == "move" and _last_move_outcome != "":
@@ -489,50 +594,107 @@ func _move_stepwise(wa, path: Array) -> bool:
 	var start = wa.position
 	DataManager.set_env("当前坐标", {"x": start.x, "y": start.y})
 
-	var cur = start
-	var total = {"机": 0, "点": 0}
-	var walked = 0
-	var stop_reason = ""
-	for point in path:
+	# 逐格走：每走一格就刷新画面，再等 STEP_DELAY_SEC 秒走下一格，
+	# 让玩家能看清 AI 的每一步（之前是一次性算完再统一重绘，画面只看到瞬移）。
+	_walk_plan = {
+		"wa": wa, "path": path, "cur": start, "start": start,
+		"total": {"机": 0, "点": 0}, "walked": 0, "stop_reason": "",
+	}
+	_walk_tick()
+	return true
+
+# 单步停顿秒数（逐格动画用）。调大更慢，调小更快。
+const STEP_DELAY_SEC = 0.5
+
+var _walk_plan: Dictionary = {}
+# 逐格移动期间暂存的 War_Vstate：走完要用它把最新状态投影成 tool result 回传
+# behavior(wvId) 只有 wvId，这里用 wf.get_war_vstate(wvId) 取回对象
+var _walk_pending_wv = null
+var _walk_wv = null
+
+# 走一格：能走就落格并刷新；不能走就记下停因准备收尾。
+# 每格之间用 SceneTreeTimer 延时，保证画面真的停一下。
+func _walk_tick() -> void:
+	if _walk_plan.empty():
+		return
+	var wa = _walk_plan["wa"]
+	var path: Array = _walk_plan["path"]
+	var cur: Vector2 = _walk_plan["cur"]
+	var map = SceneManager.current_scene().war_map
+	var next = _next_step(wa, cur, path, _walk_plan)
+	# next 为 null 表示路径走完；为字典 {"stop": ...} 表示卡住，两者都要收尾
+	if next == null or typeof(next) == TYPE_DICTIONARY:
+		if typeof(next) == TYPE_DICTIONARY:
+			_walk_plan["stop_reason"] = str(next["stop"])
+		_walk_finish()
+		return
+	var step_cost = DataManager.get_move_cost(wa.actorId, next)
+	wa.action_point = max(0, int(wa.action_point - int(step_cost["机"])))
+	wa.poker_point = max(0, int(wa.poker_point - int(step_cost["点"])))
+	var total: Dictionary = _walk_plan["total"]
+	total["机"] = int(total["机"]) + int(step_cost["机"])
+	total["点"] = int(total["点"]) + int(step_cost["点"])
+	wa.position = next
+	_walk_plan["cur"] = next
+	_walk_plan["walked"] = int(_walk_plan["walked"]) + 1
+	# 立刻重绘一格，然后停一下再继续
+	map.draw_actors()
+	map.update_ap()
+	map.fix_cursor_camer()
+	var timer = SceneManager.current_scene().get_tree().create_timer(STEP_DELAY_SEC)
+	timer.connect("timeout", self, "_walk_tick")
+	return
+
+# 取下一格：返回 Vector2（可以走），null（路径已走完），{"stop": 原因}（卡住）。
+func _next_step(wa, cur: Vector2, path: Array, plan: Dictionary):
+	var map = SceneManager.current_scene().war_map
+	var walked = int(plan["walked"])
+	var idx = int(plan["step_idx"]) if plan.has("step_idx") else 0
+	while idx < path.size():
+		var point = path[idx]
+		idx += 1
+		plan["step_idx"] = idx
 		if typeof(point) != TYPE_ARRAY or point.size() != 2:
-			stop_reason = "路径里有非法坐标"
-			break
+			return {"stop": "路径里有非法坐标"}
 		var next = Vector2(int(point[0]), int(point[1]))
 		# 模型有时会把起点也塞进 path（schema 要求不含起点）。重复点直接跳过，不当错误。
 		if next == cur:
 			continue
 		var d = next - cur
-		# 只能上下左右走一格，不能斜走、不能跳跃
 		if abs(d.x) + abs(d.y) != 1:
-			stop_reason = "第{0}步 {1} 与当前格 {2} 不相邻（只能上下左右一格）".format([walked + 1, str(next), str(cur)])
-			break
+			return {"stop": "第{0}步 {1} 与当前格 {2} 不相邻（只能上下左右一格）".format([walked + 1, str(next), str(cur)])}
 		if not map.is_valid_position(next):
-			stop_reason = "第{0}步 {1} 超出地图边界".format([walked + 1, str(next)])
-			break
+			return {"stop": "第{0}步 {1} 超出地图边界".format([walked + 1, str(next)])}
 		if not wa.can_move_to_position(next):
-			stop_reason = "第{0}步 {1} 无法进入（有武将或地形阻挡）".format([walked + 1, str(next)])
-			break
+			return {"stop": "第{0}步 {1} 无法进入（有武将或地形阻挡）".format([walked + 1, str(next)])}
 		var step_cost = DataManager.get_move_cost(wa.actorId, next)
 		if step_cost["机"] > wa.action_point or step_cost["点"] > wa.poker_point:
-			stop_reason = "第{0}步 {1} 机动力不足（需要 {2}，剩余 {3}）".format([
+			return {"stop": "第{0}步 {1} 机动力不足（需要 {2}，剩余 {3}）".format([
 				walked + 1, str(next), int(step_cost["机"]), int(wa.action_point)
-			])
-			break
-		wa.action_point = max(0, wa.action_point - step_cost["机"])
-		wa.poker_point = max(0, wa.poker_point - step_cost["点"])
-		total["机"] = int(total["机"]) + int(step_cost["机"])
-		total["点"] = int(total["点"]) + int(step_cost["点"])
-		wa.position = next
-		cur = next
-		walked += 1
+			])}
+		return next
+	return null
 
+# 走完（或被挡住）：写回结果、收尾，再驱动 flow。
+func _walk_finish() -> void:
+	var plan = _walk_plan
+	_walk_plan = {}
+	var wa = plan["wa"]
+	var start: Vector2 = plan["start"]
+	var cur: Vector2 = plan["cur"]
+	var total: Dictionary = plan["total"]
+	var walked = int(plan["walked"])
+	var stop_reason = str(plan["stop_reason"])
+	var path: Array = plan["path"]
+	var map = SceneManager.current_scene().war_map
 	var reached = "%s→%s" % [str(start), str(cur)]
 	if walked == 0:
 		if stop_reason == "":
 			stop_reason = "路径没有可走的格子（可能全是重复点）"
 		_last_move_outcome = "未移动（%s）；原因：%s" % [str(start), stop_reason]
+		_walk_flush_result()
 		FlowManager.add_flow("AI_before_ready")
-		return true
+		return
 	var msg = "移动 %s，共 %d 格，消耗机动力 %d、点数 %d" % [
 		reached, walked, int(total["机"]), int(total["点"])
 	]
@@ -554,12 +716,28 @@ func _move_stepwise(wa, path: Array) -> bool:
 	DataManager.unset_env("结束移动")
 	DataManager.set_env("移动", 0)
 	DataManager.set_env("结束移动", 1)
+	_walk_flush_result()
 	if SkillHelper.auto_trigger_skill(wa.actorId, 20003, "AI_before_ready"):
-		return true
+		return
 	if wa.after_move():
-		return true
+		return
 	FlowManager.add_flow("AI_before_ready")
-	return true
+	return
+
+# 逐格移动走完后，用真实 outcome 替掉 _pending 里的计划描述，并立刻回传服务端。
+# 不走 _flush_results(wv) 的原因：此时拿不到 wv；_walk_pending_wv 是 behavior() 暂存的同一对象。
+func _walk_flush_result() -> void:
+	if _pending.empty():
+		return
+	_pending[_pending.size() - 1]["outcome"] = _last_move_outcome
+	var wv = _walk_pending_wv
+	_walk_pending_wv = null
+	if wv == null:
+		return
+	_flush_results(wv)
+	return
+
+
 
 # wab 接口：AI_control.gd 回合结束
 func AI_end() -> void:

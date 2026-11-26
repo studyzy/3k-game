@@ -61,7 +61,7 @@ test("stub 回合产生完整对话事件（system/user/turn/assistant/tool_call
   assert.ok(Array.isArray(t!.actions), "轨迹应记录本回合的动作序列");
   assert.ok(t!.intent !== undefined);
   // 请求上下文里的工具定义也要可查：名称、说明、参数 schema 齐全
-  assert.equal(t!.tools.length, 10, "战争场景应有 10 个工具");
+  assert.equal(t!.tools.length, 11, "战争场景应有 11 个工具");
   const names = t!.tools.map((x) => x.name);
   for (const k of ["move", "attack", "stratagem", "retreat", "end", "list_legal_actions"]) {
     assert.ok(names.includes(k), `缺少工具 ${k}`);

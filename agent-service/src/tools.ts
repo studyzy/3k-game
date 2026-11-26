@@ -246,6 +246,41 @@ export function buildTools(
     },
   };
 
+  const estimate_move: AgentTool<any> = {
+    name: "estimate_move",
+    label: "预估算路",
+    description: [
+      "只读：估算某个武将走到目标格的最少格数、需要多少机动力、以及最短路径（不消耗机动力、不推进战局）。",
+      "to 可以一次给多个目标点（如三个城门 + 太守府），一次拿到全部结论；有可达的会按机动力消耗从小到大排好。",
+      "算不通就用它：判断哪个城门离敌人最近（主攻门）、我能不能走过去、要走几格花多少机。",
+      "返回的 path 可以直接填进 move 的 path 参数。",
+    ].join(""),
+    parameters: {
+      type: "object",
+      properties: {
+        actor: { type: "number", description: "武将 id" },
+        to: {
+          type: "array",
+          description: "目标格列表 [[x,y], ...]",
+          minItems: 1,
+          items: { type: "array", items: { type: "number" }, minItems: 2, maxItems: 2 },
+        },
+      },
+      required: ["actor", "to"],
+      additionalProperties: false,
+    },
+    execute: async (_id, params) => {
+      const to = (params.to as number[][]).map((p) => [Number(p[0]), Number(p[1])] as [number, number]);
+      const data = await session.askMove(Number(params.actor), to);
+      // Godot 侧把文字结论放在 summary；取不到就直接把原始回答给模型，别让它看到空结果
+      const summary = typeof data.summary === "string" && data.summary !== "" ? data.summary : "";
+      if (summary === "") {
+        return result(`估算失败（引擎没有返回结论）：${text(data)}`, { ok: false, raw: data });
+      }
+      return result(summary, { ok: data.ok !== false, routes: data.routes });
+    },
+  };
+
   // ---------------- 动作工具：交给 Godot 执行，await 结果 ----------------
   /**
    * 执行一个动作：
@@ -394,7 +429,7 @@ export function buildTools(
 
   return {
     tools: [
-      list_legal_actions, inspect_unit, inspect_terrain, inspect_economy, estimate_stratagem,
+      list_legal_actions, inspect_unit, inspect_terrain, inspect_economy, estimate_stratagem, estimate_move,
       move, attack, stratagem, retreat, end,
     ],
     state,
@@ -402,7 +437,7 @@ export function buildTools(
 }
 
 export const TOOL_NAMES = [
-  "list_legal_actions", "inspect_unit", "inspect_terrain", "inspect_economy", "estimate_stratagem",
+  "list_legal_actions", "inspect_unit", "inspect_terrain", "inspect_economy", "estimate_stratagem", "estimate_move",
   "move", "attack", "stratagem", "retreat", "end",
 ] as const;
 
@@ -411,5 +446,5 @@ export const ACT_TOOL_NAMES = ["move", "attack", "stratagem", "retreat"] as cons
 
 /** 只读侦察工具：查询当前状态，不推进战局，不占 max_tool_calls 预算。 */
 export const READ_TOOL_NAMES = [
-  "list_legal_actions", "inspect_unit", "inspect_terrain", "inspect_economy", "estimate_stratagem",
+  "list_legal_actions", "inspect_unit", "inspect_terrain", "inspect_economy", "estimate_stratagem", "estimate_move",
 ] as const;

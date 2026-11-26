@@ -81,10 +81,12 @@ export interface ToolResultPayload {
  * 只读查询：模型想知道命中率与后果时，由 Godot 用引擎现算后回填。
  * 在 pending 响应里以 ask 形式下发，Godot 算完 POST 回 /estimate。
  *   - estimate_stratagem：大战场计策（actor 对 target 用 skill）
+ *   - estimate_move：大战场行军（actor 走到 to，可一次给多个目标点）
  *   - estimate_tactic：白兵战战术（只用 tactic 名，施计者固定为我方主将）
  */
 export type RandomAsk =
   | { id: number; kind: "estimate_stratagem"; actor: number; target: number; skill: string }
+  | { id: number; kind: "estimate_move"; actor: number; to: Array<[number, number]> }
   | { id: number; kind: "estimate_tactic"; tactic: string };
 
 /** Godot 对只读查询的回答（结构由 Godot 的 StratagemProjection 给出）。 */

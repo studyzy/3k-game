@@ -46,7 +46,7 @@ test("mock timeout：不产出任何动作（模拟 LLM 卡死）", async () => 
   assert.equal(r.type, "idle_timeout");
 });
 
-test("工具注册表恰好 10 个：5 只读 + 4 动作 + end；无 read/write/edit/bash", () => {
+test("工具注册表恰好 11 个：6 只读 + 4 动作 + end；无 read/write/edit/bash", () => {
   const { tools } = sessionFor();
   assert.deepEqual(tools.tools.map((t) => t.name), [...TOOL_NAMES]);
   assert.equal(ACT_TOOL_NAMES.length, 4);

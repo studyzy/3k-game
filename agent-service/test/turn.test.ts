@@ -338,6 +338,32 @@ test("estimate_stratagem：以 ask 下发查询，回答后作为工具结果喂
   assert.equal(session.actions.length, 0);
 });
 
+test("estimate_move：下发多个目标点，回答后作为工具结果喂回模型，不产生动作", async () => {
+  const script = ({ callIndex }: any) => (callIndex === 0
+    ? calls(toolCall("estimate_move", { actor: 12, to: [[15, 10], [17, 8]] }, "m1"))
+    : calls(toolCall("end", { reason: "算完路了" })));
+  const { session } = openWith(script);
+
+  let ask: any = null;
+  for (let i = 0; i < 10; i++) {
+    const r = await session.nextAction(3000);
+    if (r.type === "ask") { ask = r; break; }
+    assert.equal(r.type, "progress", `期望 ask，实际 ${JSON.stringify(r)}`);
+  }
+  assert.ok(ask, "未收到行军预估查询");
+  const q = ask.asks[0];
+  assert.equal(q.kind, "estimate_move");
+  assert.equal(q.actor, 12);
+  assert.deepEqual(q.to, [[15, 10], [17, 8]]);
+
+  // Godot 算完回传（同 estimate_stratagem，只有 summary 文字会被模型读到）
+  assert.ok(session.submitAnswers([{ id: q.id, data: { ok: true, summary: "荀谌 → [15,10] 5 格，18 机（剩 19 机，够）" } }]));
+
+  const end = await session.nextAction(3000);
+  assert.equal(end.type, "end");
+  assert.equal(session.actions.length, 0);
+});
+
 test("estimate_stratagem：响应后到的回答也能对上（earlyAnswers）", async () => {
   const session = new TurnSession("t", sampleRequest(), GODOT_IDLE_TIMEOUT_MS);
   const pending = session.askEstimate(12, 31, "火计");
@@ -380,5 +406,36 @@ test("SYSTEM_PROMPT 结构与易错规则锚点", async () => {
   // reasoning 是工具必填参数，不能与「不要输出额外解释」混为一谈
   assert.match(SYSTEM_PROMPT, /\【模式:斩首\|强攻\|磨盘\】/);
   assert.match(SYSTEM_PROMPT, /除工具参数里的 reasoning 外/);
+  // 守方：主攻门判定 + 守府优先于守门 + 进城后留一人堵门
+  assert.match(SYSTEM_PROMPT, /算主攻门/);
+  assert.match(SYSTEM_PROMPT, /太守府的绝对优先级/);
+  assert.match(SYSTEM_PROMPT, /只守主攻门/);
+  assert.match(SYSTEM_PROMPT, /留 1 个有兵的武将堵住那扇门/);
+  assert.match(SYSTEM_PROMPT, /站在太守府\*\*相邻格\*\*/);
+  // 站位是收益而不是「移动铺垫」；走不到就别走
+  assert.match(SYSTEM_PROMPT, /站位本身就是收益，不是「移动铺垫」/);
+  assert.match(SYSTEM_PROMPT, /不代表不该去/);
+  assert.match(SYSTEM_PROMPT, /本回合就走能走的那一段/);
+  // 主攻门按公式判定
+  assert.match(SYSTEM_PROMPT, /第一步：算主攻门 \+ 算「谁先到」/);
+  assert.match(SYSTEM_PROMPT, /estimate_move/);
+  assert.match(SYSTEM_PROMPT, /每回合都要重算，不许沿用上回合结论/);
+  assert.match(SYSTEM_PROMPT, /站在非主攻门的城门格上不算守好/);
+  // 「不够」只表示本回合走不到，不是不用去；按天数比谁先到
+  assert.match(SYSTEM_PROMPT, /比天数，不比单回合/);
+  assert.match(SYSTEM_PROMPT, /「不够」不是「不用去」/);
+  assert.match(SYSTEM_PROMPT, /分两天走完全正常/);
+  // 站门必须是本格：斜邻/门前平地白兵战不生成城门单位
+  assert.match(SYSTEM_PROMPT, /必须是 terrain_at 为「城门」的那一格/);
+  assert.match(SYSTEM_PROMPT, /斜着相邻、隔一格、站在门前平地上/);
+  // 主将可临时让开太守府（build_layer 独立判定，与地形无关）
+  assert.match(SYSTEM_PROMPT, /太守府格可以被临时让开/);
+  assert.match(SYSTEM_PROMPT, /先挪开一格/);
+  // 可达路线，不按直线格数
+  assert.match(SYSTEM_PROMPT, /不要自己心算/);
+  assert.match(SYSTEM_PROMPT, /移动被挡就重算/);
+  // 预判下一轮贴上来就先占位
+  assert.match(SYSTEM_PROMPT, /预判下一轮 → 本回合先把位置占好/);
+  assert.match(SYSTEM_PROMPT, /宁可少放一次计，也要站好位/);
 });
 
