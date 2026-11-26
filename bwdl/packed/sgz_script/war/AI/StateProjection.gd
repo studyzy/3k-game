@@ -40,17 +40,22 @@ func _next_id(prefix: String) -> String:
 # 返回 {"ok", "outcome", "units", "legal_actions", "economy"}
 # economy 含敌方粮草（economy.enemy），每次动作都重新投影，避免模型读到过期值。
 # 地形不随战斗变化，这里不重复下发（开场请求已给过全量）。
-func build_tool_result(wv, ok: bool, outcome: String) -> Dictionary:
+# extra：动作自带的附加结果（目前只有用计结算摘要 stratagem），原样并入回传。
+func build_tool_result(wv, ok: bool, outcome: String, extra: Dictionary = {}) -> Dictionary:
 	var fresh = build(wv)
 	if fresh.empty():
-		return {"ok": ok, "outcome": outcome, "units": [], "legal_actions": []}
-	return {
+		var empty = {"ok": ok, "outcome": outcome, "units": [], "legal_actions": []}
+		empty.merge(extra)
+		return empty
+	var ret = {
 		"ok": ok,
 		"outcome": outcome,
 		"units": fresh["units"],
 		"legal_actions": fresh["legal_actions"],
 		"economy": fresh["economy"],
 	}
+	ret.merge(extra)
+	return ret
 
 # 生成 /ai/turn 请求体。wv 为当前 AI 方 War_Vstate。
 func build(wv) -> Dictionary:

@@ -63,6 +63,17 @@ export interface TurnRequest {
 }
 
 /** Godot 执行完一个动作后回传的结果。D1/D2：携带全部武将最新信息与重算后的合法动作。 */
+/** Godot 回传的结算摘要：一个施术者 + 每个受影响武将的变化与当前值。 */
+export interface SettlementOutcome {
+  ok: boolean;
+  name: string;
+  caster: string;
+  effects: Array<{
+    id: number; name: string; note: string;
+    soldiers: number; hp: number; status: string[];
+  }>;
+}
+
 export interface ToolResultPayload {
   /** 是否执行成功。失败时 Godot 侧通常已决定回退，但这里仍如实回传。 */
   ok: boolean;
@@ -75,6 +86,10 @@ export interface ToolResultPayload {
   /** 地形不会随战斗变化，通常不回传。 */
   terrain?: TerrainCell[];
   economy?: Record<string, unknown>;
+  /** 用计结算摘要（仅 stratagem 回传）：成功与否 + 每个受影响武将的变化与当前值。 */
+  stratagem?: SettlementOutcome;
+  /** 白兵战结算摘要（仅 attack 回传），结构同用计，另带 loser 名字。 */
+  battle?: SettlementOutcome & { loser?: string };
 }
 
 /**
@@ -86,7 +101,7 @@ export interface ToolResultPayload {
  */
 export type RandomAsk =
   | { id: number; kind: "estimate_stratagem"; actor: number; target: number; skill: string }
-  | { id: number; kind: "estimate_move"; actor: number; to: Array<[number, number]> }
+  | { id: number; kind: "estimate_move"; actor: number; to: Array<[number, number]>; free?: boolean }
   | { id: number; kind: "estimate_tactic"; tactic: string };
 
 /** Godot 对只读查询的回答（结构由 Godot 的 StratagemProjection 给出）。 */

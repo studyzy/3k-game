@@ -215,7 +215,15 @@ func _flush_results(wv) -> void:
 	var item = _pending.pop_front()
 	if item == null:
 		return
-	var result_payload = _projector.build_tool_result(wv, item["ok"], item["outcome"])
+	# 用计结算摘要在执行时就已算好（那时结算记录还在），这里只负责原样带出去
+	var extra = {}
+	for key in ["stratagem", "battle"]:
+		if item.has(key):
+			if key == "stratagem":
+				extra["stratagem"] = item[key]
+			else:
+				extra["battle"] = item[key]
+	var result_payload = _projector.build_tool_result(wv, item["ok"], item["outcome"], extra)
 	result_payload["seq"] = item["seq"]
 	_posting = true
 	var url = "{0}/{1}/result".format([_base_url(), _session_id])
@@ -269,7 +277,7 @@ func _answer_asks(asks, sid: String) -> bool:
 				int(q.get("actor", - 1)), int(q.get("target", - 1)), str(q.get("skill", ""))
 			)
 		elif kind == "estimate_move":
-			summary = _estimate_move_summary(int(q.get("actor", - 1)), q.get("to", []))
+			summary = _estimate_move_summary(int(q.get("actor", - 1)), q.get("to", []), bool(q.get("free", false)))
 		answers.append({"id": int(q.get("id", 0)), "data": {"ok": summary != "预估失败", "summary": summary}})
 	if answers.empty():
 		DataManager.ai_debug_log("ASK abort: no answers built", true)
@@ -298,7 +306,9 @@ func _is_self_side(wa: War_Actor) -> bool:
 		return false
 	return int(wa.wvId) == _controlled_wv_id
 
-func _estimate_move_summary(actorId: int, to) -> String:
+# free=true：只算「理论上几天能到」，忽略其他武将（队友+敌军）的阻挡。
+# 判敌情 / 判主攻门用这个口径——远处敌将此刻被自己人挡着，不代表它后天到不了。
+func _estimate_move_summary(actorId: int, to, free: bool = false) -> String:
 	var wa = DataManager.get_war_actor(actorId)
 	if wa == null or wa.disabled:
 		return "预估失败"
@@ -316,6 +326,13 @@ func _estimate_move_summary(actorId: int, to) -> String:
 	var ap_label = "下轮可动" if not is_self else "剩"
 	var name_text = wa.get_name()
 	var lines = []
+	if free:
+		# 估价不看谁挡路，只算地形消耗；查完立刻恢复
+		map.aStar.enable_brothers()
+		map.aStar.enable_enemies()
+	# 敌人按「下轮可动」估几天到门，这就是判主攻门的全部依据，所以敌情查询只回这一行结论。
+	var per_day = max(1, total_ap) if not is_self else max(1, int(wa.get_max_action_ap()))
+	var results = []
 	for raw in to:
 		if typeof(raw) != TYPE_ARRAY or raw.size() < 2:
 			continue
@@ -327,9 +344,10 @@ func _estimate_move_summary(actorId: int, to) -> String:
 		if map.get_blockCN_by_position(target) == "不可进入":
 			lines.append(head + "不可站（地图外或不可进入格）")
 			continue
-		if not wa.can_move_to_position(target):
-			lines.append(head + "该格有武将占着")
-			continue
+		# 只看地形能不能站，谁占着这一格不影响估价结果（估价的是"走到这里要花多少机／怎么走"）
+		var occupier = DataManager.get_war_actor_by_position(target, [actorId])
+		if occupier != null and not occupier.disabled and not free:
+			lines.append(head + "站着 " + occupier.get_name() + "，本回合不能走到这一格（路线按绕过它算）")
 		var route = map.aStar.get_path(wa.position, target)
 		if route.empty():
 			lines.append(head + "无路可达")
@@ -341,16 +359,28 @@ func _estimate_move_summary(actorId: int, to) -> String:
 			ap += _estimate_step_ap(wa, route[i])
 		var text = head + str(steps) + " 格，" + str(ap) + " 机（" + ap_label + " " + str(total_ap) + " 机"
 		if ap <= total_ap:
-			text += "，够）"
+			text += "，1 天到）"
 		else:
-			text += "，不够）"
-		var shown = []
-		for i in range(1, route.size()):
-			shown.append("[" + str(int(route[i].x)) + "," + str(int(route[i].y)) + "]")
-		text += " 路径 " + PoolStringArray(shown).join("→")
-		lines.append(text)
-	if lines.empty():
-		return "预估失败"
+			text += "，约 " + str(int(ceil(float(ap) / float(per_day)))) + " 天到）"
+		results.append({"ap": ap, "text": text})
+	if free:
+		map.aStar.disable_brothers()
+		map.aStar.disable_enemies()
+	if results.empty():
+		if lines.empty():
+			return "预估失败"
+		return PoolStringArray(lines).join("\n")
+	# 批量敌情查询（free）只回「最便宜的那个目标」：模型要的是"它最可能打哪个门、几天到"，
+	# 把每个目标各一行会一次吐出几十行，真正有用的只有最小值那行。
+	if free:
+		var best = results[0]
+		for r in results:
+			if int(r["ap"]) < int(best["ap"]):
+				best = r
+		lines.append(best["text"])
+	else:
+		for r in results:
+			lines.append(r["text"])
 	return PoolStringArray(lines).join("\n")
 
 # 单格行军的机动力估价（只读）。
@@ -530,6 +560,15 @@ func behavior(wvId: int) -> void:
 	# 移动的 outcome 用实际结果（走到哪、扣多少、为何停下），而不是计划描述
 	if str(act["tool"]) == "move" and _last_move_outcome != "":
 		_pending[_pending.size() - 1]["outcome"] = _last_move_outcome
+	# 用计：把结算明细整理成「是否成功 + 每个受影响武将的变化」，随结果一起回传。
+	# 结算（perform_to_targets）就是在上面的 _execute 里同步跑完的，这里直接读它留下的记录。
+	if str(act["tool"]) == "stratagem":
+		_pending[_pending.size() - 1]["stratagem"] = _stratagem_result(wa, act)
+	# 攻击同理：白兵战结算后 bf 里留着双方战损与胜负，整理成同一套 effects 结构
+	if str(act["tool"]) == "attack":
+		var atk = _attack_result(wa, act)
+		if not atk.empty():
+			_pending[_pending.size() - 1]["battle"] = atk
 	# move / end 在自己的实现里已经 add_flow；attack / stratagem / retreat 只是把
 	# 目标写进环境，真正的结算由下一轮 AI_before_ready（bf.pending_start / 计策流程）接手。
 	# 这里不补这一句，AI 回合会停在 AI_ready，动作结果永远回传不出去。
@@ -537,6 +576,132 @@ func behavior(wvId: int) -> void:
 	if tool_name == "attack" or tool_name == "strategem" or tool_name == "retreat":
 		FlowManager.add_flow("AI_before_ready")
 	return
+
+# 用计结算摘要：返回 {ok, name, caster, effects:[{id, name, note, soldiers, hp, status}, ...]}。
+# effects 只列真正被改变的武将；soldiers/hp/status 是结算后的当前值。
+func _stratagem_result(wa, act: Dictionary) -> Dictionary:
+	var ret = {"ok": false, "name": str(act.get("skill", "")), "caster": wa.get_name(), "effects": []}
+	var se = DataManager.get_current_stratagem_execution()
+	if se == null or se.results == null or se.results.empty():
+		return ret
+	if se.results.has("失败"):
+		return ret
+	ret["ok"] = true
+	# results 的键 → 画面上给玩家看的中文标签
+	var labels = {
+		"伤兵量": "兵力下降", "兵力流失": "兵力流失", "伤体量": "体力下降",
+		"扣米量": "军米减少", "反伤": "受到反伤", "免伤": "免伤",
+		"状态": "获得状态", "战术状态": "战术状态",
+	}
+	var by_target = {}
+	var order = []
+	for key in se.results.keys():
+		if key == "失败":
+			continue
+		for row in se.results[key]:
+			var targetId = int(row[2])
+			if targetId <= 0:
+				continue
+			if not by_target.has(targetId):
+				by_target[targetId] = {}
+				order.append(targetId)
+			var note = labels.get(key, str(key))
+			var num = int(row[1])
+			# 伤兵等按数值给变化量；状态类是文字（row[1] 是 0）
+			if num != 0:
+				note += str(abs(num))
+			elif str(row[0]) != "":
+				note = str(row[0])
+			if not by_target[targetId].has(note):
+				by_target[targetId][note] = true
+	for targetId in order:
+		var twa = DataManager.get_war_actor(targetId)
+		if twa == null:
+			continue
+		var snap = _unit_snapshot(targetId)
+		ret["effects"].append({
+			"id": targetId,
+			"name": twa.get_name(),
+			"note": "、".join(PoolStringArray(by_target[targetId].keys())),
+			"soldiers": int(snap.get("soldiers", 0)),
+			"hp": int(snap.get("hp", 0)),
+			"status": snap.get("status", []),
+		})
+	return ret
+
+# 查询某个武将此刻的兵力/体力/状态，用回传时刻的最新值（计策结算可能延后落地）。
+func _unit_snapshot(actorId: int) -> Dictionary:
+	var twa = DataManager.get_war_actor(actorId)
+	if twa == null:
+		return {}
+	var statuses = []
+	for buff in StaticManager.WAR_BUFF_STATUSES:
+		var turn = twa.get_buff(buff)["回合数"]
+		if turn > 0:
+			statuses.append("{0}:{1}".format([buff, min(99, turn)]))
+	return {
+		"soldiers": int(twa.get_soldiers()),
+		"hp": int(twa.actor().get_hp()),
+		"status": statuses,
+	}
+
+# 攻击（白兵战）摘要：{ok, attacker, defender, effects:[...]}。
+# 战损取 bf 记录的结算值（attackerRemaining/defenderRemaining），
+# 当前值用回传时刻的快照，避免读到结算过程中的中间态。
+func _attack_result(wa, act: Dictionary) -> Dictionary:
+	var bf = DataManager.get_current_battle_fight()
+	if bf == null:
+		return {}
+	var targetId = int(act.get("target", -1))
+	# status<=1 表示这场白兵战还没打完（remaining 仍是初值 9999），只报「已发起」
+	if bf.status <= 1:
+		var snap0 = _unit_snapshot(wa.actorId)
+		return {"ok": true, "name": "白兵战", "caster": wa.get_name(), "loser": "", "effects": [{
+			"id": wa.actorId, "name": wa.get_name(), "note": "发起白兵战",
+			"soldiers": int(snap0.get("soldiers", 0)), "hp": int(snap0.get("hp", 0)),
+			"status": snap0.get("status", []),
+		}]}
+	var effects = []
+	for pair in [
+		[bf.get_attacker_id(), bf.attackerSoldiers, bf.attackerRemaining],
+		[bf.get_defender_id(), bf.defenderSoldiers, bf.defenderRemaining],
+	]:
+		var aid = int(pair[0])
+		var before = int(pair[1])
+		var after = int(pair[2])
+		if aid <= 0:
+			continue
+		var snap = _unit_snapshot(aid)
+		if snap.empty():
+			continue
+		var note = ""
+		if before > after:
+			note = "战损兵力" + str(before - after)
+		else:
+			note = "兵力未损"
+		effects.append({
+			"id": aid,
+			"name": str(snap.get("name", "")),
+			"note": note,
+			"soldiers": int(snap["soldiers"]),
+			"hp": int(snap["hp"]),
+			"status": snap["status"],
+		})
+	# 名字在 snapshot 里没有，补一次
+	for e in effects:
+		var twa = DataManager.get_war_actor(int(e["id"]))
+		e["name"] = twa.get_name() if twa != null else str(e["id"])
+	var ret = {
+		"ok": true,
+		"name": "白兵战",
+		"caster": wa.get_name(),
+		"effects": effects,
+		"loser": "",
+	}
+	if bf.loserId >= 0:
+		var lwa = DataManager.get_war_actor(int(bf.loserId))
+		ret["loser"] = lwa.get_name() if lwa != null else str(bf.loserId)
+	return ret
 
 func _describe(act: Dictionary) -> String:
 	match str(act["tool"]):

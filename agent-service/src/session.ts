@@ -18,6 +18,9 @@ export interface ToolOutcome {
   legal_actions: LegalAction[];
   terrain?: TerrainCell[];
   economy?: Record<string, unknown>;
+  /** 用计 / 白兵战结算摘要，见 ToolResultPayload.stratagem / battle。 */
+  stratagem?: ToolResultPayload["stratagem"];
+  battle?: ToolResultPayload["battle"];
 }
 
 type Waiter<T> = { resolve: (v: T) => void; reject: (e: Error) => void };
@@ -125,9 +128,42 @@ export class TurnSession {
     return this.ask({ id: ++this.askSeq, kind: "estimate_stratagem", actor, target, skill });
   }
 
-  /** 只读查询：某个武将走到（多个）目标点的最少格数/机动力/最短路径。 */
-  askMove(actor: number, to: Array<[number, number]>): Promise<Record<string, unknown>> {
-    return this.ask({ id: ++this.askSeq, kind: "estimate_move", actor, to });
+  /**
+   * 只读查询：某个武将走到（多个）目标点的最少格数/机动力/最短路径。
+   * free=true 表示只算「理论上几天能到」：忽略其他武将的阻挡（远处敌将现在挡路，
+   * 但到那时早挪开了，按实际阻挡算会把远处的敌将误报成到不了）。
+   */
+  askMove(actor: number, to: Array<[number, number]>, free = false): Promise<Record<string, unknown>> {
+    return this.ask(free
+      ? { id: ++this.askSeq, kind: "estimate_move", actor, to, free }
+      : { id: ++this.askSeq, kind: "estimate_move", actor, to });
+  }
+
+  /**
+   * 一次查多个武将到同一组目标的行程：逐条登记 ask 再等同一趟长轮询批量下发。
+   * 模型逐个调 estimate_move 时每次都占一个工具轮次，这里合并成一次。
+   */
+  askMoves(actors: number[], to: Array<[number, number]>): Promise<Record<string, unknown>[]> {
+    // 全部登记完再交付：否则第一个 ask 就会把长轮询唤醒，后面的得再等一轮
+    const pending = actors.map((a) => ({
+      id: ++this.askSeq,
+      kind: "estimate_move" as const,
+      actor: a,
+      to,
+      free: true,
+    }));
+    const answers = pending.map((ask) => {
+      this.askBatch.push(ask);
+      return new Promise<Record<string, unknown>>((resolve, reject) => {
+        this.askInflight.set(ask.id, { resolve, reject });
+      });
+    });
+    const w = this.pollWaiter;
+    if (w) {
+      this.pollWaiter = null;
+      w.resolve({ type: "ask", asks: this.takeAskBatch() });
+    }
+    return Promise.all(answers);
   }
 
   private ask(ask: RandomAsk): Promise<Record<string, unknown>> {
@@ -242,6 +278,8 @@ export class TurnSession {
       legal_actions: payload.legal_actions,
       terrain: payload.terrain,
       economy: payload.economy,
+      stratagem: payload.stratagem,
+      battle: payload.battle,
     });
     return true;
   }

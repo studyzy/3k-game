@@ -155,8 +155,8 @@ test("pi 模式端到端：工具声明齐全、tool 消息回灌、回合内可
 
   const firstTools = (endpoint.requests[0].tools ?? []).map((x: any) => x.function.name);
   assert.deepEqual(firstTools, [
-    "list_legal_actions", "inspect_unit", "inspect_terrain", "inspect_economy", "estimate_stratagem", "estimate_move",
-    "move", "attack", "stratagem", "retreat", "end",
+    "list_legal_actions", "inspect_unit", "inspect_economy", "estimate_stratagem", "estimate_move",
+    "estimate_moves", "move", "attack", "stratagem", "retreat", "end",
   ]);
   const second = endpoint.requests[1].messages ?? [];
   assert.ok(second.some((m: any) => m.role === "tool"), "第二次请求应包含 tool 结果");

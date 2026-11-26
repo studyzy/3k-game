@@ -6,7 +6,7 @@
 //           await 结果后用最新状态刷新本地视图，loop 继续让 LLM 决策下一个动作。
 // end：唯一终止工具，结束本回合。
 import type { AgentTool } from "@earendil-works/pi-agent-core";
-import type { Budget, LegalAction, TerrainCell, ToolName } from "./types.ts";
+import type { Budget, LegalAction, SettlementOutcome, TerrainCell, ToolName } from "./types.ts";
 import type { TurnSession } from "./session.ts";
 import { validateAction } from "./validate.ts";
 
@@ -54,6 +54,75 @@ function findAction(
 
 /** 候选清单最多列这么多个目标，避免长清单把上下文吃掉。 */
 const MAX_CANDIDATES = 8;
+
+/** 动作结果里回传的单位字段：只保留会变的那几项。 */
+const DIFF_UNIT_FIELDS = ["id", "name", "vstate", "main", "pos", "ap", "soldiers", "hp", "status", "disabled"] as const;
+
+/**
+ * 动作结果只回变化的单位。
+ * 全量回传等于每步重发一遍全部武将档案（装备/技能/attrs/exp 都是静态的），实测单步 5.7KB。
+ * 这里按字段比较，只给变了的单位的可变字段；没变化的单位一个字都不回。
+ */
+function diffUnits(before: Array<Record<string, unknown>>, after: Array<Record<string, unknown>>) {
+  const prev = new Map(before.map((u) => [u.id, u]));
+  const changed: Array<Record<string, unknown>> = [];
+  for (const u of after) {
+    const old = prev.get(u.id);
+    const fields: Record<string, unknown> = {};
+    let dirty = old === undefined;
+    for (const key of DIFF_UNIT_FIELDS) {
+      const now = u[key];
+      const was = old?.[key];
+      if (JSON.stringify(now) !== JSON.stringify(was)) {
+        fields[key] = now;
+        dirty = true;
+      }
+    }
+    // 兵力归零/阵亡这类消失的单位也要告诉模型（after 里已不含它）
+    if (dirty) changed.push(fields);
+  }
+  const aliveIds = new Set(after.map((u) => u.id));
+  const gone = before.filter((u) => !aliveIds.has(u.id)).map((u) => u.id);
+  return gone.length > 0 ? { changed, gone } : changed;
+}
+
+/**
+ * 用计结果压成紧凑 JSON（键全英文，值用中文，模型读得懂且省 token）：
+ *   失败：{ success: false }
+ *   命中：{ success: true, result: [{ name: "吕布", effect: "士兵-77", currentStatus: "士兵539、体力99" }] }
+ * 只列真正被改变的武将，不再逐个回传 units 数组。
+ */
+function compactStratagem(
+  s: SettlementOutcome,
+  latest: Array<Record<string, unknown>>,
+  loser = "",
+): Record<string, unknown> {
+  if (!s.ok) return { success: false };
+  const result = s.effects.map((e) => {
+    // 兵力/体力取回传时刻的最新值：计策扣兵可能延后落地，Godot 结算瞬间读到的是旧值
+    const fresh = latest.find((u) => u.id === e.id);
+    const soldiers = typeof fresh?.soldiers === "number" ? fresh.soldiers : e.soldiers;
+    const hp = typeof fresh?.hp === "number" ? fresh.hp : e.hp;
+    const status = Array.isArray(fresh?.status) ? (fresh.status as string[]) : e.status;
+    const cur = [`士兵${soldiers}`, `体力${hp}`];
+    if (status.length > 0) cur.push(`状态${status.join("/")}`);
+    return { name: e.name, effect: e.note, currentStatus: cur.join("、") };
+  });
+  const out: Record<string, unknown> = { success: true };
+  if (result.length > 0) out.result = result;
+  if (loser !== "") out.loser = loser;
+  return out;
+}
+
+/** 经济只回有变化的键（敌方粮草会随用计变化）。 */
+function changedEconomy(before: Record<string, unknown>, after: Record<string, unknown> | undefined) {
+  if (!after) return undefined;
+  const fields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(after)) {
+    if (JSON.stringify(v) !== JSON.stringify(before?.[k])) fields[k] = v;
+  }
+  return fields;
+}
 
 /**
  * 猜错动作时的反馈：按同 actor 列出它当前真正能做的事。
@@ -186,27 +255,6 @@ export function buildTools(
     },
   };
 
-  const inspect_terrain: AgentTool<any> = {
-    name: "inspect_terrain",
-    label: "查看地形",
-    description: "按坐标查看地形类型与移动消耗（只读）。",
-    parameters: {
-      type: "object",
-      properties: {
-        pos: { type: "array", items: { type: "number" }, minItems: 2, maxItems: 2 },
-      },
-      required: ["pos"],
-      additionalProperties: false,
-    },
-    execute: async (_id, params) => {
-      const [x, y] = params.pos as number[];
-      // 未列出的格子就是平原
-      const row = live.terrain.find((t) => t[0] === x && t[1] === y);
-      const cell: TerrainCell = row ?? [x, y, "平原"];
-      return result(cell, { count: row ? 1 : 0 });
-    },
-  };
-
   const inspect_economy: AgentTool<any> = {
     name: "inspect_economy",
     label: "查看经济与回合",
@@ -253,7 +301,7 @@ export function buildTools(
       "只读：估算某个武将走到目标格的最少格数、需要多少机动力、以及最短路径（不消耗机动力、不推进战局）。",
       "to 可以一次给多个目标点（如三个城门 + 太守府），一次拿到全部结论；有可达的会按机动力消耗从小到大排好。",
       "算不通就用它：判断哪个城门离敌人最近（主攻门）、我能不能走过去、要走几格花多少机。",
-      "返回的 path 可以直接填进 move 的 path 参数。",
+      "只给格数、机动力与「几天到」，不给逐格路线；move 的 path 要自己按相邻格规划（A* 的连边含斜向，照抄会走不动）。",
     ].join(""),
     parameters: {
       type: "object",
@@ -278,6 +326,51 @@ export function buildTools(
         return result(`估算失败（引擎没有返回结论）：${text(data)}`, { ok: false, raw: data });
       }
       return result(summary, { ok: data.ok !== false, routes: data.routes });
+    },
+  };
+
+  // 批量行军预估：守方判「敌人先打哪个门」要挨个看敌将，逐个调 estimate_move
+  // 每次都占一个工具轮次（一趟长轮询）。这里一次把所有敌将和全部城门发给 Godot 合并算完。
+  // free=true：忽略其他武将阻挡，只算「理论上几天能到」——远处的敌将现在被自己人挡着，
+  // 不等于它后天到不了。查我方武将（要照着 path 走）仍用 estimate_move。
+  const estimate_moves: AgentTool<any> = {
+    name: "estimate_moves",
+    label: "批量预估算路",
+    description: [
+      "只读：一次估算多个武将到同一组目标格的行程。每个武将只回「最便宜的那个目标」一行（几格、多少机、几天到），不回全部目标，也不给逐格路线。",
+      "口径与 estimate_move 相同（我方可动 / 敌方按「下轮可动」），但忽略其他武将的阻挡——",
+      "只回答「理论上几天能到」，用来判断敌方主攻门、谁最先威胁太守府，不必逐个调 estimate_move。",
+    ].join(""),
+    parameters: {
+      type: "object",
+      properties: {
+        actors: {
+          type: "array",
+          description: "武将 id 列表（敌方武将都从开场消息里拿）",
+          minItems: 1,
+          items: { type: "number" },
+        },
+        to: {
+          type: "array",
+          description: "目标格列表 [[x,y], ...]",
+          minItems: 1,
+          items: { type: "array", items: { type: "number" }, minItems: 2, maxItems: 2 },
+        },
+      },
+      required: ["actors", "to"],
+      additionalProperties: false,
+    },
+    execute: async (_id, params) => {
+      const actors = (params.actors as number[]).map((a) => Number(a));
+      const to = (params.to as number[][]).map((p) => [Number(p[0]), Number(p[1])] as [number, number]);
+      const answers = await session.askMoves(actors, to);
+      const lines: string[] = [];
+      for (const data of answers) {
+        const summary = typeof data.summary === "string" ? data.summary : "";
+        if (summary !== "") lines.push(summary);
+      }
+      if (lines.length === 0) return result("估算失败（引擎没有返回结论）", { ok: false, raw: answers });
+      return result(lines.join("\n"), { ok: true });
     },
   };
 
@@ -316,18 +409,34 @@ export function buildTools(
     });
 
     // 刷新本地视图：Godot 已算好执行后的 units / legal_actions
+    const prevUnits = live.units;
+    const prevEconomy = live.economy;
     live.units = outcome.units;
     live.legal_actions = outcome.legal_actions;
     if (outcome.terrain) live.terrain = outcome.terrain;
     if (outcome.economy) live.economy = outcome.economy;
 
+    const economy = changedEconomy(prevEconomy, outcome.economy);
+
+    // 用计 / 白兵战：Godot 已把结算整理成「成功与否 + 每个受影响武将的变化」，
+    // 压成 {success, result:[{name, effect, currentStatus}]} 回给模型，不必再回 units 数组。
+    // 当前兵力/体力用回传的 units 里的最新值（结算瞬间读到的可能还是旧值）。
+    if (tool === "stratagem" && outcome.stratagem) {
+      return result(compactStratagem(outcome.stratagem, outcome.units), { action, ok: outcome.ok });
+    }
+    if (tool === "attack" && outcome.battle) {
+      return result(compactStratagem(outcome.battle, outcome.units, outcome.battle.loser ?? ""), { action, ok: outcome.ok });
+    }
+
+    // 其余动作只回「有变化」的单位与最小字段：完整档案（装备/技能/attrs/exp）开场已经给全，
+    // 每步全量回传会把上下文塞满（实测单步约 5.7KB，一回合 12 步），还会淹没真正变化的 ap/兵力。
     const summary = {
       ok: outcome.ok,
       outcome: outcome.outcome,
-      units: outcome.units,
+      units: diffUnits(prevUnits, outcome.units),
       // 敌方粮草会在回合内变化（夺米转金等），摘要里同步最新值避免模型读到过期数据。
-      economy: outcome.economy,
-      hint: "继续决定下一个动作；不确定某武将能打谁/能用什么计时调 list_legal_actions。全部武将与机动力都无事可做时调用 end。",
+      economy,
+      hint: "继续决定下一个动作；动作结果已含最新合法动作，同一武将本回合不要再调 list_legal_actions。全部武将与机动力都无事可做时调用 end。",
     };
     return result(summary, { action, ok: outcome.ok });
   }
@@ -364,7 +473,14 @@ export function buildTools(
   const attack: AgentTool<any> = {
     name: "attack",
     label: "攻击",
-    description: "让一个武将攻击一个敌方武将并立即结算（胜负不确定）。返回结算后的战场状态，可以继续调用其它动作。",
+    description: [
+      "让一个武将攻击相邻的敌方武将并立即结算白兵战（胜负不确定），之后可以继续调用其它动作。",
+      "返回结构与 stratagem 相同，另多一个 loser：",
+      '  · {"success": true, "result": [{"name":"吕布","effect":"战损兵力312","currentStatus":"士兵900、体力99"}, ...], "loser": "吕布"}',
+      "      name 武将姓名 / effect 本场战损 / currentStatus 战后当前值；双方都会列出来。",
+      '  · loser：战败方姓名；双方都还在打或未分胜负时没有这个键。',
+      "看 effect 和 currentStatus 就能判断这一仗是赚是亏，不必再 inspect_unit 查这两个人。",
+    ].join("\n"),
     parameters: {
       type: "object",
       properties: { actor: { type: "number" }, target: { type: "number" }, ...ACT_PROPS },
@@ -377,7 +493,17 @@ export function buildTools(
   const stratagem: AgentTool<any> = {
     name: "stratagem",
     label: "用计",
-    description: "让一个武将对目标发动计策并立即结算。返回结算后的战场状态，可以继续调用其它动作。",
+    description: [
+      "让一个武将对目标发动计策并立即结算（机动力当场扣掉，无论中不中），之后可以继续调用其它动作。",
+      "返回的是结算结论，不是战场全量快照（其余武将没变化就不要再看它们了）：",
+      '  · {"success": false} —— 计策没命中，什么都没发生（机动力已扣）。',
+      '  · {"success": true, "result": [...]} —— 命中。result 每个元素是一个被改变的武将：',
+      '      name          武将姓名，如 "吕布"；只列真正被改变的，没变的武将不出现。',
+      '      effect        发生了什么，如 "兵力下降124"、"体力下降9"、"免伤30"、"获得状态"。',
+      '      currentStatus 结算后该武将的当前值，如 "士兵539、体力99、状态迟滞:2"。',
+      '  · result 为空表示命中但没造成任何效果（如对方免疫）。',
+      "需要判断「再打一次还值不值」时，用 currentStatus 里的士兵数，不要再去 inspect_unit 查同一个武将。",
+    ].join("\n"),
     parameters: {
       type: "object",
       properties: {
@@ -429,7 +555,7 @@ export function buildTools(
 
   return {
     tools: [
-      list_legal_actions, inspect_unit, inspect_terrain, inspect_economy, estimate_stratagem, estimate_move,
+      list_legal_actions, inspect_unit, inspect_economy, estimate_stratagem, estimate_move, estimate_moves,
       move, attack, stratagem, retreat, end,
     ],
     state,
@@ -437,8 +563,8 @@ export function buildTools(
 }
 
 export const TOOL_NAMES = [
-  "list_legal_actions", "inspect_unit", "inspect_terrain", "inspect_economy", "estimate_stratagem", "estimate_move",
-  "move", "attack", "stratagem", "retreat", "end",
+  "list_legal_actions", "inspect_unit", "inspect_economy", "estimate_stratagem", "estimate_move",
+  "estimate_moves", "move", "attack", "stratagem", "retreat", "end",
 ] as const;
 
 /** 会交给 Godot 执行的工具（不含 end）。 */
@@ -446,5 +572,6 @@ export const ACT_TOOL_NAMES = ["move", "attack", "stratagem", "retreat"] as cons
 
 /** 只读侦察工具：查询当前状态，不推进战局，不占 max_tool_calls 预算。 */
 export const READ_TOOL_NAMES = [
-  "list_legal_actions", "inspect_unit", "inspect_terrain", "inspect_economy", "estimate_stratagem", "estimate_move",
+  "list_legal_actions", "inspect_unit", "inspect_economy", "estimate_stratagem", "estimate_move",
+  "estimate_moves",
 ] as const;

@@ -135,6 +135,100 @@ test("工具结果里的最新 legal_actions 会刷新，影响下一个动作�
   assert.equal(done.type, "end");
 });
 
+test("动作结果只回变化的单位与最小字段，不再重发全部武将档案", async () => {
+  const { session } = openWith((ctx) => {
+    if (ctx.callIndex === 0) return toolCallMove();
+    if (ctx.callIndex === 1) {
+      const joined = ctx.lastToolResults.join("\n");
+      assert.ok(!joined.includes("黄鬃"), "静态装备不该重复回传");
+      assert.ok(!joined.includes("attrs"), "属性不该重复回传");
+      assert.ok(joined.includes('"ap":13') || joined.includes('"ap": 13') || joined.includes("13"), "变化的机动力要回传");
+      return calls(toolCall("end", { reason: "看完" }));
+    }
+    return calls(toolCall("end", { reason: "兜底" }));
+  });
+
+  const a1 = await takeAction(session);
+  assert.equal(a1.type, "action");
+  const moved = sampleRequest().units.map((u) => (u.id === 12 ? { ...u, pos: [8, 15], ap: 13 } : u));
+  session.submitResult(a1.action.seq, {
+    seq: a1.action.seq,
+    ok: true,
+    outcome: "移动完成",
+    units: moved,
+    legal_actions: [{ id: "a9", tool: "attack", actor: 12, target: 31, cost: { ap: 4 } }],
+  });
+
+  const done = await takeAction(session);
+  assert.equal(done.type, "end");
+});
+
+test("用计结果拼成中文：命中/失败 + 每个受影响武将的变化与当前值", async () => {
+  const { session } = openWith((ctx) => {
+    if (ctx.callIndex === 0) {
+      return calls(toolCall("stratagem", { actor: 12, target: 31, skill: "火计", reasoning: "【模式:磨盘】削兵" }));
+    }
+    if (ctx.callIndex === 1) {
+      const joined = ctx.lastToolResults.join("\n");
+      // 紧凑 JSON：success + result 数组，键全英文
+      assert.match(joined, /"success":true/);
+      assert.match(joined, /"name":"曹操"/);
+      assert.match(joined, /"effect":"兵力下降124"/);
+      // 兵力/体力/状态取回传 units 里的最新值（样本曹操 soldiers 900、hp 50、status 迟滞:3）
+      assert.match(joined, /"currentStatus":"士兵900、体力50、状态迟滞:3"/);
+      assert.ok(!joined.includes('"units"'), "用计结果不该再回 units 数组");
+      return calls(toolCall("end", { reason: "打完" }));
+    }
+    return calls(toolCall("end", { reason: "兜底" }));
+  });
+
+  const a1 = await takeAction(session);
+  assert.equal(a1.type, "action", JSON.stringify(a1));
+  session.submitResult(a1.action.seq, {
+    seq: a1.action.seq,
+    ok: true,
+    outcome: "用计火计→#31",
+    units: sampleRequest().units,
+    legal_actions: [],
+    stratagem: {
+      ok: true,
+      name: "火计",
+      caster: "张飞",
+      effects: [{ id: 31, name: "曹操", note: "兵力下降124", soldiers: 776, hp: 50, status: ["迟滞:2"] }],
+    },
+  } as never);
+
+  const done = await takeAction(session);
+  assert.equal(done.type, "end");
+});
+
+test("用计失败时只回一句失败，不回单位列表", async () => {
+  const { session } = openWith((ctx) => {
+    if (ctx.callIndex === 0) {
+      return calls(toolCall("stratagem", { actor: 12, target: 31, skill: "火计", reasoning: "【模式:磨盘】削兵" }));
+    }
+    if (ctx.callIndex === 1) {
+      const joined = ctx.lastToolResults.join("\n");
+      assert.match(joined, /\{"success":false\}/);
+      return calls(toolCall("end", { reason: "没打中" }));
+    }
+    return calls(toolCall("end", { reason: "兜底" }));
+  });
+
+  const a1 = await takeAction(session);
+  session.submitResult(a1.action.seq, {
+    seq: a1.action.seq,
+    ok: true,
+    outcome: "用计火计→#31",
+    units: sampleRequest().units,
+    legal_actions: [],
+    stratagem: { ok: false, name: "火计", caster: "张飞", effects: [] },
+  } as never);
+
+  const done = await takeAction(session);
+  assert.equal(done.type, "end");
+});
+
 test("list_legal_actions 只列我方、不含 end、不带内部 id", async () => {
   const { session } = openWith((ctx) => {
     if (ctx.callIndex === 0) return calls(toolCall("list_legal_actions", {}));
@@ -364,6 +458,35 @@ test("estimate_move：下发多个目标点，回答后作为工具结果喂回�
   assert.equal(session.actions.length, 0);
 });
 
+test("estimate_moves：多个武将一次查询合并成一趟 ask，逐将结论按序回给模型", async () => {
+  const script = ({ callIndex }: any) => (callIndex === 0
+    ? calls(toolCall("estimate_moves", { actors: [12, 13], to: [[15, 10], [19, 10]] }, "m1"))
+    : calls(toolCall("end", { reason: "算完敌情" })));
+  const { session } = openWith(script);
+
+  let ask: any = null;
+  for (let i = 0; i < 10; i++) {
+    const r = await session.nextAction(3000);
+    if (r.type === "ask") { ask = r; break; }
+    assert.equal(r.type, "progress", `期望 ask，实际 ${JSON.stringify(r)}`);
+  }
+  assert.ok(ask, "未收到批量预估查询");
+  // 两个武将合并成同一批下发，一次长轮询拿全
+  assert.equal(ask.asks.length, 2);
+  assert.deepEqual(ask.asks.map((q: any) => q.actor), [12, 13]);
+  assert.equal(ask.asks[0].free, true, "批量预估忽略阻挡，走 free 口径");
+  assert.deepEqual(ask.asks[0].to, [[15, 10], [19, 10]]);
+
+  assert.ok(session.submitAnswers([
+    { id: ask.asks[0].id, data: { ok: true, summary: "吕布 → [15,10] 7 格，26 机（下轮可动 25 机，不够）" } },
+    { id: ask.asks[1].id, data: { ok: true, summary: "高顺 → [19,10] 9 格，33 机（下轮可动 22 机，不够）" } },
+  ]));
+
+  const end = await session.nextAction(3000);
+  assert.equal(end.type, "end");
+  assert.equal(session.actions.length, 0);
+});
+
 test("estimate_stratagem：响应后到的回答也能对上（earlyAnswers）", async () => {
   const session = new TurnSession("t", sampleRequest(), GODOT_IDLE_TIMEOUT_MS);
   const pending = session.askEstimate(12, 31, "火计");
@@ -389,7 +512,7 @@ test("SYSTEM_PROMPT 结构与易错规则锚点", async () => {
   assert.match(SYSTEM_PROMPT, /战场指挥官/);
   // 计策射程逐计不同，6 只是上限；模型看不到射程字段，必须查 legal_actions
   assert.match(SYSTEM_PROMPT, /射程因计而异/);
-  assert.match(SYSTEM_PROMPT, /list_legal_actions\(actor\) 确认/);
+  assert.match(SYSTEM_PROMPT, /按动作结果里带回的合法动作确认/);
   // 城墙街区隔墙打不到（IWar_Attack 排除 + 城墙阻断路径），不能建议「远程隔墙消耗」
   assert.doesNotMatch(SYSTEM_PROMPT, /远程隔墙消耗/);
   // 守方站城格会被强制转弓、锁「守城门」阵（clBattleFight._get_special_units_transforms）
@@ -421,6 +544,10 @@ test("SYSTEM_PROMPT 结构与易错规则锚点", async () => {
   assert.match(SYSTEM_PROMPT, /estimate_move/);
   assert.match(SYSTEM_PROMPT, /每回合都要重算，不许沿用上回合结论/);
   assert.match(SYSTEM_PROMPT, /站在非主攻门的城门格上不算守好/);
+  // 已经站在错误的城门上也要改走主攻门；本回合到不了不是不出发的理由
+  assert.match(SYSTEM_PROMPT, /立刻改走主攻门/);
+  assert.match(SYSTEM_PROMPT, /「本回合到不了」从来不是不出发的理由/);
+  assert.match(SYSTEM_PROMPT, /晚 1 天也必须去/);
   // 「不够」只表示本回合走不到，不是不用去；按天数比谁先到
   assert.match(SYSTEM_PROMPT, /比天数，不比单回合/);
   assert.match(SYSTEM_PROMPT, /「不够」不是「不用去」/);
@@ -432,7 +559,10 @@ test("SYSTEM_PROMPT 结构与易错规则锚点", async () => {
   assert.match(SYSTEM_PROMPT, /太守府格可以被临时让开/);
   assert.match(SYSTEM_PROMPT, /先挪开一格/);
   // 可达路线，不按直线格数
-  assert.match(SYSTEM_PROMPT, /不要自己心算/);
+  assert.match(SYSTEM_PROMPT, /别心算直线格数/);
+  // 判敌情用批量预估一次算完，不许挨个调 estimate_move
+  assert.match(SYSTEM_PROMPT, /判敌情用 estimate_moves 一次算完/);
+  assert.match(SYSTEM_PROMPT, /estimate_moves\(actors=\[全部敌将\], to=\[全部城门格\]\)/);
   assert.match(SYSTEM_PROMPT, /移动被挡就重算/);
   // 预判下一轮贴上来就先占位
   assert.match(SYSTEM_PROMPT, /预判下一轮 → 本回合先把位置占好/);
