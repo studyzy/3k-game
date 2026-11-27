@@ -11,8 +11,9 @@
 #             综合命中率 = 1 - Π(1 - 单目标命中率)。
 #   作用对象  StratagemExecution.get_affected_actors()：范围计策取覆盖范围内
 #             同阵营、地形合法的武将，与执行时 targets 完全一致。
-#   伤害量    count_formula_string(impact.soldier/hp/rice/heal)：random() 取整后取均值
-#             （即 (lo+hi)/2），兵力系数、施术者兵力按当前状态逐个目标重算。
+#   伤害量    count_formula_string(impact.soldier/hp/rice/heal)：random() 不影响结果——
+#             预估时按局面种子取定一组随机数，并留给真正结算时使用（clStratagem 原样装回公式），
+#             所以「预估显示的损失」就是「画面上结算的损失」。兵力系数、施术者兵力按当前状态逐个目标重算。
 #             不触发技能（20002/20011/20029）与装备的追加修正，所以是基准估算。
 #   后续连锁  StratagemInfo._get_extended_targets()：共杀/劫火/乱水的邻接蔓延、
 #             铁索传导后的完整受害名单。
@@ -21,6 +22,12 @@
 # 只读 StaticManager 的计策表，自己用 StratagemExecution 的只读方法算。
 # ==============================================================================
 extends Resource
+
+const PENDING_KEY = "计策.ONCE.预估随机"
+const PENDING_TTL_MS = 120000
+
+var _seed_key = ""
+var _seed_random = null
 
 
 # 入口：fromId 对 targetId 使用 name 计策的预估。name 为空时取 env「计策名」。
@@ -80,8 +87,13 @@ func estimate(fromId: int, targetId: int, name: String = "") -> Dictionary:
 	res["defenders"] = defenders
 	res["cost_ap"] = info.get_cost_ap(fromId)
 	res["is_stratagem"] = info.is_stratagem()
+	# 命中率按原值返回：命中与否仍由结算时掷骰决定（有技能/装备介入，预估不抢这个判定）
 
 	# 命中后的结果：每个作用对象一份（含被波及的连锁对象）
+	# 伤害公式里的 random() 用按种子取的随机值（不是均值），并把取到的那批值挂到
+	# 「本次预计要用的计策」上；真正结算时由 clStratagem 原样装回公式执行，
+	# 所以预估显示的结果与画面上的结算完全一致，不再随机浮动。
+	_use_seed(fromId, targetId, name, targets)
 	var impacts = {}
 	var officer = {"soldier": [], "hp": [], "rice": [], "heal": [], "buff": [], "special": []}
 	for tid in targets:
@@ -557,10 +569,10 @@ func _terrain_of(actorId: int) -> String:
 	return map.get_blockCN_by_position(wa.position)
 
 
-# 求公式的期望值：把每个 random(a,b) 换成 (a+b)/2 的数值后交给引擎求值，
+# 求公式的结果：把每个 random(a,b) 换成已经取好的随机值后交给引擎求值，
 # 属性替换、int()/min()/max() 的语义与引擎完全一致。
 # random 的参数本身可能是表达式（如 a.等级-1+(a.武+a.知)/10），
-# 所以先用引擎把参数算成数字，再取均值。
+# 所以先用引擎把参数算成数字，再按种子取该区间内的值（并记下，结算时沿用）。
 func _avg_formula(formula: String, aId: int, bId: int, dic: Dictionary) -> int:
 	var f = formula
 	var pos = f.find("random(")
@@ -569,14 +581,68 @@ func _avg_formula(formula: String, aId: int, bId: int, dic: Dictionary) -> int:
 		if end < 0:
 			break
 		var args = f.substr(pos + 7, end - pos - 7).split(",")
-		var avg = "0"
+		var val = "0"
 		if args.size() == 2:
 			var lo = int(Global.count_formula_number(args[0], aId, bId, dic))
 			var hi = int(Global.count_formula_number(args[1], aId, bId, dic))
-			avg = str((lo + hi) / 2)
-		f = f.substr(0, pos) + avg + f.substr(end + 1)
-		pos = f.find("random(", pos + avg.length())
+			val = str(_seed_value(lo, hi))
+		f = f.substr(0, pos) + val + f.substr(end + 1)
+		pos = f.find("random(", pos + val.length())
 	return int(Global.count_formula_number(f, aId, bId, dic))
+
+
+# ---------------- 预估随机数与结算共用 ----------------
+# 预估时按「施术者/目标/计策/当前战局/双方现有武将」定种子，取到的随机值同时留一份到
+# common_variable[计策.ONCE.预估随机]，由 clStratagem 在真正结算时按同样顺序取出装回公式。
+# 这样模型看到的预估结果 = 玩家画面上看到的结算结果。同一局面重复预估也得到同一组数。
+func _use_seed(fromId: int, targetId: int, name: String, targets) -> void:
+	var ids = []
+	for tid in targets:
+		ids.append(int(tid))
+	var key = to_json([
+		fromId, targetId, name, ids,
+		DataManager.year, DataManager.month, DataManager.day,
+		DataManager.get_current_war_fight().date if DataManager.get_current_war_fight() != null else 0,
+	])
+	if key != _seed_key:
+		var rng = RandomNumberGenerator.new()
+		rng.seed = hash(key)
+		_seed_key = key
+		_seed_random = rng
+		DataManager.common_variable[PENDING_KEY] = {
+			"key": key, "from": fromId, "target": targetId, "name": name,
+			"values": [], "at": OS.get_ticks_msec(),
+		}
+	_pending()["values"] = []
+	_pending()["at"] = OS.get_ticks_msec()
+	return
+
+
+# 本次估算该用的随机数（每次预估从头按同一顺序取值，结果可复现），并记下待结算使用
+func _seed_value(lo: int, hi: int) -> int:
+	if _seed_random == null:
+		_use_seed(- 1, - 1, "", [])
+	var val = _seed_random.randi_range(lo, hi)
+	_record(val)
+	return val
+
+
+func _record(val: int) -> void:
+	var pending = _pending()
+	if pending != null:
+		pending["values"].append(val)
+	return
+
+
+func _pending():
+	if not DataManager.common_variable.has(PENDING_KEY):
+		return null
+	var pending = DataManager.common_variable[PENDING_KEY]
+	if typeof(pending) != TYPE_DICTIONARY:
+		return null
+	if OS.get_ticks_msec() - int(pending.get("at", 0)) > PENDING_TTL_MS:
+		return null
+	return pending
 
 
 # 从 openPos（指向 random 后的 "("）起找到配对的 ")"

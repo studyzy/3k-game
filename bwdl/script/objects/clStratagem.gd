@@ -12,7 +12,14 @@ enum SchemeStatus{
 }
 
 
+# 与 AI 用计预估（packed/sgz_script/war/AI/StratagemProjection.gd）共用的随机值：
+# AI 预估时记下「这次预计要用的计策」将用到的 random() 取值，真正结算时原样装回公式，
+# 保证模型看到的预估结果与玩家看到的结算结果一致。
+const ESTIMATE_PENDING_KEY = "计策.ONCE.预估随机"
+
 var name = ""
+# 所属的计策执行对象（预估借来算伤害的 StratagemExecution 也有）；null 表示没有
+var execution = null
 var data = {}
 var learn = {}
 var cost = {}
@@ -21,8 +28,10 @@ var targeting = {}
 
 var status = SchemeStatus.OK
 
-func _init(setting: Dictionary) -> void :
+# _execution：所属的执行对象（strategy execution）。AI 预估借来算伤害的临时对象也要传，见 _take_estimate_randoms
+func _init(setting: Dictionary, _execution = null) -> void :
 	name = setting["name"]
+	execution = _execution
 	data = setting["data"]
 	learn = setting["learn"]
 	cost = setting["cost"]
@@ -603,10 +612,112 @@ func get_rate(fromId: int, targetId: int, raw: bool = false, performing: bool = 
 
 
 
+# ---------------- AI 预估随机值 ----------------
+# 结构见 StratagemProjection._use_seed：{"key": 局面指纹, "from": 施术者, "target": 目标,
+# "name": 计策, "values": [...], "at": 毫秒}，按预估时的取值顺序排列。
+# selectKey 是预估方自己算出的局面指纹，用来确认「就是这次预估要用的那组值」。
+func _take_estimate_randoms(fromWA: War_Actor, targets: PoolIntArray, selectKey: String = "") -> Array:
+	# 防御：预估借对象时也会走到这里。万一仍有未消耗的取值（上次预估已作废），
+	# 真实结算会把这些值直接装进公式，必须先摘掉，绝不能真算一遍。
+	if execution != null and execution.results.empty():
+		DataManager.unset_env(ESTIMATE_PENDING_KEY)
+		return []
+	if not DataManager.common_variable.has(ESTIMATE_PENDING_KEY):
+		return []
+	var pending = DataManager.common_variable[ESTIMATE_PENDING_KEY]
+	if typeof(pending) != TYPE_DICTIONARY:
+		return []
+	if int(pending.get("from", - 1)) != fromWA.actorId or str(pending.get("name", "")) != name:
+		return []
+	if selectKey != "" and str(pending.get("key", "")) != selectKey:
+		return []
+	if str(pending.get("key", "")) != estimate_key(fromWA.actorId, int(pending.get("target", - 1)), targets):
+		return []
+	var values = pending.get("values", [])
+	DataManager.common_variable.erase(ESTIMATE_PENDING_KEY)
+	if typeof(values) != TYPE_ARRAY:
+		return []
+	return values
+
+
+# 局面指纹，口径必须与 StratagemProjection._use_seed 完全一致
+func estimate_key(fromId: int, targetId: int, targets) -> String:
+	var ids = []
+	for tid in targets:
+		ids.append(int(tid))
+	var wf = DataManager.get_current_war_fight()
+	return to_json([
+		fromId, targetId, name, ids,
+		DataManager.year, DataManager.month, DataManager.day,
+		wf.date if wf != null else 0,
+	])
+
+
+# 把公式里的 random(a,b) 逐个换成预估时取到的值，返回替换后的公式。
+# 顺序与预估时一致：先按目标顺序处理，同一目标的公式里从左到右。
+func _apply_estimate_randoms(formula: String, randoms: Array, fromWA: War_Actor, targetId: int, dic: Dictionary) -> String:
+	if randoms.empty():
+		return formula
+	var f = formula
+	var pos = f.find("random(")
+	while pos >= 0:
+		var end = _match_formula_paren(f, pos + 6)
+		if end < 0:
+			break
+		var args = f.substr(pos + 7, end - pos - 7).split(",")
+		var val = ""
+		if args.size() == 2:
+			var lo = int(Global.count_formula_number(args[0], fromWA.actorId, targetId, dic))
+			var hi = int(Global.count_formula_number(args[1], fromWA.actorId, targetId, dic))
+			var avg = (lo + hi) / 2
+			var idx = - 1
+			for k in range(randoms.size()):
+				if int(randoms[k]) == avg:
+					idx = k
+					break
+			if idx >= 0:
+				val = str(min(hi, max(lo, int(randoms[idx]))))
+				randoms.remove(idx)
+		if val == "":
+			return formula
+		f = f.substr(0, pos) + val + f.substr(end + 1)
+		pos = f.find("random(", pos + val.length())
+	return f
+
+
+# 整条公式的结果替换：预估时该公式没有 random(a,b)，但公式本身可能是随机数
+# （如状态回合 random(1,3)），按「与预估同值」换成预估记下的那个数。
+func _estimated_value(value: int, randoms: Array) -> int:
+	if randoms.empty():
+		return value
+	for k in range(randoms.size()):
+		if int(randoms[k]) == value:
+			randoms.remove(k)
+			return value
+	randoms.clear()
+	return value
+
+
+# 从 openPos（指向 random 后的 "("）起找配对的 ")"（公式文本，不是替换后的表达式）
+func _match_formula_paren(s: String, openPos: int) -> int:
+	var depth = 0
+	for k in range(openPos, s.length()):
+		var c = s[k]
+		if c == "(":
+			depth += 1
+		elif c == ")":
+			depth -= 1
+			if depth == 0:
+				return k
+	return - 1
+
+
 func _impact_for_soldier_damage(fromWA: War_Actor, targets: PoolIntArray, formula: String, isStratagem: bool = true) -> Dictionary:
 	var ret = {}
 	
 	var addedWisdom = fromWA.actor().get_equip_feature_total("计策附加智力")
+	# 有 AI 预估留下的随机值就沿用（预估结果即结算结果），用完即销毁
+	var randoms = _take_estimate_randoms(fromWA, targets)
 	var map = SceneManager.current_scene().war_map
 	for targetId in targets:
 		var targetWA = DataManager.get_war_actor(targetId)
@@ -639,7 +750,7 @@ func _impact_for_soldier_damage(fromWA: War_Actor, targets: PoolIntArray, formul
 		dic["b.知"] = DataManager.get_env_int("计策.ONCE.目标智力") - targetWisdom
 		DataManager.unset_env("计策.ONCE.附加智力")
 		DataManager.unset_env("计策.ONCE.目标智力")
-		var damage = int(Global.count_formula_number(formula, fromWA.actorId, targetId, dic))
+		var damage = int(Global.count_formula_number(_apply_estimate_randoms(formula, randoms, fromWA, targetId, dic), fromWA.actorId, targetId, dic))
 		if isStratagem:
 			
 			var weakened = get_targeting_weakened_terrian()
@@ -702,6 +813,7 @@ func _impact_for_rice_damage(fromWA: War_Actor, targets: PoolIntArray, formula: 
 
 func _impact_for_hp_damage(fromWA: War_Actor, targets: PoolIntArray, formula: String) -> Dictionary:
 	var ret = {}
+	var randoms = _take_estimate_randoms(fromWA, targets)
 	for targetId in targets:
 		var targetWA = DataManager.get_war_actor(targetId)
 		if targetWA == null or targetWA.disabled:
@@ -713,6 +825,7 @@ func _impact_for_hp_damage(fromWA: War_Actor, targets: PoolIntArray, formula: St
 				continue
 
 		var damage = int(Global.count_formula_number(formula, fromWA.actorId, targetId))
+		damage = _estimated_value(damage, randoms)
 		
 		if fromWA.get_buff_label_turn(["伤神"]) > 0:
 			damage = int(damage / 2)
@@ -755,6 +868,7 @@ func _impact_for_hp_heal(fromWA: War_Actor, targets: PoolIntArray, formula: Stri
 
 func _impact_for_buff(fromWA: War_Actor, targets: PoolIntArray, setting: Dictionary) -> Dictionary:
 	var ret = {}
+	var randoms = _take_estimate_randoms(fromWA, targets)
 	for targetId in targets:
 		var targetWA = DataManager.get_war_actor(targetId)
 		if targetWA == null or targetWA.disabled:
@@ -773,6 +887,7 @@ func _impact_for_buff(fromWA: War_Actor, targets: PoolIntArray, setting: Diction
 		if turns <= 0:
 			if "formula" in setting:
 				turns = int(Global.count_formula_number(setting["formula"], fromWA.actorId, targetId))
+				turns = _estimated_value(turns, randoms)
 		if turns <= 0:
 			continue
 		if targetWA.set_buff(buff, turns, fromWA.actorId) <= 0:

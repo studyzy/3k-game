@@ -91,6 +91,8 @@ func _init(_fromId: int, _name: String, _skill: String = ""):
 	if name in ["十面埋伏"]:
 		skip_redo = 1
 	stratagem = StaticManager.get_stratagem(name)
+	if stratagem != null:
+		stratagem.execution = self
 	skill = _skill
 	return
 
@@ -126,6 +128,8 @@ func load_from_save_data(dic: Dictionary) -> void :
 	if actionId < 0:
 		set_actioner(fromId)
 	stratagem = StaticManager.get_stratagem(name)
+	if stratagem != null:
+		stratagem.execution = self
 	return
 
 
@@ -140,6 +144,8 @@ func rebuild_from_env() -> void :
 	name = DataManager.get_env_str("计策名")
 	
 	stratagem = StaticManager.get_stratagem(name)
+	if stratagem != null:
+		stratagem.execution = self
 	
 	targetId = DataManager.get_env_int("被用计者")
 	if targetId < 0:
